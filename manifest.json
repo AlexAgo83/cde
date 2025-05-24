@@ -1,0 +1,12 @@
+{
+  "namespace" : "cde",
+  "icon": "assets/cde-icon-dark.png",
+  "setup": "setup.mjs",
+  "module": [
+    "displayStats.mjs"
+  ],
+  "load": [
+    "assets/templates.html",
+    "assets/styles.css"
+  ]
+}

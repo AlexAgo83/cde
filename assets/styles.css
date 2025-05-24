@@ -1,0 +1,43 @@
+/* CDE button */
+.cde {
+	width: 16px;
+	min-width: 16px;
+	height: 16px;
+	background-image: var(--icon-light), linear-gradient(to right, #edf0f2, #edf0f2)  !important;
+	background-repeat: no-repeat !important;
+	background-size: contain;
+	border: 0px;
+	margin: 0px;
+}
+.darkMode .cde {
+	background-image: var(--icon-dark), linear-gradient(to right, #2d3542, #2d3542) !important;
+}
+
+/* Top bar */
+.cde.topbar {
+	margin-right: 4px;
+}
+.cde.topbar:hover,
+.cde.topbar:focus {
+	opacity: 80%;
+}
+
+/* Minibar */
+#cde.minibar {
+	padding: 4px;
+}
+
+/* CDE modal */
+.cde-modal > .swal2-modal {
+	width: 900px;
+}
+.cde-modal textarea {
+	height: 440px;
+	min-height: 100px;
+	max-height: calc(100vh - 170px);
+}
+.darkMode .cde-modal textarea {
+	background-color: #383838;
+	color: white;
+	border: 1px solid var(--synergy-border-bg);
+}
