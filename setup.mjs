@@ -1,61 +1,34 @@
 // setup.mjs
 
+// === Plan to 1.4.0 ===
+	// Stage 0 - Renamed openExportUI callback to onExportOpen
+	// Stage 1 – Unified data collection (processCollectData)
+	// Stage 2 – Structured stats display (displayStats)
+	// Stage 3 – Naming normalization & typo cleanup
+	// Stage 4 – Structured JSON export
+	// Stage 5 – Custom export JSON support
+	// Stage 6 – Export compression (e.g., UTF16)
+	// Stage 7 – Settings cleanup and consolidation
+	// Stage 8 - API function
 
-// --- Displayed Data ---
-	// TODO : Display item charges
-	// TODO : Display active potions
-	// DONE : Display current spell
-	// DONE : Display mastery levels
-	// DONE : Display astrology bonus modifiers
-	// DONE : Display active agility obstacle course
-	// DONE : Display global Township data
-	// DONE : Display unlocked pets
-	// DONE : Display purchased shop upgrades
-	// DONE : Display Auto Eat HP limit
-	// DONE : Display Auto Looting status
-	// DONE : Display unlocked ancient relics
-	// DONE : Display unlocked Cartography POIs
-	// DONE : Display Casual & Melvor tasks
-	// DONE : Display active prayers
-	// DONE : Display planted crops (Farming)
-	// DONE : Display current monster kill count
-	// DONE : Display general game stats
+// === Plan to 1.5.0 ===
+	// Stage 9 - Settings V2
+	// Stage 10 - Sharing Export Tools (File, Hashebin, Clipboard)
 
-// --- UI / Quality of Life ---
-	// DONE : Added export view modal
-	// DONE : Auto-copy export to clipboard
-	// DONE : Configurable settings (auto-select / auto-copy)
+// === Plan to 1.6.0 ===
+	// Stage 11 - View Logs
 
-// === Fixes ===
-	// FIX  : Export button & auto-copy fix
-	// FIX  : FarmingPlot display issue fix
-
-// === Plan to 1.0.0 ===
-	// REFACTOR : Renamed openExportUI callback to onExportOpen
-	// REFACTOR : Stage 1 – Unified data collection (processCollectData)
-	// REFACTOR : Stage 2 – Structured stats display (displayStats)
-	// REFACTOR : Stage 3 – Naming normalization & typo cleanup
-	// REFACTOR : Stage 4 – Structured JSON export
-	// REFACTOR : Stage 5 – Custom export JSON support
-	// REFACTOR : Stage 6 – Export compression (e.g., UTF16)
-	// REFACTOR : Stage 7 – Settings cleanup and consolidation
-	// REFACTOR : Stage 8 - API function
-	// REFACTOR : Stage 9 - Settings V2
-
-// === Plan to X.0.0 ===
-	// TODO : Save to file
-	// TODO : Link to GPT
-	// TODO : ETA impl.
-	// TODO : Get Data history, progression & Dashboard (save in characterStorage)
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.4.9";
+const MOD_VERSION = "v1.5.6";
 
 let debugMode = false;
 let charStorage = null;
 let displayStatsModule = null;
+
 let lzStringLoaded = false;
+let pakoLoaded = false;
 
 let loadedSections = null;
 const Sections = {
@@ -288,14 +261,42 @@ function getExportLZ() {
 	}
 	return json;
 }
+function getExportPako() {
+	const json = getExportString();
+  if (isCfg(SettingsReference.EXPORT_COMPRESS) 
+		&& pakoLoaded) {
+  	const compressed = pako.deflate(json);
+  	return btoa(String.fromCharCode(...compressed));
+	}
+	return json;
+}
+function debugExportSizes() {
+	const obj = getExportJSON();
+	const rawJson = JSON.stringify(obj);
+	const lz = LZString.compressToUTF16(rawJson);
+	const b64 = LZString.compressToBase64(rawJson);
+	const pakoCompressed = pako.deflate(rawJson);
+	const pakoBase64 = btoa(String.fromCharCode(...pakoCompressed));
+	console.log("📊 Export Size Comparison:");
+	console.log("🔹 Raw JSON      :", rawJson.length, "chars");
+	console.log("🔹 LZ UTF16      :", lz.length, "chars");
+	console.log("🔹 LZ Base64     :", b64.length, "chars");
+	console.log("🔹 Pako Uint8[]  :", pakoCompressed.length, "bytes");
+	console.log("🔹 Pako Base64   :", pakoBase64.length, "chars");
+}
 
 const CS_LAST_EXPORT = "cde_last_export";
 function getLastExportFromStorage() {
 	try {
+		/*
 		const storage = charStorage;
-		if (!storage) return null;
-
+		if (!storage) {
+			console.warn("[CDE] characterStorage not available yet.");
+			return;
+		}
 		const raw = storage.getItem(CS_LAST_EXPORT);
+		*/
+		const raw = localStorage.getItem(CS_LAST_EXPORT);
 		if (!raw) return null;
 
 		let json = raw;
@@ -313,6 +314,7 @@ function getLastExportFromStorage() {
 
 function saveExportToStorage(jsonData) {
 	try {
+		/*
 		const storage = charStorage;
 		if (!storage) {
 			console.warn("[CDE] characterStorage not available yet.");
@@ -323,6 +325,13 @@ function saveExportToStorage(jsonData) {
 			raw = LZString.compressToUTF16(raw);
 		}
 		storage.setItem(CS_LAST_EXPORT, raw);
+		*/
+
+		let raw = JSON.stringify(jsonData);
+		if (lzStringLoaded && typeof LZString !== "undefined") {
+			raw = LZString.compressToUTF16(raw);
+		}
+		localStorage.setItem(CS_LAST_EXPORT, raw);
 	} catch (err) {
 		console.warn("[CDE] Failed to save export to storage:", err);
 	}
@@ -364,18 +373,20 @@ function processCollectData() {
 
 	let changes = null;
 	if (isCfg(SettingsReference.SAVE_TO_STORAGE)) {
-		// stashed: doesn't work with 8kb limitation storage
-		// const lastExport = getLastExportFromStorage();	
+		const copy = JSON.parse(JSON.stringify(newData));
+		
 		// Generate Diff
-		// if (isCfg(SettingsReference.GENERATE_DIFF)) {
-		// if (lastExport) {
-		//		changes = deepDiff(lastExport, newData);
-		//	} else {
-		//		changes = ["🆕 First export — no previous data to compare."];
-		//	}
-		// }
-		// Save to storage // >8kb limitation...
-		// saveExportToStorage(newData);
+		if (isCfg(SettingsReference.GENERATE_DIFF)) {
+			const lastExport = getLastExportFromStorage();	
+			if (lastExport) {
+				changes = deepDiff(lastExport, copy);
+			} else {
+				changes = ["🆕 First export — no previous data to compare."];
+			}
+		}
+
+		// Save to storage
+		saveExportToStorage(copy);
 	}
 
 	// Finalize..
@@ -1004,9 +1015,11 @@ function openExportUI() {
 					document.getElementById("cde-viewdiff-button")?.addEventListener("click", () => {
 						const diff = exportData?.meta?.changelog || [];
 						Swal.fire({
-							title: "Changelog",
-							html: `<pre style="text-align:left;white-space:pre-wrap;max-height:400px;overflow:auto">${diff.join("\n") || "No diff available."}</pre>`,
-							width: 800
+						  title: "Changelog",
+						  html: `<pre class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">
+						    ${diff.join("\n") || "No diff available."}
+						  </pre>`,
+						  width: 800
 						});
 					});
 
@@ -1037,11 +1050,18 @@ export function setup({ characterStorage, settings, api, onInterfaceReady }) {
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
 		// console.log("[CDE] On Interface Ready");
+
+		// Compression Tools
 		ctx.loadScript("https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js")
 			.then(() => {
 				lzStringLoaded = true;
 				console.log("[CDE] LZString loaded");
 			});
+		ctx.loadScript("https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js")
+  		.then(() => {
+  			pakoLoaded = true;
+    		console.log("[CDE] Pako loaded");
+  		});
 
 		// CSS
 		createIconCSS(ctx);
@@ -1070,6 +1090,12 @@ export function setup({ characterStorage, settings, api, onInterfaceReady }) {
 		exportLZ: () => {
 			return getExportLZ();
 		},
+		exportPako: () => {
+	    return getExportPako();
+	  },
+	  exportDebug: () => {
+	  	debugExportSizes();
+	  },
 		toggleButtonVisibility: (toggle) => {
 			visibilityExportButton(toggle);
 		},
