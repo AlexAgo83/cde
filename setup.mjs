@@ -47,10 +47,10 @@
 	// TODO : Link to GPT
 	// TODO : ETA impl.
 	// TODO : Get Data history, progression & Dashboard (save in characterStorage)
-	
+
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.3.11";
+const MOD_VERSION = "v1.4.5";
 let displayStatsModule = null;
 let debugMode = false;
 
@@ -64,121 +64,121 @@ const Sections = {
 const SettingsReference = {
 	// GENERAL SETTINGS
 	MOD_ENABLED: {
-			section: Sections.General,
-			key: "mod-enabled", 
-			label: "Enable Mod", 
-			hint: "Toggle the Character Data Exporter on or off", 
-			toggle: true},
+		section: Sections.General,
+		key: "mod-enabled", 
+		label: "Enable Mod", 
+		hint: "Toggle the Character Data Exporter on or off", 
+	toggle: true},
 	MOD_DEBUG: {
-			section: Sections.General,
-			key: "mod-debug", 
-			label: "Enable Debug", 
-			hint: "Toggle Debug on or off (May need restart)", 
-			toggle: false},
+		section: Sections.General,
+		key: "mod-debug", 
+		label: "Enable Debug", 
+		hint: "Toggle Debug on or off (May need restart)", 
+	toggle: false},
 	SHOW_BUTTON: {
-			section: Sections.General,
-			key: "show-button",
-			label: "Show button",
-			hint: "Show top CDE button (May need restart)", 
-			toggle: true},
+		section: Sections.General,
+		key: "show-button",
+		label: "Show button",
+		hint: "Show top CDE button (May need restart)", 
+	toggle: true},
 	AUTO_SELECT: {
-			section: Sections.General,
-			key: "auto-select",
-			label: "Auto-Select Export",
-			hint: "Automatically select all text when opening the export window", 
-			toggle: false},
+		section: Sections.General,
+		key: "auto-select",
+		label: "Auto-Select Export",
+		hint: "Automatically select all text when opening the export window", 
+	toggle: false},
 	AUTO_COPY: {
-			section: Sections.General,
-			key: "auto-copy",
-			label: "Auto-Copy Export",
-			hint: "Automatically copy export to clipboard when opened", 
-			toggle: false},
+		section: Sections.General,
+		key: "auto-copy",
+		label: "Auto-Copy Export",
+		hint: "Automatically copy export to clipboard when opened", 
+	toggle: false},
 	EXPORT_COMPRESS: {
-			section: Sections.General,
-			key: "export-compress",
-			label: "Compress Export Output",
-			hint: "Export JSON in a compressed single-line format", 
-			toggle: true},
+		section: Sections.General,
+		key: "export-compress",
+		label: "Compress Export Output",
+		hint: "Export JSON in a compressed single-line format", 
+	toggle: true},
 
 	// DATA OPTIONS SETTINGS
 	EXPORT_BANK: {
-			section: Sections.DataOptions,
-			key: "export-bank",
-			label: "Include Bank Data",
-			hint: "Include inventory and bank items in export", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-bank",
+		label: "Include Bank Data",
+		hint: "Include inventory and bank items in export", 
+	toggle: true},
 	EXPORT_SHOP: {
-			section: Sections.DataOptions,
-			key: "export-shop",
-			label: "Include Shop Data",
-			hint: "Include purchased shop items in export", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-shop",
+		label: "Include Shop Data",
+		hint: "Include purchased shop items in export", 
+	toggle: true},
 	EXPORT_EQUIPMENT: {
-			section: Sections.DataOptions,
-			key: "export-equipment",
-			label: "Include Current Equipment Data",
-			hint: "Include current equipment items in export", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-equipment",
+		label: "Include Current Equipment Data",
+		hint: "Include current equipment items in export", 
+	toggle: true},
 	EXPORT_EQUIPMENT_SETS: {
-			section: Sections.DataOptions,
-			key: "export-equipment-sets",
-			label: "Include Equipment Sets Data",
-			hint: "Include equipment sets items in export", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-equipment-sets",
+		label: "Include Equipment Sets Data",
+		hint: "Include equipment sets items in export", 
+	toggle: true},
 	EXPORT_FARMING: {
-			section: Sections.DataOptions,
-			key: "export-farming",
-			label: "Include Farming Data",
-			hint: "Include current farming plots in export", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-farming",
+		label: "Include Farming Data",
+		hint: "Include current farming plots in export", 
+	toggle: true},
 	EXPORT_GAMESTATS: {
-			section: Sections.DataOptions,
-			key: "export-stats",
-			label: "Include Game Stats",
-			hint: "Include general statistics from all skills and actions", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-stats",
+		label: "Include Game Stats",
+		hint: "Include general statistics from all skills and actions", 
+	toggle: true},
 	EXPORT_CARTOGRAPHY: {
-			section: Sections.DataOptions,
-			key: "export-cartography",
-			label: "Include Cartography Data",
-			hint: "Include discovered POIs and map progress in export", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-cartography",
+		label: "Include Cartography Data",
+		hint: "Include discovered POIs and map progress in export", 
+	toggle: true},
 	EXPORT_SKILLS: {
-			section: Sections.DataOptions,
-			key: "export-skills",
-			label: "Include Skills Data",
-			hint: "Include skills levels and XP", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-skills",
+		label: "Include Skills Data",
+		hint: "Include skills levels and XP", 
+	toggle: true},
 	EXPORT_MASTERY: {
-			section: Sections.DataOptions,
-			key: "export-mastery",
-			label: "Include Mastery Data",
-			hint: "Include mastery levels and XP for each skill action", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-mastery",
+		label: "Include Mastery Data",
+		hint: "Include mastery levels and XP for each skill action", 
+	toggle: true},
 	EXPORT_PETS: {
-			section: Sections.DataOptions,
-			key: "export-pets",
-			label: "Include Pets Data",
-			hint: "Include discovered pets data", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-pets",
+		label: "Include Pets Data",
+		hint: "Include discovered pets data", 
+	toggle: true},
 	EXPORT_TOWNSHIP: {
-			section: Sections.DataOptions,
-			key: "export-township",
-			label: "Include Township Data",
-			hint: "Include township statistics", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-township",
+		label: "Include Township Data",
+		hint: "Include township statistics", 
+	toggle: true},
 	EXPORT_ASTROLOGY: {
-			section: Sections.DataOptions,
-			key: "export-astrology",
-			label: "Include Astrology Data",
-			hint: "Include astrology data", 
-			toggle: true},
+		section: Sections.DataOptions,
+		key: "export-astrology",
+		label: "Include Astrology Data",
+		hint: "Include astrology data", 
+	toggle: true},
 	EXPORT_COMPLETION: {
-			section: Sections.DataOptions,
-			key: "export-completion",
-			label: "Include Completion Data",
-			hint: "Include completion data", 
-			toggle: true}
+		section: Sections.DataOptions,
+		key: "export-completion",
+		label: "Include Completion Data",
+		hint: "Include completion data", 
+	toggle: true}
 }
 
 class SettingsReferenceItem {
@@ -693,7 +693,7 @@ function collectCompletion() {
 
 // --- UI Setup ---
 function createIconCSS(ctx) {
-  document.head.insertAdjacentHTML("beforeend", `
+	document.head.insertAdjacentHTML("beforeend", `
     <style>
       :root {
         --icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");
@@ -702,7 +702,7 @@ function createIconCSS(ctx) {
         --icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");
       }
     </style>
-  `);
+	`);
 }
 
 function CDEButton(template, cb) {
@@ -762,6 +762,18 @@ function onExportOpen() {
 	}
 }
 
+
+const HASTE_ENDPOINT = "https://haste.zneix.eu";
+async function uploadToHastebin(text) {
+	const res = await fetch(`${HASTE_ENDPOINT}/documents`, {
+		method: "POST",
+		body: text,
+		headers: { "Content-Type": "text/plain" }
+	});
+	const data = await res.json();
+	return `${HASTE_ENDPOINT}/${data.key}`;
+}
+
 let exportUI = null;
 function openExportUI() {
 	processCollectData();
@@ -776,10 +788,83 @@ function openExportUI() {
 				showCloseButton: true,
 				showConfirmButton: false,
 				allowEnterKey: false,
+				inputAttributes: {
+			    readonly: true
+			  },
 				inputAttributes: {},
 				customClass: { container: "cde-modal" },
-				footer: "&nbsp;",
-				didOpen: async () => { onExportOpen(); }
+				footer: 
+				`<button id="cde-download-button" class="btn btn-sm btn-primary">Download</button>
+				<button id="cde-clipboard-button" class="btn btn-sm btn-primary">Clip Board</button>
+				<button id="cde-sendtohastebin-button" class="btn btn-sm btn-primary">Hastebin</button>`,
+				didOpen: async () => {
+					// Set action on.. DOWNLOAD
+					document.getElementById("cde-download-button")?.addEventListener("click", () => {
+						const exportString = getExportString();
+						const blob = new Blob([exportString], { type: "application/json" });
+						const url = URL.createObjectURL(blob);
+
+						const link = document.createElement("a");
+						link.href = url;
+						link.download = `melvor-export-${new Date().toISOString().split("T")[0]}.json`;
+						document.body.appendChild(link);
+						link.click();
+						document.body.removeChild(link);
+
+					  // Nettoyer l’URL blob
+						URL.revokeObjectURL(url);
+					});
+
+					// Set action on.. CLIB BOARD
+					document.getElementById("cde-clipboard-button")?.addEventListener("click", async () => {
+						try {
+							await navigator.clipboard.writeText(getExportString());
+							console.log("[CDE] Export copied to clipboard");
+							Swal.fire({
+								toast: true,
+								position: 'top-end',
+								icon: 'success',
+								title: 'Copied to clipboard!',
+								showConfirmButton: false,
+								timer: 1500
+							});
+						} catch (err) {
+							console.error("Clipboard copy failed:", err);
+							Swal.fire({
+								icon: 'error',
+								title: 'Oops...',
+								text: 'Could not copy to clipboard.'
+							});
+						}
+					});
+
+					document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", async () => {
+						try {
+							const raw = getExportString();
+							const hastebinLink = await uploadToHastebin(raw);
+							await navigator.clipboard.writeText(hastebinLink);
+
+							Swal.fire({
+								icon: 'success',
+								title: 'Hastebin link copied!',
+								html: `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`,
+								showConfirmButton: true,
+								confirmButtonText: "Close"
+							});
+							window.open(hastebinLink, "_blank");
+						} catch (err) {
+							console.error("Failed to upload to Hastebin:", err);
+							Swal.fire({
+								icon: 'error',
+								title: 'Upload failed',
+								text: 'Could not upload to Hastebin. Please try again later.'
+							});
+						}
+					});
+
+					// OPEN EXPORT
+					onExportOpen(); 
+				}
 			};
 		}
 		Swal.fire(exportUI);

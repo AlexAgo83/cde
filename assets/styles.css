@@ -42,3 +42,12 @@
 	color: white;
 	border: 1px solid var(--synergy-border-bg);
 }
+
+/* CDE EXPORT BTN */
+#cde-download-button,
+#cde-clipboard-button,
+#cde-sendtohastebin-button,
+#cde-sendtogpt-button {
+  margin-right: 8px;
+  margin-top: 6px;
+}
