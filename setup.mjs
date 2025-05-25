@@ -1,38 +1,54 @@
 // setup.mjs
 
-// DONE : Display "Charges"
-// DONE : Display "Potions"
-// DONE : Display "Spell"
-// DONE : Display "Mastery"
-// DONE : Display "Astrology Bonus Modifier"
-// DONE : Display "Agility Obstacle Course"
-// DONE : Display "Global Township"
-// DONE : Display "Unlocked Pets"
-// DONE : Display "Purchased Shop"
-// DONE : Display "Auto Eat HP Limit"
-// DONE : Display "Auto Looting"
-// DONE : Display "Ancient Relics Unlocked"
-// DONE : Display "Carto POIs Unlocked"
-// DONE : Added "View to display export"
-// DONE : Display "Casual & Melvor tasks"
-// DONE : Display "Active Prayers"
-// DONE : Display "Farming > Planted / Plots"
-// DONE : Display "Kill count on current monster"
-// DONE : Display "Game Stats"
-// REFACTOR : openExportUI:Callback -> onExportOpen / Select
-// DONE : Auto Copy Export to Clipboard
-// DONE : Settings (auto select, auto copy to clipboard)
-// FIX : Export Button design
-// FIX : FarmingPlot issue
-// REFACTOR : Stage 1 - processCollectData
-// REFACTOR : Stage 2 - displayStats
-// REFACTOR : Stage 3 - naming & Typos
-// REFACTOR : Stage 4 - export as JSON
-// REFACTOR : Stage 5 - custom export json
-// REFACTOR : Stage 6 - compress export
-// REFACTOR : Stage 7 - Settings cleanup
+
+// --- Displayed Data ---
+  // TODO : Display item charges
+  // TODO : Display active potions
+  // DONE : Display current spell
+  // DONE : Display mastery levels
+  // DONE : Display astrology bonus modifiers
+  // DONE : Display active agility obstacle course
+  // DONE : Display global Township data
+  // DONE : Display unlocked pets
+  // DONE : Display purchased shop upgrades
+  // DONE : Display Auto Eat HP limit
+  // DONE : Display Auto Looting status
+  // DONE : Display unlocked ancient relics
+  // DONE : Display unlocked Cartography POIs
+  // DONE : Display Casual & Melvor tasks
+  // DONE : Display active prayers
+  // DONE : Display planted crops (Farming)
+  // DONE : Display current monster kill count
+  // DONE : Display general game stats
+
+// --- UI / Quality of Life ---
+  // DONE : Added export view modal
+  // DONE : Auto-copy export to clipboard
+  // DONE : Configurable settings (auto-select / auto-copy)
+
+// === Fixes ===
+  // FIX  : Export button & auto-copy fix
+  // FIX  : FarmingPlot display issue fix
+
+// === Plan to 1.0.0 ===
+  // REFACTOR : Renamed openExportUI callback to onExportOpen
+  // REFACTOR : Stage 1 – Unified data collection (processCollectData)
+  // REFACTOR : Stage 2 – Structured stats display (displayStats)
+  // REFACTOR : Stage 3 – Naming normalization & typo cleanup
+  // REFACTOR : Stage 4 – Structured JSON export
+  // REFACTOR : Stage 5 – Custom export JSON support
+  // REFACTOR : Stage 6 – Export compression (e.g., UTF16)
+  // REFACTOR : Stage 7 – Settings cleanup and consolidation
+  // REFACTOR : Stage 8 - API function
+
+// === Plan to 2.0.0 ===
+  // TODO : Link to GPT
+  // TODO : Data history save in characterStorage
+  // TODO : ETA impl.
+
 
 // --- Configuration ---
+const MOD_VERSION = "1.2.7";
 let displayStatsModule = null;
 let debugMode = false;
 
@@ -82,31 +98,32 @@ function getExportString() {
 }
 
 function processCollectData() {
-  exportData = {};
-  exportData.basics = collectBasics();
-  exportData.stats = isSettingsAllowed(settingsReference.exportStats) ? collectGameStats() : { info: "Stats unavailable" };
-  exportData.shop = collectShopData();
-  exportData.currentActivity = collectCurrentActivity();
-  exportData.equipment = collectEquipments();
-  exportData.equipmentSets = collectEquipmentSets();
-  exportData.bank = isSettingsAllowed(settingsReference.exportBank) ? collectBankData() : { info: "Bank unavailable" } ;
-  exportData.skills = collectSkills();
-  exportData.mastery = isSettingsAllowed(settingsReference.exportMastery) ? collectMastery() : { info: "Mastery unavailable" };
-  exportData.astrology = collectAstrology();
-  exportData.agility = collectAgility();
-  exportData.dungeons = collectDungeons();
-  exportData.strongholds = collectStrongholds();
-  exportData.completion = collectCompletion();
-  exportData.township = collectTownship();
-  exportData.pets = collectPets();
-  exportData.ancientRelics = collectAncientRelics();
-  exportData.cartography = isSettingsAllowed(settingsReference.exportCarto) ? collectCartography() : { info: "Cartography unavailable" };
-  exportData.farming = isSettingsAllowed(settingsReference.exportFarming) ? collectFarming() : { info: "Farming unavailable" };
-  exportData.meta = {
+  const newData = {};
+  newData.basics = collectBasics();
+  newData.stats = isSettingsAllowed(settingsReference.exportStats) ? collectGameStats() : { info: "Stats unavailable" };
+  newData.shop = collectShopData();
+  newData.currentActivity = collectCurrentActivity();
+  newData.equipment = collectEquipments();
+  newData.equipmentSets = collectEquipmentSets();
+  newData.bank = isSettingsAllowed(settingsReference.exportBank) ? collectBankData() : { info: "Bank unavailable" } ;
+  newData.skills = collectSkills();
+  newData.mastery = isSettingsAllowed(settingsReference.exportMastery) ? collectMastery() : { info: "Mastery unavailable" };
+  newData.astrology = collectAstrology();
+  newData.agility = collectAgility();
+  newData.dungeons = collectDungeons();
+  newData.strongholds = collectStrongholds();
+  newData.completion = collectCompletion();
+  newData.township = collectTownship();
+  newData.pets = collectPets();
+  newData.ancientRelics = collectAncientRelics();
+  newData.cartography = isSettingsAllowed(settingsReference.exportCarto) ? collectCartography() : { info: "Cartography unavailable" };
+  newData.farming = isSettingsAllowed(settingsReference.exportFarming) ? collectFarming() : { info: "Farming unavailable" };
+  newData.meta = {
     exportTimestamp: new Date().toISOString(),
     version: game.lastLoadedGameVersion,
-    // modVersion: "X.X.X"
+    modVersion: MOD_VERSION
   };
+  return exportData = newData;
 }
 
 // --- Collectors ---
@@ -585,14 +602,28 @@ function openExportUI() {
 
 // --- Init ---
 
-export function setup({ onInterfaceReady, settings }) {
+export function setup({ onInterfaceReady, settings, api }) {
   console.log("[CDE] Loading ...");
   createSettings(settings);
+
   onInterfaceReady(async (ctx) => {
     console.log("[CDE] Init Interface");
     displayStatsModule = await ctx.loadModule("displayStats.mjs");
     createIconCSS(ctx);
     setupExportButtonUI(openExportUI);
     console.log("[CDE] loaded !");
+  });
+
+  api({
+    generateJson: () => {
+      return processCollectData();
+    },
+    exportString: () => {
+      processCollectData();
+      return getExportString();
+    },
+    modVersion: () => {
+      return MOD_VERSION;
+    }
   });
 }
