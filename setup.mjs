@@ -49,7 +49,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "1.2.8";
+const MOD_VERSION = "1.2.11";
 let displayStatsModule = null;
 let debugMode = false;
 
@@ -95,15 +95,28 @@ function createSettings(settings) {
   sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportTownship, label: "Include Township Data", hint: "Include township statistics", default: true });
 }
 
-function isCfg(reference) {
-  if (!reference?.section) return false;
+function isCfg(section, sectionReference) {
+  if (!section) {
+    console.error("Undifined section");
+    return false;
+  };
+  if (!sectionReference) {
+    console.error("Undifined reference");
+    return false;
+  };
 
   const sectionMap = {
     [cfgGeneral.section]: sectionGeneral,
     [cfgDataOptions.section]: sectionDataOptions,
   };
 
-  return sectionMap[reference.section]?.get(reference) ?? false;
+  return sectionMap[section]?.get(sectionReference) ?? false;
+}
+function isCfgGeneral(sectionReference) {
+  return isCfg(cfgGeneral.section, sectionReference);
+}
+function isCfgDataOptions(sectionReference) {
+  return isCfg(cfgDataOptions.section, sectionReference);
 }
 
 // --- Export Logic ---
@@ -113,7 +126,7 @@ function getExportJSON() {
   return exportData;
 }
 function getExportString() {
-  return isCfg(cfgGeneral.exportCompress) ? 
+  return isCfgGeneral(cfgGeneral.exportCompress) ? 
     JSON.stringify(getExportJSON()) : 
     JSON.stringify(getExportJSON(), null, 2);
 }
@@ -121,24 +134,24 @@ function getExportString() {
 function processCollectData() {
   const newData = {};
   newData.basics = collectBasics();
-  newData.stats = isCfg(cfgDataOptions.exportStats) ? collectGameStats() : { info: "Stats data unavailable" };
+  newData.stats = isCfgDataOptions(cfgDataOptions.exportStats) ? collectGameStats() : { info: "Stats data unavailable" };
   newData.shop = collectShopData();
   newData.currentActivity = collectCurrentActivity();
   newData.equipment = collectEquipments();
   newData.equipmentSets = collectEquipmentSets();
-  newData.bank = isCfg(cfgDataOptions.exportBank) ? collectBankData() : { info: "Bank data unavailable" } ;
+  newData.bank = isCfgDataOptions(cfgDataOptions.exportBank) ? collectBankData() : { info: "Bank data unavailable" } ;
   newData.skills = collectSkills();
-  newData.mastery = isCfg(cfgDataOptions.exportMastery) ? collectMastery() : { info: "Mastery data unavailable" };
+  newData.mastery = isCfgDataOptions(cfgDataOptions.exportMastery) ? collectMastery() : { info: "Mastery data unavailable" };
   newData.astrology = collectAstrology();
   newData.agility = collectAgility();
   newData.dungeons = collectDungeons();
   newData.strongholds = collectStrongholds();
   newData.completion = collectCompletion();
-  newData.township = isCfg(cfgDataOptions.exportTownship) ? collectTownship() : { info: "Township data unavailable" };
-  newData.pets = isCfg(cfgDataOptions.exportPets) ? collectPets() : { info: "Pets data unavailable" };
+  newData.township = isCfgDataOptions(cfgDataOptions.exportTownship) ? collectTownship() : { info: "Township data unavailable" };
+  newData.pets = isCfgDataOptions(cfgDataOptions.exportPets) ? collectPets() : { info: "Pets data unavailable" };
   newData.ancientRelics = collectAncientRelics();
-  newData.cartography = isCfg(cfgDataOptions.exportCarto) ? collectCartography() : { info: "Cartography data unavailable" };
-  newData.farming = isCfg(cfgDataOptions.exportFarming) ? collectFarming() : { info: "Farming data unavailable" };
+  newData.cartography = isCfgDataOptions(cfgDataOptions.exportCarto) ? collectCartography() : { info: "Cartography data unavailable" };
+  newData.farming = isCfgDataOptions(cfgDataOptions.exportFarming) ? collectFarming() : { info: "Farming data unavailable" };
   newData.meta = {
     exportTimestamp: new Date().toISOString(),
     version: game.lastLoadedGameVersion,
@@ -564,12 +577,15 @@ function CDEButton(template, cb) {
   };
 }
 
-let lazyBtCde = null;
+// let lazyBtCde = null;
 function setupExportButtonUI(cb) {
+  // if (isCfgGeneral(cfgGeneral.hideButton)) {
+  //   return;
+  // }
   ui.create(CDEButton("#cde-button-topbar", cb), document.body);
   const cde = document.getElementById("cde");
   const potions = document.getElementById("page-header-potions-dropdown").parentNode;
-  potions.insertAdjacentElement("beforebegin", lazyBtCde = cde);
+  potions.insertAdjacentElement("beforebegin", cde);
 }
 
 function writeToClipboard() {
@@ -589,22 +605,22 @@ function writeToClipboard() {
 }
 
 function onExportOpen() {
-  if (!isCfg(cfgGeneral.modEnabled)) return;
+  if (!isCfgGeneral(cfgGeneral.modEnabled)) return;
   
   const cdeTextarea = Swal.getInput();
   if (!cdeTextarea) return;
 
   cdeTextarea.focus();
-  if (isCfg(cfgGeneral.autoSelect)) {
+  if (isCfgGeneral(cfgGeneral.autoSelect)) {
     cdeTextarea.select();
-    if (isCfg(cfgGeneral.autoCopy)) writeToClipboard();
+    if (isCfgGeneral(cfgGeneral.autoCopy)) writeToClipboard();
   }
 }
 
 let exportUI = null;
 function openExportUI() {
   processCollectData();
-  if (isCfg(cfgGeneral.modEnabled)) {
+  if (isCfgGeneral(cfgGeneral.modEnabled)) {
     if (exportUI) {
       exportUI.inputValue = getExportString();
     } else {
@@ -633,16 +649,12 @@ export function setup({ onInterfaceReady, settings, api }) {
 
   onInterfaceReady(async (ctx) => {
     console.log("[CDE] Init Interface");
-    displayStatsModule = await ctx.loadModule("displayStats.mjs");
     createIconCSS(ctx);
+
+    displayStatsModule = await ctx.loadModule("displayStats.mjs");
     setupExportButtonUI(openExportUI);
+
     console.log("[CDE] loaded !");
-    if (lazyBtCde) {
-      if (isCfg(cfgGeneral.hideButton))
-        lazyBtCde.style.visibility = "hidden"
-      else 
-        lazyBtCde.style.visibility = "visible"
-    }
   });
 
   api({
