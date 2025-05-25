@@ -21,7 +21,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.5.17";
+const MOD_VERSION = "v1.6.0";
 
 let debugMode = false;
 let charStorage = null;
@@ -387,6 +387,7 @@ function processCollectData() {
 	if (isCfg(SettingsReference.SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));
 		// TODO : to compact before sharing
+		/*
 		copy.currentActivity = null;
 		copy.agility = null;
 		copy.ancientRelics = null;
@@ -399,6 +400,7 @@ function processCollectData() {
 		copy.pets = null;
 		if (copy.cartography?.maps) copy.cartography.maps = null;
 		if (copy.farming?.plots) copy.farming.plots = null;
+		 */
 		
 		// Generate Diff
 		if (isCfg(SettingsReference.GENERATE_DIFF)) {
@@ -818,34 +820,99 @@ function collectCompletion() {
 }
 
 function deepDiff(prev, curr, path = "") {
-	const changes = [];
+  const changes = [];
 
-	for (const key in prev) {
-		if (!(key in curr)) {
-			changes.push(`❌ Removed: ${path + key}`);
-		}
-	}
+  // Arrays: diff
+  if (Array.isArray(prev) && Array.isArray(curr)) {
+    changes.push(...diffArraysSmart(prev, curr, path));
+    return changes;
+  }
 
-	for (const key in curr) {
-		const fullPath = path + key;
-		if (!(key in prev)) {
-			changes.push(`➕ Added: ${fullPath} = ${JSON.stringify(curr[key])}`);
-		} else {
-			const val1 = prev[key];
-			const val2 = curr[key];
+  // Objects
+  if (isObject(prev) && isObject(curr)) {
+    for (const key in prev) {
+      if (!(key in curr)) {
+        changes.push(`❌ Removed: ${path + key}`);
+      }
+    }
+    for (const key in curr) {
+      const fullPath = path + key;
+      if (!(key in prev)) {
+        changes.push(`➕ Added: ${fullPath} = ${JSON.stringify(curr[key])}`);
+      } else {
+        const val1 = prev[key];
+        const val2 = curr[key];
+        if (isObject(val1) && isObject(val2) || Array.isArray(val1) && Array.isArray(val2)) {
+          changes.push(...deepDiff(val1, val2, fullPath + "."));
+        }
+        else if (val1 !== val2) {
+          changes.push(`🔁 Changed: ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}`);
+        }
+      }
+    }
+    return changes;
+  }
 
-			// Recursion for objects
-			if (isObject(val1) && isObject(val2)) {
-				changes.push(...deepDiff(val1, val2, fullPath + "."));
-			}
-			// Changed value
-			else if (val1 !== val2) {
-				changes.push(`🔁 Changed: ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}`);
-			}
-		}
-	}
+  // Simple Value
+  if (prev !== curr) {
+    changes.push(`🔁 Changed: ${path.slice(0, -1)} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}`);
+  }
 
-	return changes;
+  return changes;
+}
+
+
+function diffArraysSmart(prevArr, currArr, path = "") {
+  const changes = [];
+  if (!Array.isArray(prevArr) || !Array.isArray(currArr)) {
+    changes.push(`❓ Not arrays at ${path}`);
+    return changes;
+  }
+
+  // Try 'id' OR 'localID' OR 'name' as Key, else index
+  function getKey(obj) {
+    return obj?.id ?? obj?.localID ?? obj?.name ?? null;
+  }
+
+  // Smart Diff
+  const prevMap = Object.create(null);
+  prevArr.forEach((obj, i) => {
+    const key = getKey(obj) ?? `idx_${i}`;
+    prevMap[key] = obj;
+  });
+  const currMap = Object.create(null);
+  currArr.forEach((obj, i) => {
+    const key = getKey(obj) ?? `idx_${i}`;
+    currMap[key] = obj;
+  });
+
+  // Record add & update
+  for (const key in currMap) {
+    if (!(key in prevMap)) {
+      changes.push(`➕ Added [${path}${key}]: ${JSON.stringify(currMap[key])}`);
+    } else {
+      
+      const subChanges = deepDiff(prevMap[key], currMap[key], path + key + ".");
+      if (subChanges.length > 0) {
+        changes.push(...subChanges);
+      }
+    }
+  }
+
+  // Record Sup
+  for (const key in prevMap) {
+    if (!(key in currMap)) {
+      changes.push(`❌ Removed [${path}${key}]: ${JSON.stringify(prevMap[key])}`);
+    }
+  }
+  return changes;
+}
+
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
 }
 
 function isObject(value) {
@@ -875,7 +942,6 @@ function CDEButton(template, cb) {
 		}
 	};
 }
-
 
 let lazyBtCde = null;
 function setupExportButtonUI(cb) {
@@ -1036,7 +1102,7 @@ function openExportUI() {
 						const diff = changesData || [];
 						Swal.fire({
 						  title: "Changelog",
-						  html: `<pre class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">${diff.join("\n") || "No diff available."}</pre>`,
+						  html: `<pre class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">${escapeHtml(diff.join("\n")) || "No diff available."}</pre>`,
 						  width: 800
 						});
 					});
