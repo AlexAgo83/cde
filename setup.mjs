@@ -48,39 +48,53 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "1.2.7";
+const MOD_VERSION = "1.2.8";
 let displayStatsModule = null;
 let debugMode = false;
 
-const settingsReference = {
-  section: "Interface",
+let sectionGeneral = null;
+const cfgGeneral = {
+  section: "General",
   modEnabled: "mod-enabled",
   autoSelect: "auto-select",
   autoCopy: "auto-copy",
-  exportCompress: "export-compress",
+  exportCompress: "export-compress"
+};
+
+let sectionDataOptions = null;
+const cfgDataOptions = {
+  section: "Data Options",
   exportBank: "export-bank",
   exportFarming: "export-farming",
   exportStats: "export-stats",
   exportCarto: "export-carto",
   exportMastery: "export-mastery"
-};
-
-let settingsSection = null;
-function createSettings(settings) {
-  settingsSection = settings.section(settingsReference.section);
-  settingsSection.add({ type: "switch", name: settingsReference.modEnabled, label: "Enable Mod", hint: "Toggle the Character Data Exporter on or off", default: true });
-  settingsSection.add({ type: "switch", name: settingsReference.autoSelect, label: "Auto-Select Export", hint: "Automatically select all text when opening the export window", default: true });
-  settingsSection.add({ type: "switch", name: settingsReference.autoCopy, label: "Auto-Copy Export", hint: "Automatically copy export to clipboard when opened", default: false });
-  settingsSection.add({ type: "switch", name: settingsReference.exportCompress, label: "Compress Export Output", hint: "Export JSON in a compressed single-line format", default: true });
-  settingsSection.add({ type: "switch", name: settingsReference.exportBank, label: "Include Bank Data", hint: "Include inventory and bank items in export", default: true });
-  settingsSection.add({ type: "switch", name: settingsReference.exportFarming, label: "Include Farming Data", hint: "Include current farming plots in export", default: true });
-  settingsSection.add({ type: "switch", name: settingsReference.exportStats, label: "Include Game Stats", hint: "Include general statistics from all skills and actions", default: true });
-  settingsSection.add({ type: "switch", name: settingsReference.exportCarto, label: "Include Cartography Data", hint: "Include discovered POIs and map progress in export", default: true });
-  settingsSection.add({ type: "switch", name: settingsReference.exportMastery, label: "Include Mastery Data", hint: "Include mastery levels and XP for each skill action", default: true });
 }
 
-function isSettingsAllowed(reference) {
-  return settingsSection && reference ? settingsSection.get(reference) : false;
+function createSettings(settings) {
+  sectionGeneral = settings.section(cfgGeneral.section);
+  sectionGeneral.add({ type: "switch", name: cfgGeneral.modEnabled, label: "Enable Mod", hint: "Toggle the Character Data Exporter on or off", default: true });
+  sectionGeneral.add({ type: "switch", name: cfgGeneral.autoSelect, label: "Auto-Select Export", hint: "Automatically select all text when opening the export window", default: true });
+  sectionGeneral.add({ type: "switch", name: cfgGeneral.autoCopy, label: "Auto-Copy Export", hint: "Automatically copy export to clipboard when opened", default: false });
+  sectionGeneral.add({ type: "switch", name: cfgGeneral.exportCompress, label: "Compress Export Output", hint: "Export JSON in a compressed single-line format", default: true });
+
+  sectionDataOptions = settings.section(cfgDataOptions.section);
+  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportBank, label: "Include Bank Data", hint: "Include inventory and bank items in export", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportFarming, label: "Include Farming Data", hint: "Include current farming plots in export", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportStats, label: "Include Game Stats", hint: "Include general statistics from all skills and actions", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportCarto, label: "Include Cartography Data", hint: "Include discovered POIs and map progress in export", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportMastery, label: "Include Mastery Data", hint: "Include mastery levels and XP for each skill action", default: true });
+}
+
+function isCfg(reference) {
+  if (!reference?.section) return false;
+
+  const sectionMap = {
+    [cfgGeneral.section]: sectionGeneral,
+    [cfgDataOptions.section]: sectionDataOptions,
+  };
+
+  return sectionMap[reference.section]?.get(reference) ?? false;
 }
 
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
@@ -92,7 +106,7 @@ function getExportJSON() {
   return exportData;
 }
 function getExportString() {
-  return isSettingsAllowed(settingsReference.exportCompress) ? 
+  return isCfg(cfgGeneral.exportCompress) ? 
     JSON.stringify(getExportJSON()) : 
     JSON.stringify(getExportJSON(), null, 2);
 }
@@ -100,14 +114,14 @@ function getExportString() {
 function processCollectData() {
   const newData = {};
   newData.basics = collectBasics();
-  newData.stats = isSettingsAllowed(settingsReference.exportStats) ? collectGameStats() : { info: "Stats unavailable" };
+  newData.stats = isCfg(cfgGeneral.exportStats) ? collectGameStats() : { info: "Stats unavailable" };
   newData.shop = collectShopData();
   newData.currentActivity = collectCurrentActivity();
   newData.equipment = collectEquipments();
   newData.equipmentSets = collectEquipmentSets();
-  newData.bank = isSettingsAllowed(settingsReference.exportBank) ? collectBankData() : { info: "Bank unavailable" } ;
+  newData.bank = isCfg(cfgGeneral.exportBank) ? collectBankData() : { info: "Bank unavailable" } ;
   newData.skills = collectSkills();
-  newData.mastery = isSettingsAllowed(settingsReference.exportMastery) ? collectMastery() : { info: "Mastery unavailable" };
+  newData.mastery = isCfg(cfgGeneral.exportMastery) ? collectMastery() : { info: "Mastery unavailable" };
   newData.astrology = collectAstrology();
   newData.agility = collectAgility();
   newData.dungeons = collectDungeons();
@@ -116,8 +130,8 @@ function processCollectData() {
   newData.township = collectTownship();
   newData.pets = collectPets();
   newData.ancientRelics = collectAncientRelics();
-  newData.cartography = isSettingsAllowed(settingsReference.exportCarto) ? collectCartography() : { info: "Cartography unavailable" };
-  newData.farming = isSettingsAllowed(settingsReference.exportFarming) ? collectFarming() : { info: "Farming unavailable" };
+  newData.cartography = isCfg(cfgGeneral.exportCarto) ? collectCartography() : { info: "Cartography unavailable" };
+  newData.farming = isCfg(cfgGeneral.exportFarming) ? collectFarming() : { info: "Farming unavailable" };
   newData.meta = {
     exportTimestamp: new Date().toISOString(),
     version: game.lastLoadedGameVersion,
@@ -564,22 +578,22 @@ function writeToClipboard() {
 }
 
 function onExportOpen() {
-  if (!isSettingsAllowed(settingsReference.modEnabled)) return;
+  if (!isCfg(cfgGeneral.modEnabled)) return;
   
   const cdeTextarea = Swal.getInput();
   if (!cdeTextarea) return;
 
   cdeTextarea.focus();
-  if (isSettingsAllowed(settingsReference.autoSelect)) {
+  if (isCfg(cfgGeneral.autoSelect)) {
     cdeTextarea.select();
-    if (isSettingsAllowed(settingsReference.autoCopy)) writeToClipboard();
+    if (isCfg(cfgGeneral.autoCopy)) writeToClipboard();
   }
 }
 
 let exportUI = null;
 function openExportUI() {
   processCollectData();
-  if (isSettingsAllowed(settingsReference.modEnabled)) {
+  if (isCfg(cfgGeneral.modEnabled)) {
     if (exportUI) {
       exportUI.inputValue = getExportString();
     } else {
