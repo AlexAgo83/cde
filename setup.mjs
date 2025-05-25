@@ -50,10 +50,12 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.4.5";
-let displayStatsModule = null;
-let debugMode = false;
+const MOD_VERSION = "v1.4.9";
 
+let debugMode = false;
+let charStorage = null;
+let displayStatsModule = null;
+let lzStringLoaded = false;
 
 let loadedSections = null;
 const Sections = {
@@ -98,6 +100,18 @@ const SettingsReference = {
 		key: "export-compress",
 		label: "Compress Export Output",
 		hint: "Export JSON in a compressed single-line format", 
+	toggle: true},
+	SAVE_TO_STORAGE: {
+		section: Sections.General,
+		key: "save-to-storage",
+		label: "Save export in storage",
+		hint: "Save the latest export JSON in characterStorage",
+	toggle: true},
+	GENERATE_DIFF: {
+		section: Sections.General,
+		key: "generate-diff",
+		label: "Generate Changelog (Diff)",
+		hint: "Enable changelog comparison between current and previous export",
 	toggle: true},
 
 	// DATA OPTIONS SETTINGS
@@ -237,12 +251,21 @@ function isCfg(settingRef) {
 		console.error("[CDE] Invalid settings reference:", settingRef);
 		return false;
 	}
-	const section = loadedSections[settingRef.section];
-	if (!section) {
-		console.error("[CDE] Invalid section reference:", section);
-		return false;
+	if (debugMode) {
+		console.warn("[CDE] Toggle value overridden to default:", settingRef);
+		return settingRef.toggle;
+	} else {
+		if (!loadedSections) {
+			console.error("[CDE] Sections not loaded");
+			return false;
+		}
+		const section = loadedSections[settingRef.section];
+		if (!section) {
+			console.error("[CDE] Invalid section reference:", section);
+			return false;
+		}
+		return section.get(settingRef.key) ?? settingRef.toggle;;
 	}
-	return section.get(settingRef.key) ?? settingRef.toggle;;
 }
 
 // --- Export Logic ---
@@ -255,6 +278,54 @@ function getExportString() {
 	return isCfg(SettingsReference.EXPORT_COMPRESS) ? 
 	JSON.stringify(getExportJSON()) : 
 	JSON.stringify(getExportJSON(), null, 2);
+}
+function getExportLZ() {
+	const json = getExportString();
+	if (isCfg(SettingsReference.EXPORT_COMPRESS) 
+		&& lzStringLoaded 
+		&& typeof LZString !== "undefined") {
+		return LZString.compressToUTF16(json);
+	}
+	return json;
+}
+
+const CS_LAST_EXPORT = "cde_last_export";
+function getLastExportFromStorage() {
+	try {
+		const storage = charStorage;
+		if (!storage) return null;
+
+		const raw = storage.getItem(CS_LAST_EXPORT);
+		if (!raw) return null;
+
+		let json = raw;
+		if (lzStringLoaded && typeof LZString !== "undefined") {
+			const decompressed = LZString.decompressFromUTF16(raw);
+			if (decompressed) json = decompressed;
+		}
+
+		return JSON.parse(json);
+	} catch (err) {
+		console.warn("[CDE] Could not parse last export:", err);
+		return null;
+	}
+}
+
+function saveExportToStorage(jsonData) {
+	try {
+		const storage = charStorage;
+		if (!storage) {
+			console.warn("[CDE] characterStorage not available yet.");
+			return;
+		}
+		let raw = JSON.stringify(jsonData);
+		if (lzStringLoaded && typeof LZString !== "undefined") {
+			raw = LZString.compressToUTF16(raw);
+		}
+		storage.setItem(CS_LAST_EXPORT, raw);
+	} catch (err) {
+		console.warn("[CDE] Failed to save export to storage:", err);
+	}
 }
 
 function collector(cfgRef, collectorFn, fallbackMsg) {
@@ -290,10 +361,35 @@ function processCollectData() {
 		version: game.lastLoadedGameVersion,
 		modVersion: MOD_VERSION
 	};
-	if (debugMode) {
-		console.log(newData);
+
+	let changes = null;
+	if (isCfg(SettingsReference.SAVE_TO_STORAGE)) {
+		// stashed: doesn't work with 8kb limitation storage
+		// const lastExport = getLastExportFromStorage();	
+		// Generate Diff
+		// if (isCfg(SettingsReference.GENERATE_DIFF)) {
+		// if (lastExport) {
+		//		changes = deepDiff(lastExport, newData);
+		//	} else {
+		//		changes = ["🆕 First export — no previous data to compare."];
+		//	}
+		// }
+		// Save to storage // >8kb limitation...
+		// saveExportToStorage(newData);
 	}
-	return exportData = newData;
+
+	// Finalize..
+	exportData = newData;
+	if (changes) {
+		exportData.meta.changelog = changes;
+		if (debugMode) {
+			console.log("[CDE] Changes: ", changes);
+		}
+	}
+	if (debugMode) {
+		console.log("[CDE] exportData updated: ", exportData);
+	}
+	return exportData;
 }
 
 // --- Collectors ---
@@ -691,6 +787,41 @@ function collectCompletion() {
 	return result;
 }
 
+function deepDiff(prev, curr, path = "") {
+	const changes = [];
+
+	for (const key in prev) {
+		if (!(key in curr)) {
+			changes.push(`❌ Removed: ${path + key}`);
+		}
+	}
+
+	for (const key in curr) {
+		const fullPath = path + key;
+		if (!(key in prev)) {
+			changes.push(`➕ Added: ${fullPath} = ${JSON.stringify(curr[key])}`);
+		} else {
+			const val1 = prev[key];
+			const val2 = curr[key];
+
+			// Recursion for objects
+			if (isObject(val1) && isObject(val2)) {
+				changes.push(...deepDiff(val1, val2, fullPath + "."));
+			}
+			// Changed value
+			else if (val1 !== val2) {
+				changes.push(`🔁 Changed: ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}`);
+			}
+		}
+	}
+
+	return changes;
+}
+
+function isObject(value) {
+	return value && typeof value === "object" && !Array.isArray(value);
+}
+
 // --- UI Setup ---
 function createIconCSS(ctx) {
 	document.head.insertAdjacentHTML("beforeend", `
@@ -760,6 +891,12 @@ function onExportOpen() {
 		cdeTextarea.select();
 		if (isCfg(SettingsReference.AUTO_COPY)) writeToClipboard();
 	}
+
+	// Clean-up
+	const viewDiffButton = document.getElementById("cde-viewdiff-button");
+	if (viewDiffButton) {
+		viewDiffButton.style.display = isCfg(SettingsReference.GENERATE_DIFF) ? "visible" : "none";
+	}
 }
 
 
@@ -789,14 +926,14 @@ function openExportUI() {
 				showConfirmButton: false,
 				allowEnterKey: false,
 				inputAttributes: {
-			    readonly: true
-			  },
-				inputAttributes: {},
+					readonly: true
+				},
 				customClass: { container: "cde-modal" },
 				footer: 
 				`<button id="cde-download-button" class="btn btn-sm btn-primary">Download</button>
 				<button id="cde-clipboard-button" class="btn btn-sm btn-primary">Clip Board</button>
-				<button id="cde-sendtohastebin-button" class="btn btn-sm btn-primary">Hastebin</button>`,
+				<button id="cde-sendtohastebin-button" class="btn btn-sm btn-primary">Hastebin</button>
+				<button id="cde-viewdiff-button" class="btn btn-sm btn-secondary">View Diff</button>`,
 				didOpen: async () => {
 					// Set action on.. DOWNLOAD
 					document.getElementById("cde-download-button")?.addEventListener("click", () => {
@@ -838,6 +975,7 @@ function openExportUI() {
 						}
 					});
 
+					// Set action on.. SENDTOHASTEBIN
 					document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", async () => {
 						try {
 							const raw = getExportString();
@@ -862,6 +1000,16 @@ function openExportUI() {
 						}
 					});
 
+					// Set action on.. VIEWDIFF
+					document.getElementById("cde-viewdiff-button")?.addEventListener("click", () => {
+						const diff = exportData?.meta?.changelog || [];
+						Swal.fire({
+							title: "Changelog",
+							html: `<pre style="text-align:left;white-space:pre-wrap;max-height:400px;overflow:auto">${diff.join("\n") || "No diff available."}</pre>`,
+							width: 800
+						});
+					});
+
 					// OPEN EXPORT
 					onExportOpen(); 
 				}
@@ -873,8 +1021,11 @@ function openExportUI() {
 
 // --- Init ---
 
-export function setup({ onInterfaceReady, settings, api }) {
+export function setup({ characterStorage, settings, api, onInterfaceReady }) {
 	console.log("[CDE] Loading ...");
+
+	// STORAGE
+	charStorage = characterStorage;
 
 	// SETTINGS
 	createSettings(settings);
@@ -885,7 +1036,12 @@ export function setup({ onInterfaceReady, settings, api }) {
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		console.log("[CDE] Init Interface");
+		// console.log("[CDE] On Interface Ready");
+		ctx.loadScript("https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js")
+			.then(() => {
+				lzStringLoaded = true;
+				console.log("[CDE] LZString loaded");
+			});
 
 		// CSS
 		createIconCSS(ctx);
@@ -902,12 +1058,17 @@ export function setup({ onInterfaceReady, settings, api }) {
 
 	// Setup API
 	api({
-		generateJson: () => {
+		generate: () => {
 			return processCollectData();
 		},
+		exportJson: () => {
+			return getExportJSON();
+		},
 		exportString: () => {
-			processCollectData();
 			return getExportString();
+		},
+		exportLZ: () => {
+			return getExportLZ();
 		},
 		toggleButtonVisibility: (toggle) => {
 			visibilityExportButton(toggle);
