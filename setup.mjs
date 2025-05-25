@@ -21,7 +21,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.5.6";
+const MOD_VERSION = "v1.5.17";
 
 let debugMode = false;
 let charStorage = null;
@@ -244,6 +244,7 @@ function isCfg(settingRef) {
 // --- Export Logic ---
 
 let exportData = {};
+let changesData = [];
 function getExportJSON() {
 	return exportData;
 }
@@ -286,6 +287,10 @@ function debugExportSizes() {
 }
 
 const CS_LAST_EXPORT = "cde_last_export";
+function getExportKey() {
+	return CS_LAST_EXPORT+"_"+(game.characterName || "unknown");
+}
+
 function getLastExportFromStorage() {
 	try {
 		/*
@@ -296,7 +301,8 @@ function getLastExportFromStorage() {
 		}
 		const raw = storage.getItem(CS_LAST_EXPORT);
 		*/
-		const raw = localStorage.getItem(CS_LAST_EXPORT);
+
+		const raw = localStorage.getItem(getExportKey());
 		if (!raw) return null;
 
 		let json = raw;
@@ -305,7 +311,11 @@ function getLastExportFromStorage() {
 			if (decompressed) json = decompressed;
 		}
 
-		return JSON.parse(json);
+		json = JSON.parse(json);
+		if (debugMode) {
+			console.log("[CDE] Object read:", json);
+		}
+		return json;
 	} catch (err) {
 		console.warn("[CDE] Could not parse last export:", err);
 		return null;
@@ -331,7 +341,10 @@ function saveExportToStorage(jsonData) {
 		if (lzStringLoaded && typeof LZString !== "undefined") {
 			raw = LZString.compressToUTF16(raw);
 		}
-		localStorage.setItem(CS_LAST_EXPORT, raw);
+		localStorage.setItem(getExportKey(), raw);
+		if (debugMode) {
+			console.log("[CDE] Object saved:", raw);
+		}
 	} catch (err) {
 		console.warn("[CDE] Failed to save export to storage:", err);
 	}
@@ -371,17 +384,29 @@ function processCollectData() {
 		modVersion: MOD_VERSION
 	};
 
-	let changes = null;
 	if (isCfg(SettingsReference.SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));
+		// TODO : to compact before sharing
+		copy.currentActivity = null;
+		copy.agility = null;
+		copy.ancientRelics = null;
+		copy.dungeons = null;
+		copy.strongholds = null;
+		copy.equipmentSets = null;
+		if (copy.shop?.purchases) copy.shop.purchases = null;
+		if (copy.bank?.items) copy.bank.items = null;
+		copy.astrology = null;
+		copy.pets = null;
+		if (copy.cartography?.maps) copy.cartography.maps = null;
+		if (copy.farming?.plots) copy.farming.plots = null;
 		
 		// Generate Diff
 		if (isCfg(SettingsReference.GENERATE_DIFF)) {
 			const lastExport = getLastExportFromStorage();	
 			if (lastExport) {
-				changes = deepDiff(lastExport, copy);
+				changesData = deepDiff(lastExport, copy);
 			} else {
-				changes = ["🆕 First export — no previous data to compare."];
+				changesData = ["🆕 First export — no previous data to compare."];
 			}
 		}
 
@@ -391,12 +416,6 @@ function processCollectData() {
 
 	// Finalize..
 	exportData = newData;
-	if (changes) {
-		exportData.meta.changelog = changes;
-		if (debugMode) {
-			console.log("[CDE] Changes: ", changes);
-		}
-	}
 	if (debugMode) {
 		console.log("[CDE] exportData updated: ", exportData);
 	}
@@ -954,7 +973,8 @@ function openExportUI() {
 
 						const link = document.createElement("a");
 						link.href = url;
-						link.download = `melvor-export-${new Date().toISOString().split("T")[0]}.json`;
+						// link.download = `melvor-export-${new Date().toISOString().split("T")[0]}.json`;
+						link.download = `melvor-export-${new Date().toISOString().split("T")[0]}_${new Date().toTimeString().split(" ")[0].replace(/:/g, "")}.json`;
 						document.body.appendChild(link);
 						link.click();
 						document.body.removeChild(link);
@@ -1013,12 +1033,10 @@ function openExportUI() {
 
 					// Set action on.. VIEWDIFF
 					document.getElementById("cde-viewdiff-button")?.addEventListener("click", () => {
-						const diff = exportData?.meta?.changelog || [];
+						const diff = changesData || [];
 						Swal.fire({
 						  title: "Changelog",
-						  html: `<pre class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">
-						    ${diff.join("\n") || "No diff available."}
-						  </pre>`,
+						  html: `<pre class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">${diff.join("\n") || "No diff available."}</pre>`,
 						  width: 800
 						});
 					});
@@ -1057,11 +1075,13 @@ export function setup({ characterStorage, settings, api, onInterfaceReady }) {
 				lzStringLoaded = true;
 				console.log("[CDE] LZString loaded");
 			});
+		/*
 		ctx.loadScript("https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js")
   		.then(() => {
   			pakoLoaded = true;
     		console.log("[CDE] Pako loaded");
   		});
+  		*/
 
 		// CSS
 		createIconCSS(ctx);
