@@ -9,6 +9,7 @@
 	border: 0px;
 	margin: 0px;
 }
+
 .darkMode .cde {
 	background-image: var(--icon-dark), linear-gradient(to right, #2d3542, #2d3542) !important;
 }

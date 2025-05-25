@@ -40,6 +40,7 @@
 	// REFACTOR : Stage 6 – Export compression (e.g., UTF16)
 	// REFACTOR : Stage 7 – Settings cleanup and consolidation
 	// REFACTOR : Stage 8 - API function
+	// REFACTOR : Stage 9 - Settings V2
 
 // === Plan to X.0.0 ===
 	// TODO : Save to file
@@ -49,7 +50,7 @@
 	
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.3.5";
+const MOD_VERSION = "v1.3.11";
 let displayStatsModule = null;
 let debugMode = false;
 
@@ -691,15 +692,17 @@ function collectCompletion() {
 }
 
 // --- UI Setup ---
-
 function createIconCSS(ctx) {
-	document.head.insertAdjacentHTML("beforeend", `
-		<style>
-			.cde {
-				--icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");
-				--icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");
-			}
-	</style>`);
+  document.head.insertAdjacentHTML("beforeend", `
+    <style>
+      :root {
+        --icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");
+      }
+      .darkMode {
+        --icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");
+      }
+    </style>
+  `);
 }
 
 function CDEButton(template, cb) {
@@ -787,24 +790,32 @@ function openExportUI() {
 
 export function setup({ onInterfaceReady, settings, api }) {
 	console.log("[CDE] Loading ...");
+
+	// SETTINGS
 	createSettings(settings);
 	if (isCfg(SettingsReference.MOD_DEBUG)) {
 		console.log("[CDE] Warning: debug mode allowed");
 		debugMode = true;
 	}
 
+	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
 		console.log("[CDE] Init Interface");
+
+		// CSS
 		createIconCSS(ctx);
 
+		// Load stats
 		displayStatsModule = await ctx.loadModule("displayStats.mjs");
-		setupExportButtonUI(openExportUI);
 
+		// Setup Export Button
+		setupExportButtonUI(openExportUI);
 		visibilityExportButton(isCfg(SettingsReference.SHOW_BUTTON));
 
 		console.log("[CDE] loaded !");
 	});
 
+	// Setup API
 	api({
 		generateJson: () => {
 			return processCollectData();
@@ -815,6 +826,9 @@ export function setup({ onInterfaceReady, settings, api }) {
 		},
 		toggleButtonVisibility: (toggle) => {
 			visibilityExportButton(toggle);
+		},
+		getCfgValue: (settingsReference) => {
+			return isCfg(settingsReference);
 		},
 		debugMode: (toggle) => {
 			debugMode = toggle;

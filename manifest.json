@@ -8,5 +8,9 @@
   "load": [
     "assets/templates.html",
     "assets/styles.css"
+  ],
+  "resources": [
+    "assets/cde-icon-light.png",
+    "assets/cde-icon-dark.png"
   ]
 }
