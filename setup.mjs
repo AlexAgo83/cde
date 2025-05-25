@@ -30,67 +30,41 @@
 // REFACTOR : Stage 4 - export as JSON
 // REFACTOR : Stage 5 - custom export json
 // REFACTOR : Stage 6 - compress export
+// REFACTOR : Stage 7 - Settings cleanup
 
 // --- Configuration ---
 let displayStatsModule = null;
 let debugMode = false;
 
-const STG_INTERFACE = "Interface";
-const STG_MOD_ENABLED = "mod-enabled";
-const STG_AUTO_SELECT = "auto-select";
-const STG_AUTO_COPY = "auto-copy";
-
-const STG_EXPORT_COMPRESS = "export-compress";
-
-const STG_EXPORT_BANK = "export-bank";
-const STG_EXPORT_FARMING = "export-farming";
-const STG_EXPORT_STATS = "export-stats";
-const STG_EXPORT_CARTO = "export-carto";
-const STG_EXPORT_MASTERY = "export-mastery";
+const settingsReference = {
+  section: "Interface",
+  modEnabled: "mod-enabled",
+  autoSelect: "auto-select",
+  autoCopy: "auto-copy",
+  exportCompress: "export-compress",
+  exportBank: "export-bank",
+  exportFarming: "export-farming",
+  exportStats: "export-stats",
+  exportCarto: "export-carto",
+  exportMastery: "export-mastery"
+};
 
 let settingsSection = null;
-
 function createSettings(settings) {
-  settingsSection = settings.section(STG_INTERFACE);
-  settingsSection.add({ type: "switch", name: STG_MOD_ENABLED, label: "Mod Enabled", hint: "Switch enabled/disabled", default: true });
-  settingsSection.add({ type: "switch", name: STG_AUTO_SELECT, label: "Auto select", hint: "Auto select export", default: true });
-  settingsSection.add({ type: "switch", name: STG_AUTO_COPY, label: "Auto copy", hint: "Auto copy export to clipboard", default: false });
-  settingsSection.add({ type: "switch", name: STG_EXPORT_COMPRESS, label: "Compress Export", hint: "Allow to compress export", default: true });
-  settingsSection.add({ type: "switch", name: STG_EXPORT_BANK, label: "Export Bank / Inventory", hint: "Allow to export bank", default: true });
-  settingsSection.add({ type: "switch", name: STG_EXPORT_FARMING, label: "Export Farming", hint: "Allow to export farming", default: true });
-  settingsSection.add({ type: "switch", name: STG_EXPORT_STATS, label: "Export Stats", hint: "Allow to export stats", default: true });
-  settingsSection.add({ type: "switch", name: STG_EXPORT_CARTO, label: "Export Carto", hint: "Allow to export carto", default: true });
-  settingsSection.add({ type: "switch", name: STG_EXPORT_MASTERY, label: "Export Mastery", hint: "Allow to export mastery", default: true });
+  settingsSection = settings.section(settingsReference.section);
+  settingsSection.add({ type: "switch", name: settingsReference.modEnabled, label: "Enable Mod", hint: "Toggle the Character Data Exporter on or off", default: true });
+  settingsSection.add({ type: "switch", name: settingsReference.autoSelect, label: "Auto-Select Export", hint: "Automatically select all text when opening the export window", default: true });
+  settingsSection.add({ type: "switch", name: settingsReference.autoCopy, label: "Auto-Copy Export", hint: "Automatically copy export to clipboard when opened", default: false });
+  settingsSection.add({ type: "switch", name: settingsReference.exportCompress, label: "Compress Export Output", hint: "Export JSON in a compressed single-line format", default: true });
+  settingsSection.add({ type: "switch", name: settingsReference.exportBank, label: "Include Bank Data", hint: "Include inventory and bank items in export", default: true });
+  settingsSection.add({ type: "switch", name: settingsReference.exportFarming, label: "Include Farming Data", hint: "Include current farming plots in export", default: true });
+  settingsSection.add({ type: "switch", name: settingsReference.exportStats, label: "Include Game Stats", hint: "Include general statistics from all skills and actions", default: true });
+  settingsSection.add({ type: "switch", name: settingsReference.exportCarto, label: "Include Cartography Data", hint: "Include discovered POIs and map progress in export", default: true });
+  settingsSection.add({ type: "switch", name: settingsReference.exportMastery, label: "Include Mastery Data", hint: "Include mastery levels and XP for each skill action", default: true });
 }
 
-function isModEnabled() {
-  return settingsSection ? settingsSection.get(STG_MOD_ENABLED) : true;
-}
-function isAutoSelect() {
-  return settingsSection ? settingsSection.get(STG_AUTO_SELECT) : true;
-}
-function isAutoCopy() {
-  return settingsSection ? settingsSection.get(STG_AUTO_COPY) : false;
-}
-
-function isExportCompress() {
-  return settingsSection ? settingsSection.get(STG_EXPORT_COMPRESS) : false;
-}
-
-function isExportBankAllowed() {
-  return settingsSection ? settingsSection.get(STG_EXPORT_BANK) : false;
-}
-function isExportFarmingAllowed() {
-  return settingsSection ? settingsSection.get(STG_EXPORT_FARMING) : false;
-}
-function isExportStatsAllowed() {
-  return settingsSection ? settingsSection.get(STG_EXPORT_STATS) : false;
-}
-function isExportCartoAllowed() {
-  return settingsSection ? settingsSection.get(STG_EXPORT_CARTO) : false;
-}
-function isExportMasteryAllowed() {
-  return settingsSection ? settingsSection.get(STG_EXPORT_MASTERY) : false;
+function isSettingsAllowed(reference) {
+  return settingsSection && reference ? settingsSection.get(reference) : false;
 }
 
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
@@ -102,27 +76,22 @@ function getExportJSON() {
   return exportData;
 }
 function getExportString() {
-  const exportJson = getExportJSON();
-  let result;
-  if (isExportCompress()) {
-    result = JSON.stringify(getExportJSON());
-  } else {
-    result = JSON.stringify(getExportJSON(), null, 2);
-  }
-  return result;
+  return isSettingsAllowed(settingsReference.exportCompress) ? 
+    JSON.stringify(getExportJSON()) : 
+    JSON.stringify(getExportJSON(), null, 2);
 }
 
 function processCollectData() {
   exportData = {};
   exportData.basics = collectBasics();
-  exportData.stats = isExportStatsAllowed() ? collectGameStats() : null;
+  exportData.stats = isSettingsAllowed(settingsReference.exportStats) ? collectGameStats() : { info: "Stats unavailable" };
   exportData.shop = collectShopData();
   exportData.currentActivity = collectCurrentActivity();
   exportData.equipment = collectEquipments();
   exportData.equipmentSets = collectEquipmentSets();
-  exportData.bank = isExportBankAllowed() ? collectBankData() : null ;
+  exportData.bank = isSettingsAllowed(settingsReference.exportBank) ? collectBankData() : { info: "Bank unavailable" } ;
   exportData.skills = collectSkills();
-  exportData.mastery = isExportMasteryAllowed() ? collectMastery() : null;
+  exportData.mastery = isSettingsAllowed(settingsReference.exportMastery) ? collectMastery() : { info: "Mastery unavailable" };
   exportData.astrology = collectAstrology();
   exportData.agility = collectAgility();
   exportData.dungeons = collectDungeons();
@@ -131,8 +100,8 @@ function processCollectData() {
   exportData.township = collectTownship();
   exportData.pets = collectPets();
   exportData.ancientRelics = collectAncientRelics();
-  exportData.cartography = isExportCartoAllowed() ? collectCartography() : null;
-  exportData.farming = isExportFarmingAllowed() ? collectFarming() : null;
+  exportData.cartography = isSettingsAllowed(settingsReference.exportCarto) ? collectCartography() : { info: "Cartography unavailable" };
+  exportData.farming = isSettingsAllowed(settingsReference.exportFarming) ? collectFarming() : { info: "Farming unavailable" };
   exportData.meta = {
     exportTimestamp: new Date().toISOString(),
     version: game.lastLoadedGameVersion,
@@ -308,7 +277,7 @@ function collectCartography() {
 
   if (!maps || !(maps instanceof Map)) {
     console.warn("[CDE] Cartography maps not found");
-    return { level: game.cartography.level, maps: result };
+    return { level: game.cartography?.level ?? null, maps: result };
   }
 
   maps.forEach((mapObj, mapKey) => {
@@ -578,19 +547,22 @@ function writeToClipboard() {
 }
 
 function onExportOpen() {
-  if (!isModEnabled()) return;
+  if (!isSettingsAllowed(settingsReference.modEnabled)) return;
+  
   const cdeTextarea = Swal.getInput();
+  if (!cdeTextarea) return;
+
   cdeTextarea.focus();
-  if (isAutoSelect()) {
+  if (isSettingsAllowed(settingsReference.autoSelect)) {
     cdeTextarea.select();
-    if (isAutoCopy()) writeToClipboard();
+    if (isSettingsAllowed(settingsReference.autoCopy)) writeToClipboard();
   }
 }
 
 let exportUI = null;
 function openExportUI() {
   processCollectData();
-  if (isModEnabled()) {
+  if (isSettingsAllowed(settingsReference.modEnabled)) {
     if (exportUI) {
       exportUI.inputValue = getExportString();
     } else {
