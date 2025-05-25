@@ -31,6 +31,7 @@
 /* CDE modal */
 .cde-modal > .swal2-modal {
 	width: 900px;
+	min-width: 700px;
 }
 .cde-modal textarea {
 	height: 440px;
@@ -47,7 +48,28 @@
 #cde-download-button,
 #cde-clipboard-button,
 #cde-sendtohastebin-button,
-#cde-viewdiff-button {
+#cde-viewdiff-button,
+#cde-changelog-clipboard-button {
   margin-right: 8px;
   margin-top: 6px;
 }
+
+#cde-changelog-panel {
+  cursor: pointer;
+  user-select: text;
+  background: #23272e;
+  color: #eee;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+#cde-changelog-panel:hover {
+  background: #2e3440;
+}
+#cde-changelog-panel .diff-added    { color: #38d39f; }
+#cde-changelog-panel .diff-removed  { color: #e57373; }
+#cde-changelog-panel .diff-changed  { color: #ffd166; }
