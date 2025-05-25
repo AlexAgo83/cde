@@ -48,6 +48,7 @@
 
 
 // --- Configuration ---
+const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
 const MOD_VERSION = "1.2.8";
 let displayStatsModule = null;
 let debugMode = false;
@@ -56,6 +57,7 @@ let sectionGeneral = null;
 const cfgGeneral = {
   section: "General",
   modEnabled: "mod-enabled",
+  hideButton: "hide-button",
   autoSelect: "auto-select",
   autoCopy: "auto-copy",
   exportCompress: "export-compress"
@@ -68,22 +70,29 @@ const cfgDataOptions = {
   exportFarming: "export-farming",
   exportStats: "export-stats",
   exportCarto: "export-carto",
+  exportPets: "export-pets",
+  exportTownship: "export-township",
+  exportSkills: "export-skills",
   exportMastery: "export-mastery"
 }
 
 function createSettings(settings) {
   sectionGeneral = settings.section(cfgGeneral.section);
   sectionGeneral.add({ type: "switch", name: cfgGeneral.modEnabled, label: "Enable Mod", hint: "Toggle the Character Data Exporter on or off", default: true });
+  sectionGeneral.add({ type: "switch", name: cfgGeneral.hideButton, label: "Hide button", hint: "Hide top button", default: false });
   sectionGeneral.add({ type: "switch", name: cfgGeneral.autoSelect, label: "Auto-Select Export", hint: "Automatically select all text when opening the export window", default: true });
   sectionGeneral.add({ type: "switch", name: cfgGeneral.autoCopy, label: "Auto-Copy Export", hint: "Automatically copy export to clipboard when opened", default: false });
   sectionGeneral.add({ type: "switch", name: cfgGeneral.exportCompress, label: "Compress Export Output", hint: "Export JSON in a compressed single-line format", default: true });
 
   sectionDataOptions = settings.section(cfgDataOptions.section);
-  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportBank, label: "Include Bank Data", hint: "Include inventory and bank items in export", default: true });
-  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportFarming, label: "Include Farming Data", hint: "Include current farming plots in export", default: true });
-  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportStats, label: "Include Game Stats", hint: "Include general statistics from all skills and actions", default: true });
-  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportCarto, label: "Include Cartography Data", hint: "Include discovered POIs and map progress in export", default: true });
-  sectionDataOptions.add({ type: "switch", name: cfgGeneral.exportMastery, label: "Include Mastery Data", hint: "Include mastery levels and XP for each skill action", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportBank, label: "Include Bank Data", hint: "Include inventory and bank items in export", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportFarming, label: "Include Farming Data", hint: "Include current farming plots in export", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportStats, label: "Include Game Stats", hint: "Include general statistics from all skills and actions", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportCarto, label: "Include Cartography Data", hint: "Include discovered POIs and map progress in export", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportSkills, label: "Include Skills Data", hint: "Include skills levels and XP", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportMastery, label: "Include Mastery Data", hint: "Include mastery levels and XP for each skill action", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportPets, label: "Include Pets Data", hint: "Include discovered pets data", default: true });
+  sectionDataOptions.add({ type: "switch", name: cfgDataOptions.exportTownship, label: "Include Township Data", hint: "Include township statistics", default: true });
 }
 
 function isCfg(reference) {
@@ -96,8 +105,6 @@ function isCfg(reference) {
 
   return sectionMap[reference.section]?.get(reference) ?? false;
 }
-
-const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
 
 // --- Export Logic ---
 
@@ -114,24 +121,24 @@ function getExportString() {
 function processCollectData() {
   const newData = {};
   newData.basics = collectBasics();
-  newData.stats = isCfg(cfgGeneral.exportStats) ? collectGameStats() : { info: "Stats unavailable" };
+  newData.stats = isCfg(cfgDataOptions.exportStats) ? collectGameStats() : { info: "Stats data unavailable" };
   newData.shop = collectShopData();
   newData.currentActivity = collectCurrentActivity();
   newData.equipment = collectEquipments();
   newData.equipmentSets = collectEquipmentSets();
-  newData.bank = isCfg(cfgGeneral.exportBank) ? collectBankData() : { info: "Bank unavailable" } ;
+  newData.bank = isCfg(cfgDataOptions.exportBank) ? collectBankData() : { info: "Bank data unavailable" } ;
   newData.skills = collectSkills();
-  newData.mastery = isCfg(cfgGeneral.exportMastery) ? collectMastery() : { info: "Mastery unavailable" };
+  newData.mastery = isCfg(cfgDataOptions.exportMastery) ? collectMastery() : { info: "Mastery data unavailable" };
   newData.astrology = collectAstrology();
   newData.agility = collectAgility();
   newData.dungeons = collectDungeons();
   newData.strongholds = collectStrongholds();
   newData.completion = collectCompletion();
-  newData.township = collectTownship();
-  newData.pets = collectPets();
+  newData.township = isCfg(cfgDataOptions.exportTownship) ? collectTownship() : { info: "Township data unavailable" };
+  newData.pets = isCfg(cfgDataOptions.exportPets) ? collectPets() : { info: "Pets data unavailable" };
   newData.ancientRelics = collectAncientRelics();
-  newData.cartography = isCfg(cfgGeneral.exportCarto) ? collectCartography() : { info: "Cartography unavailable" };
-  newData.farming = isCfg(cfgGeneral.exportFarming) ? collectFarming() : { info: "Farming unavailable" };
+  newData.cartography = isCfg(cfgDataOptions.exportCarto) ? collectCartography() : { info: "Cartography data unavailable" };
+  newData.farming = isCfg(cfgDataOptions.exportFarming) ? collectFarming() : { info: "Farming data unavailable" };
   newData.meta = {
     exportTimestamp: new Date().toISOString(),
     version: game.lastLoadedGameVersion,
@@ -180,6 +187,7 @@ function collectBasics() {
 function collectSkills() {
   const result = {};
   game.skills.forEach((skill) => {
+    skill.masteryPoolXp
     result[skill.id] = {
       name: skill.name,
       level: skill.level,
@@ -329,7 +337,9 @@ function collectCartography() {
       name: mapObj.name,
       id: mapObj.localID,
       discoveredPOIs: pois,
-      totalPOIs: mapObj.pointsOfInterest?.registeredObjects?.size || 0,
+      totalPOIs: mapObj.pointsOfInterest?.registeredObjects instanceof Map
+        ? mapObj.pointsOfInterest.registeredObjects.size
+        : 0,
       masteredHexes: mapObj.masteredHexes,
       fullySurveyedHexes: mapObj.fullySurveyedHexes,
       unlockedBonuses: mapObj.unlockedMasteryBonuses
@@ -455,7 +465,7 @@ function collectBankData() {
 
   return {
     size: game.bank.items.size,
-    capacity: game.combat.player.modifiers.bankSpace + game.bank.baseSlots,
+    capacity: (game.combat.player.modifiers.bankSpace ?? 0) + game.bank.baseSlots,
     items: bank
   };
 }
@@ -554,11 +564,12 @@ function CDEButton(template, cb) {
   };
 }
 
+let lazyBtCde = null;
 function setupExportButtonUI(cb) {
   ui.create(CDEButton("#cde-button-topbar", cb), document.body);
   const cde = document.getElementById("cde");
   const potions = document.getElementById("page-header-potions-dropdown").parentNode;
-  potions.insertAdjacentElement("beforebegin", cde);
+  potions.insertAdjacentElement("beforebegin", lazyBtCde = cde);
 }
 
 function writeToClipboard() {
@@ -626,6 +637,12 @@ export function setup({ onInterfaceReady, settings, api }) {
     createIconCSS(ctx);
     setupExportButtonUI(openExportUI);
     console.log("[CDE] loaded !");
+    if (lazyBtCde) {
+      if (isCfg(cfgGeneral.hideButton))
+        lazyBtCde.style.visibility = "hidden"
+      else 
+        lazyBtCde.style.visibility = "visible"
+    }
   });
 
   api({
