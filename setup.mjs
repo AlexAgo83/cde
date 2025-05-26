@@ -39,7 +39,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.10";
+const MOD_VERSION = "v1.8.11";
 
 let debugMode = false;
 let charStorage = null;
@@ -1289,28 +1289,28 @@ function formatChangelogLine(line) {
 	if (line.startsWith("➕")) {
 		const m = line.match(/^➕ ADD ([^=]+) = (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ Added</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${escapeHtml(m[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${escapeHtml(m[2].trim())}</span></div>`;
 		const m2 = line.match(/^➕ ADD \[([^\]]+)\]: (.+)$/);
 		if (m2)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ Added</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${escapeHtml(m2[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${escapeHtml(m2[2].trim())}</span></div>`;
 	}
 
   	// ❌ RMV
 	if (line.startsWith("❌")) {
 		const m = line.match(/^❌ RMV (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ Removed</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span></div>`;
     
 		const m2 = line.match(/^❌ RMV \[([^\]]+)\]: (.+)$/);
 		if (m2)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ Removed</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${escapeHtml(m2[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${escapeHtml(m2[2].trim())}</span></div>`;
 	}
 
   	// 🔁 UPD
 	if (line.startsWith("🔁")) {
 		const m = line.match(/^🔁 UPD ([^=]+) = ([^→]+) → (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 Changed</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${escapeHtml(m[3].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 UPD</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${escapeHtml(m[3].trim())}</span></div>`;
 	}
 
 	return `<div class="cde-changelog-line">${escapeHtml(line)}</div>`;
