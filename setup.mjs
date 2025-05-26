@@ -28,7 +28,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.7.14";
+const MOD_VERSION = "v1.7.19";
 
 let debugMode = false;
 let charStorage = null;
@@ -66,6 +66,7 @@ const SettingsReference = {
 		label: "Show button",
 		hint: "Show top CDE button (May need restart)", 
 		toggle: true},
+	/*
 	AUTO_SELECT: {
 		section: Sections.General,
 		type: "switch",
@@ -80,6 +81,7 @@ const SettingsReference = {
 		label: "Auto-Copy Export",
 		hint: "Automatically copy export to clipboard when opened", 
 		toggle: false},
+		*/
 	EXPORT_COMPRESS: {
 		section: Sections.General,
 		type: "switch",
@@ -1118,6 +1120,7 @@ function writeToClipboard() {
 function onExportOpen() {
 	if (!isCfg(SettingsReference.MOD_ENABLED)) return;
 	
+	/*
 	const cdeTextarea = Swal.getInput();
 	if (!cdeTextarea) return;
 
@@ -1126,6 +1129,7 @@ function onExportOpen() {
 		cdeTextarea.select();
 		if (isCfg(SettingsReference.AUTO_COPY)) writeToClipboard();
 	}
+	*/
 
 	// Clean-up
 	const viewDiffButton = document.getElementById("cde-viewdiff-button");
@@ -1334,18 +1338,85 @@ async function onClickExportViewDiff() {
     });
 }
 
+function setupCollapsibleJSON() {
+  document.querySelectorAll('.cde-json-caret').forEach(caret => {
+    caret.addEventListener('click', function() {
+      const nodeId = caret.getAttribute('data-node');
+      const nodeDiv = document.getElementById('node-' + nodeId);
+      const isCollapsed = caret.classList.contains('collapsed');
+      if (nodeDiv) nodeDiv.style.display = isCollapsed ? 'block' : 'none';
+      caret.classList.toggle('collapsed', !isCollapsed);
+      caret.classList.toggle('expanded', isCollapsed);
+    });
+  });
+}
+
+function renderCollapsibleJSON(obj, key = null, path = '') {
+	const type = Object.prototype.toString.call(obj);
+	const isArray = Array.isArray(obj);
+	const nodeId = path || 'root';
+	let html = '';
+
+	const isRoot = nodeId === 'root';
+	const caretClass = isRoot ? 'cde-json-caret expanded' : 'cde-json-caret collapsed';
+	const nodeStyle = isRoot ? 'display:block' : 'display:none';
+
+	if (type === '[object Object]' || isArray) {
+		const displayKey = key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : '';
+		const preview = isArray ? `[Array (${obj.length})]` : `{Object (${Object.keys(obj).length})}`;
+		html += `<div><span class="${caretClass}" data-node="${nodeId}"></span>${displayKey}<span class="cde-json-type">${preview}</span><div class="cde-json-node" style="${nodeStyle}" id="node-${nodeId}">`;
+		Object.entries(obj).forEach(([k, v], idx) => {
+		html += renderCollapsibleJSON(v, k, nodeId + '-' + k);
+	});
+	html += `</div></div>`;
+} else {
+	let valClass = 'cde-json-string';
+	let valDisplay = JSON.stringify(obj);
+	if (typeof obj === 'number') valClass = 'cde-json-number';
+	else if (typeof obj === 'boolean') valClass = 'cde-json-boolean';
+	else if (obj === null) valClass = 'cde-json-null';
+	html += `<div>${key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : ''}<span class="${valClass}">${valDisplay}</span></div>`;
+}
+return html;
+}
+
+function renderPrettyJSON(obj) {
+    function syntaxHighlight(json) {
+        if (typeof json !== 'string') {
+            json = JSON.stringify(json, null, 2);
+        }
+        json = escapeHtml(json);
+        return json.replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(true|false|null)\b|-?\d+(\.\d*)?([eE][+\-]?\d+)?)/g,
+            function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) cls = 'json-key';
+                    else cls = 'json-string';
+                } else if (/true|false/.test(match)) cls = 'json-boolean';
+                else if (/null/.test(match)) cls = 'json-null';
+                return '<span class="' + cls + '">' + match + '</span>';
+            }
+        );
+    }
+    return `<pre class="cde-json-viewer">${syntaxHighlight(obj)}</pre>`;
+}
 
 let exportUI = null;
 function openExportUI() {
 	processCollectData();
 	if (isCfg(SettingsReference.MOD_ENABLED)) {
 		if (exportUI) {
-			exportUI.inputValue = getExportString();
+			// exportUI.inputValue = getExportString();
+			// exportUI.html = renderPrettyJSON(getExportJSON());
+			exportUI.html = renderCollapsibleJSON(getExportJSON());
 		} else {
 			exportUI = {
 				title: "Character Data Exporter",
-				input: "textarea",
-				inputValue: getExportString(),
+				// input: "textarea",
+				// inputValue: getExportString(),
+				// html: renderPrettyJSON(getExportJSON()),
+				html: renderCollapsibleJSON(getExportJSON()),
 				showCloseButton: true,
 				showConfirmButton: false,
 				allowEnterKey: false,
@@ -1359,6 +1430,8 @@ function openExportUI() {
 						<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`,
 				
 				didOpen: async () => {
+					setupCollapsibleJSON();
+
 					document.getElementById("cde-download-button")?.addEventListener("click", onClickExportDownload);
 					document.getElementById("cde-clipboard-button")?.addEventListener("click", onClickExportClipboard);
 					document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", onClickExportHastebin);
