@@ -23,11 +23,12 @@
 	// Stage 13 - Storage format detection
 	// Stage 14 - Smart diff on arrays using ID/localID/name as key
 	// Stage 15 - "View Diff" button to show changelog with color formatting
+	// Stage 16 - Timelapse history
 
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.7.2";
+const MOD_VERSION = "v1.7.14";
 
 let debugMode = false;
 let charStorage = null;
@@ -46,43 +47,50 @@ const SettingsReference = {
 	// GENERAL SETTINGS
 	MOD_ENABLED: {
 		section: Sections.General,
+		type: "switch",
 		key: "mod-enabled", 
 		label: "Enable Mod", 
 		hint: "Toggle the Character Data Exporter on or off", 
-	toggle: true},
+		toggle: true},
 	MOD_DEBUG: {
 		section: Sections.General,
+		type: "switch",
 		key: "mod-debug", 
 		label: "Enable Debug", 
 		hint: "Toggle Debug on or off (May need restart)", 
-	toggle: false},
+		toggle: false},
 	SHOW_BUTTON: {
 		section: Sections.General,
+		type: "switch",
 		key: "show-button",
 		label: "Show button",
 		hint: "Show top CDE button (May need restart)", 
-	toggle: true},
+		toggle: true},
 	AUTO_SELECT: {
 		section: Sections.General,
+		type: "switch",
 		key: "auto-select",
 		label: "Auto-Select Export",
 		hint: "Automatically select all text when opening the export window", 
-	toggle: false},
+		toggle: false},
 	AUTO_COPY: {
 		section: Sections.General,
+		type: "switch",
 		key: "auto-copy",
 		label: "Auto-Copy Export",
 		hint: "Automatically copy export to clipboard when opened", 
-	toggle: false},
+		toggle: false},
 	EXPORT_COMPRESS: {
 		section: Sections.General,
+		type: "switch",
 		key: "export-compress",
 		label: "Compress Export Output",
 		hint: "Export JSON in a compressed single-line format", 
-	toggle: true},
+		toggle: true},
 	/*
 	USE_LZSTRING: {
 		section: Sections.General,
+		type: "switch",
 		key: "use-lzstring",
 		label: "Use LZString Compression",
 		hint: "Enable or disable usage of LZString for export compression",
@@ -90,119 +98,165 @@ const SettingsReference = {
 	 */
 	SAVE_TO_STORAGE: {
 		section: Sections.General,
+		type: "switch",
 		key: "save-to-storage",
 		label: "Save export in storage",
 		hint: "Save the latest export JSON in characterStorage",
-	toggle: true},
+		toggle: true},
 	GENERATE_DIFF: {
 		section: Sections.General,
+		type: "switch",
 		key: "generate-diff",
 		label: "Generate Changelog (Diff)",
 		hint: "Enable changelog comparison between current and previous export",
-	toggle: true},
+		toggle: true},
+	MAX_CHANGES_HISTORY: {
+		section: Sections.General,
+		type: "dropdown",
+		key: "max-changes-history",
+		label: "Changes History Size Limit",
+		hint: "Maximum number of change history entries to keep (0 disables history)",
+		options: [
+	        { value: 0, display: "0 (Disable history)" },
+	        { value: 1, display: "1" },
+	        { value: 5, display: "5" },
+	        { value: 10, display: "10 (Default)" },
+	        { value: 25, display: "25" },
+	        { value: 50, display: "50" },
+	        { value: 100, display: "100" }
+	    ],
+		toggle: 10},
 
 	// DATA OPTIONS SETTINGS
 	EXPORT_BANK: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-bank",
 		label: "Include Bank Data",
 		hint: "Include inventory and bank items in export", 
-	toggle: true},
+		toggle: true},
 	EXPORT_SHOP: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-shop",
 		label: "Include Shop Data",
 		hint: "Include purchased shop items in export", 
-	toggle: true},
+		toggle: true},
 	EXPORT_EQUIPMENT: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-equipment",
 		label: "Include Current Equipment Data",
 		hint: "Include current equipment items in export", 
-	toggle: true},
+		toggle: true},
 	EXPORT_EQUIPMENT_SETS: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-equipment-sets",
 		label: "Include Equipment Sets Data",
 		hint: "Include equipment sets items in export", 
-	toggle: true},
+		toggle: true},
 	EXPORT_FARMING: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-farming",
 		label: "Include Farming Data",
 		hint: "Include current farming plots in export", 
-	toggle: true},
+		toggle: true},
 	EXPORT_GAMESTATS: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-stats",
 		label: "Include Game Stats",
 		hint: "Include general statistics from all skills and actions", 
-	toggle: true},
+		toggle: true},
 	EXPORT_CARTOGRAPHY: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-cartography",
 		label: "Include Cartography Data",
 		hint: "Include discovered POIs and map progress in export", 
-	toggle: true},
+		toggle: true},
 	EXPORT_SKILLS: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-skills",
 		label: "Include Skills Data",
 		hint: "Include skills levels and XP", 
-	toggle: true},
+		toggle: true},
 	EXPORT_MASTERY: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-mastery",
 		label: "Include Mastery Data",
 		hint: "Include mastery levels and XP for each skill action", 
-	toggle: true},
+		toggle: true},
 	EXPORT_PETS: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-pets",
 		label: "Include Pets Data",
 		hint: "Include discovered pets data", 
-	toggle: true},
+		toggle: true},
 	EXPORT_TOWNSHIP: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-township",
 		label: "Include Township Data",
 		hint: "Include township statistics", 
-	toggle: true},
+		toggle: true},
 	EXPORT_ASTROLOGY: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-astrology",
 		label: "Include Astrology Data",
 		hint: "Include astrology data", 
-	toggle: true},
+		toggle: true},
 	EXPORT_COMPLETION: {
 		section: Sections.DataOptions,
+		type: "switch",
 		key: "export-completion",
 		label: "Include Completion Data",
 		hint: "Include completion data", 
-	toggle: true}
+		toggle: true}
 }
 
 class SettingsReferenceItem {
 	constructor(stgRef, onChange = null) {
 		this.attachedSection = null;
 		this.itemSectionRef = stgRef.section;
+		this.itemType = stgRef.type;
 		this.itemKey = stgRef.key;
 		this.itemLabel = stgRef.label;
 		this.itemHint = stgRef.hint;
 		this.itemDefault = stgRef.toggle;
+		this.itemOptions = stgRef.options;
+		this.itemMin = stgRef.min;
+		this.itemMax = stgRef.max;
+		this.itemStep = stgRef.step;
 		this.onChange = onChange;
 	}
 	
 	init(section) {
 		if (!this.attachedSection) {
-			section.add({
-				type: "switch",
+			const config = {
+				type: this.itemType,
 				name: this.itemKey,
 				label: this.itemLabel,
 				hint: this.itemHint,
 				default: this.itemDefault,
 				onChange: this.onChange
-			});
+			};
+			if ((this.itemType == "select" || this.itemType == "dropdown") 
+				&& this.itemOptions) {
+				config.options = this.itemOptions;
+			}
+			if (this.itemType == "input") {
+				config.min = this.itemMin;
+				config.max = this.itemMax;
+				config.step = this.itemStep;
+			}
+			section.add(config);
 			if (debugMode) console.log("[CDE] settings reference item added: " + this.itemKey);
 			this.attachedSection = section;
 		}
@@ -233,10 +287,10 @@ function createSettings(settings) {
 	}
 }
 
-function isCfg(settingRef) {
+function getCfg(settingRef) {
 	if (!settingRef || !settingRef.section || !settingRef.key) {
 		console.error("[CDE] Invalid settings reference:", settingRef);
-		return false;
+		return null;
 	}
 	if (debugMode) {
 		console.warn("[CDE] Toggle value overridden to default:", settingRef);
@@ -244,21 +298,28 @@ function isCfg(settingRef) {
 	} else {
 		if (!loadedSections) {
 			console.error("[CDE] Sections not loaded");
-			return false;
+			return null;
 		}
 		const section = loadedSections[settingRef.section];
 		if (!section) {
 			console.error("[CDE] Invalid section reference:", section);
-			return false;
+			return null;
 		}
-		return section.get(settingRef.key) ?? settingRef.toggle;;
+		return section.get(settingRef.key) ?? settingRef.toggle;
 	}
+}
+
+function isCfg(settingRef) {
+	return getCfg(settingRef) ?? false;
 }
 
 // --- Export Logic ---
 
+const CS_LAST_EXPORT = "cde_last_export";
+function getStorage_ExportKey() {
+	return CS_LAST_EXPORT+"_"+(sanitizeCharacterName(game.characterName));
+}
 let exportData = {};
-let changesData = [];
 function getExportJSON() {
 	return exportData;
 }
@@ -273,17 +334,16 @@ function getExportLZ() {
 		&& lzStringLoaded 
 		&& typeof LZString !== "undefined") {
 		return LZString.compressToUTF16(json);
-}
-return json;
+	}
+	return json;
 }
 function getExportPako() {
 	const json = getExportString();
-	if (isCfg(SettingsReference.EXPORT_COMPRESS) 
-		&& pakoLoaded) {
+	if (isCfg(SettingsReference.EXPORT_COMPRESS) && pakoLoaded) {
 		const compressed = pako.deflate(json);
-	return btoa(String.fromCharCode(...compressed));
-}
-return json;
+		return btoa(String.fromCharCode(...compressed));
+	}
+	return json;
 }
 function debugExportSizes() {
 	const obj = getExportJSON();
@@ -300,17 +360,72 @@ function debugExportSizes() {
 	console.log("🔹 Pako Base64   :", pakoBase64.length, "chars");
 }
 
-const CS_LAST_EXPORT = "cde_last_export";
-function getExportKey() {
-	return CS_LAST_EXPORT+"_"+(game.characterName || "unknown");
+// --- Changes Logic ---
+const CS_LAST_CHANGES = "cde_last_changes";
+function sanitizeCharacterName(name) {
+    if (!name) return "unknown";
+    return name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "_")
+        .replace(/[^a-zA-Z0-9_\-]/g, "")
+        .substring(0, 32);
 }
-function getExportLZKey() {
-	return getExportKey()+"_LZ";
+function getStorage_ChangesKey() {
+	return CS_LAST_CHANGES+"_"+(sanitizeCharacterName(game.characterName));
+}
+let changesData = [];
+function getChangesData() {
+	return changesData;
+}
+let changesHistory = null;
+function getChangesHistory() {
+	if (changesHistory == null) {
+		const stored = getChangesFromStorage();
+		changesHistory = stored instanceof Map ? stored : new Map();
+	}
+	return changesHistory;
+}
+function submitChangesHistory(data) {
+	const date = new Date();
+	const key = date.toISOString().split("T")[0] + "_" + date.toTimeString().split(" ")[0].replace(/:/g, "");
+	
+	const items = getChangesHistory();
+	items.set(key, data);
+
+	cleanChangesHistory();
+	if (getMaxHistorySetting() > 0) {
+		saveChangesToStorage(items);
+	}
+}
+function getMaxHistorySetting() {
+	try {
+		let val = getCfg(SettingsReference.MAX_CHANGES_HISTORY);
+		val = parseInt(val, 10);
+		if (isNaN(val)) val = 10; // fallback
+		return val;
+	} catch (e) {
+		console.error(e);
+	}
+	return 0;
+}
+function cleanChangesHistory() {
+	const history = getChangesHistory();
+	const maxHistory = getMaxHistorySetting();
+
+    while (history.size > maxHistory) {
+        const oldestKey = history.keys().next().value;
+        history.delete(oldestKey);
+        if (debugMode) {
+        	console.log("[CDE] Remove old history entry:", oldestKey);
+        }
+    }
 }
 
-function getLastExportFromStorage() {
+// READ FROM STORAGE
+function readFromStorage(key) {
 	try {
-		const raw = localStorage.getItem(getExportKey());
+		const raw = localStorage.getItem(key);
 		if (!raw) return null;
 
 		let json = raw;
@@ -329,23 +444,42 @@ function getLastExportFromStorage() {
 		return null;
 	}
 }
+function getLastExportFromStorage() {
+	return readFromStorage(getStorage_ExportKey());
+}
+function getChangesFromStorage() {
+	const raw = readFromStorage(getStorage_ChangesKey());
+	// Si c’est un array d’entries, reconvertis en Map
+	if (Array.isArray(raw)) {
+		return new Map(raw);
+	}
+	return raw;
+}
 
-function saveExportToStorage(jsonData) {
+// SAVE TO STORAGE
+function saveToStorage(key, jsonData) {
 	try {
 		let raw = JSON.stringify(jsonData);
 		if (lzStringLoaded && typeof LZString !== "undefined") {
 			raw = LZString.compressToUTF16(raw);
-			localStorage.setItem(getExportLZKey(), true);
-		} else {
-			localStorage.setItem(getExportLZKey(), false);
 		}
-		localStorage.setItem(getExportKey(), raw);
+		localStorage.setItem(key, raw);
 		if (debugMode) {
 			console.log("[CDE] Object saved:", raw);
 		}
 	} catch (err) {
 		console.warn("[CDE] Failed to save export to storage:", err);
 	}
+}
+function saveExportToStorage(jsonData) {
+	saveToStorage(getStorage_ExportKey(), jsonData);
+}
+function saveChangesToStorage(jsonData) {
+	let toStore = jsonData;
+	if (toStore instanceof Map) {
+		toStore = Array.from(toStore.entries());
+	}
+	saveToStorage(getStorage_ChangesKey(), toStore);
 }
 
 function collector(cfgRef, collectorFn, fallbackMsg) {
@@ -396,7 +530,7 @@ function processCollectData() {
 			} else {
 				changesData = [header, "🆕 First export — no previous data to compare."];
 			}
-			changesData.push()
+			submitChangesHistory(changesData);
 		}
 
 		// Save to storage
@@ -814,13 +948,13 @@ function collectCompletion() {
 function deepDiff(prev, curr, path = "") {
 	const changes = [];
 
-  // Arrays: diff
+  	// Arrays: diff
 	if (Array.isArray(prev) && Array.isArray(curr)) {
 		changes.push(...diffArraysSmart(prev, curr, path));
 		return changes;
 	}
 
-  // Objects
+  	// Objects
 	if (isObject(prev) && isObject(curr)) {
 		for (const key in prev) {
 			if (!(key in curr)) {
@@ -845,7 +979,7 @@ function deepDiff(prev, curr, path = "") {
 		return changes;
 	}
 
-  // Simple Value
+  	// Simple Value
 	if (prev !== curr) {
 		changes.push(`🔁 Changed: ${path.slice(0, -1)} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}`);
 	}
@@ -861,12 +995,12 @@ function diffArraysSmart(prevArr, currArr, path = "") {
 		return changes;
 	}
 
-  // Try 'id' OR 'localID' OR 'name' as Key, else index
+  	// Try 'id' OR 'localID' OR 'name' as Key, else index
 	function getKey(obj) {
 		return obj?.id ?? obj?.localID ?? obj?.name ?? null;
 	}
 
-  // Smart Diff
+  	// Smart Diff
 	const prevMap = Object.create(null);
 	prevArr.forEach((obj, i) => {
 		const key = getKey(obj) ?? `idx_${i}`;
@@ -878,7 +1012,7 @@ function diffArraysSmart(prevArr, currArr, path = "") {
 		currMap[key] = obj;
 	});
 
-  // Record add & update
+  	// Record add & update
 	for (const key in currMap) {
 		if (!(key in prevMap)) {
 			changes.push(`➕ Added [${path}${key}]: ${JSON.stringify(currMap[key])}`);
@@ -891,7 +1025,7 @@ function diffArraysSmart(prevArr, currArr, path = "") {
 		}
 	}
 
-  // Record Sup
+  	// Record Sup
 	for (const key in prevMap) {
 		if (!(key in currMap)) {
 			changes.push(`❌ Removed [${path}${key}]: ${JSON.stringify(prevMap[key])}`);
@@ -913,16 +1047,15 @@ function isObject(value) {
 
 // --- UI Setup ---
 function createIconCSS(ctx) {
-	document.head.insertAdjacentHTML("beforeend", `
-    <style>
-      :root {
-        --icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");
-      }
-      .darkMode {
-        --icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");
-      }
-    </style>
-	`);
+	document.head.insertAdjacentHTML("beforeend", 
+		`<style>
+	      :root {
+	        --icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");
+	      }
+	      .darkMode {
+	        --icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");
+	      }
+	    </style>`);
 }
 
 function CDEButton(template, cb) {
@@ -999,6 +1132,195 @@ async function uploadToHastebin(text) {
 	return `${HASTE_ENDPOINT}/${data.key}`;
 }
 
+async function onClickExportDownload() {
+	const exportString = getExportString();
+	const blob = new Blob([exportString], { type: "application/json" });
+	const url = URL.createObjectURL(blob);
+
+	const link = document.createElement("a");
+	link.href = url;
+	// link.download = `melvor-export-${new Date().toISOString().split("T")[0]}.json`;
+	link.download = `melvor-export-${new Date().toISOString().split("T")[0]}_${new Date().toTimeString().split(" ")[0].replace(/:/g, "")}.json`;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+
+	// Nettoyer l’URL blob
+	URL.revokeObjectURL(url);
+}
+
+async function onClickExportClipboard() {
+	try {
+		await navigator.clipboard.writeText(getExportString());
+		console.log("[CDE] Export copied to clipboard");
+		Swal.fire({
+			toast: true,
+			position: 'top-end',
+			icon: 'success',
+			title: 'Copied to clipboard!',
+			showConfirmButton: false,
+			timer: 1500
+		});
+	} catch (err) {
+		console.error("Clipboard copy failed:", err);
+		Swal.fire({
+			icon: 'error',
+			title: 'Oops...',
+			text: 'Could not copy to clipboard.'
+		});
+	}
+}
+
+async function onClickExportHastebin() {
+	try {
+		const raw = getExportString();
+		const hastebinLink = await uploadToHastebin(raw);
+		await navigator.clipboard.writeText(hastebinLink);
+
+		Swal.fire({
+			icon: 'success',
+			title: 'Hastebin link copied!',
+			html: `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`,
+			showConfirmButton: true,
+			confirmButtonText: "Close"
+		});
+		window.open(hastebinLink, "_blank");
+	} catch (err) {
+		console.error("Failed to upload to Hastebin:", err);
+		Swal.fire({
+			icon: 'error',
+			title: 'Upload failed',
+			text: 'Could not upload to Hastebin. Please try again later.'
+		});
+	}
+}
+
+async function onClickExportAllChangelogs() {
+    const history = getChangesHistory();
+    if (!history || history.size === 0) {
+        Swal.fire({ title: "Export All", html: "No changelog history to export." });
+        return;
+    }
+
+	try {
+	    const allData = {};
+	    Array.from(history.entries()).forEach(([key, value]) => {
+	        allData[key] = value;
+	    });
+
+	    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+	    const now = new Date();
+	    const stamp = now.toISOString().replace(/[-:T]/g,"").slice(0, 15);
+	    const fileName = `melvor-changelog-ALL-${stamp}.json`;
+
+	    const url = URL.createObjectURL(blob);
+	    const link = document.createElement("a");
+	    link.href = url;
+	    link.download = fileName;
+	    document.body.appendChild(link);
+	    link.click();
+	    document.body.removeChild(link);
+	    URL.revokeObjectURL(url);
+	} catch (err) {
+		console.error("Failed to generate full changelogs:", err);
+		Swal.fire({
+			icon: 'error',
+			title: 'Export failed',
+			text: 'Could not generate full changelogs.'
+		});
+	}
+}
+
+async function onClickExportViewDiff() {
+    const history = getChangesHistory();
+    if (!history || history.size === 0) {
+        Swal.fire({ title: "Changelog", html: "No history available." });
+        return;
+    }
+
+    // Sort by timestamp
+    const keys = Array.from(history.keys()).sort((a, b) => b.localeCompare(a));
+
+    // Select the most recent
+    let selectedKey = keys[0];
+    const dropdownHTML = `
+      <label for="cde-changelog-history">Select Changelog (Max:${getMaxHistorySetting()}):</label>
+      <select id="cde-changelog-history" style="margin-bottom:8px">
+        ${keys.map(k => `<option value="${k}">${k.replace(/_/g, ' ')}</option>`).join("")}
+      </select>
+    `;
+
+    function renderChangelogPanel(key) {
+        const diff = history.get(key) || [];
+        return `<pre id="cde-changelog-panel" 
+                     class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded"
+                  >${
+              diff.length ? diff.map(line =>
+                  line.startsWith("➕") ? `<span class="diff-added">${escapeHtml(line)}</span>` :
+                  line.startsWith("❌") ? `<span class="diff-removed">${escapeHtml(line)}</span>` :
+                  line.startsWith("🔁") ? `<span class="diff-changed">${escapeHtml(line)}</span>` :
+                  escapeHtml(line)).join("<br>") : "No diff available."
+          }</pre>`;
+    }
+
+    // First init
+    let panelHTML = `
+      ${dropdownHTML}
+      <div id="cde-changelog-content">
+        ${renderChangelogPanel(selectedKey)}
+      </div>
+      <div style="margin-top:10px">
+        <button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download Current</button>
+        <button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download All</button>
+        <button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
+      </div>
+    `;
+
+    Swal.fire({
+        title: "Changelog History",
+        showCloseButton: true,
+        showConfirmButton: false,
+        allowEnterKey: false,
+        html: panelHTML,
+        width: 800,
+        didOpen: () => {
+            // Mise à jour quand on change de sélection
+            document.getElementById("cde-changelog-history").addEventListener("change", function () {
+                selectedKey = this.value;
+                document.getElementById("cde-changelog-content").innerHTML = renderChangelogPanel(selectedKey);
+            });
+
+            document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
+                const text = (history.get(selectedKey) || []).join("\n");
+                const blob = new Blob([text], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `melvor-changelog-${selectedKey}.txt`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            });
+            document.getElementById("cde-changelog-exportall-button")?.addEventListener("click", onClickExportAllChangelogs);
+
+            document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", () => {
+                const text = (history.get(selectedKey) || []).join("\n");
+                navigator.clipboard.writeText(text);
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Changelog copied!',
+                    showConfirmButton: false,
+                    timer: 1200
+                });
+            });
+        }
+    });
+}
+
+
 let exportUI = null;
 function openExportUI() {
 	processCollectData();
@@ -1021,135 +1343,12 @@ function openExportUI() {
 						<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
 						<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Hastebin</button>
 						<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`,
+				
 				didOpen: async () => {
-					// Set action on.. DOWNLOAD
-					document.getElementById("cde-download-button")?.addEventListener("click", () => {
-						const exportString = getExportString();
-						const blob = new Blob([exportString], { type: "application/json" });
-						const url = URL.createObjectURL(blob);
-
-						const link = document.createElement("a");
-						link.href = url;
-						// link.download = `melvor-export-${new Date().toISOString().split("T")[0]}.json`;
-						link.download = `melvor-export-${new Date().toISOString().split("T")[0]}_${new Date().toTimeString().split(" ")[0].replace(/:/g, "")}.json`;
-						document.body.appendChild(link);
-						link.click();
-						document.body.removeChild(link);
-
-					  // Nettoyer l’URL blob
-						URL.revokeObjectURL(url);
-					});
-
-					// Set action on.. CLIB BOARD
-					document.getElementById("cde-clipboard-button")?.addEventListener("click", async () => {
-						try {
-							await navigator.clipboard.writeText(getExportString());
-							console.log("[CDE] Export copied to clipboard");
-							Swal.fire({
-								toast: true,
-								position: 'top-end',
-								icon: 'success',
-								title: 'Copied to clipboard!',
-								showConfirmButton: false,
-								timer: 1500
-							});
-						} catch (err) {
-							console.error("Clipboard copy failed:", err);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops...',
-								text: 'Could not copy to clipboard.'
-							});
-						}
-					});
-
-					// Set action on.. SENDTOHASTEBIN
-					document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", async () => {
-						try {
-							const raw = getExportString();
-							const hastebinLink = await uploadToHastebin(raw);
-							await navigator.clipboard.writeText(hastebinLink);
-
-							Swal.fire({
-								icon: 'success',
-								title: 'Hastebin link copied!',
-								html: `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`,
-								showConfirmButton: true,
-								confirmButtonText: "Close"
-							});
-							window.open(hastebinLink, "_blank");
-						} catch (err) {
-							console.error("Failed to upload to Hastebin:", err);
-							Swal.fire({
-								icon: 'error',
-								title: 'Upload failed',
-								text: 'Could not upload to Hastebin. Please try again later.'
-							});
-						}
-					});
-
-					// Set action on.. VIEWDIFF
-					document.getElementById("cde-viewdiff-button")?.addEventListener("click", () => {
-						const diff = changesData || [];
-						const changelogPanel = {
-							title: "Changelog",
-							showCloseButton: true,
-							showConfirmButton: false,
-							allowEnterKey: false,
-							html: `<pre id="cde-changelog-panel" class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">${
-								diff.length ? diff.map(line =>
-									line.startsWith("➕") ? `<span class="diff-added">${escapeHtml(line)}</span>` :
-									line.startsWith("❌") ? `<span class="diff-removed">${escapeHtml(line)}</span>` :
-									line.startsWith("🔁") ? `<span class="diff-changed">${escapeHtml(line)}</span>` :
-									escapeHtml(line))
-							.join("<br>"):"No diff available."}</pre>
-								<div style="margin-top:10px">
-								<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download</button>
-								<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
-								</div>`,
-							width: 800,
-							didOpen: () => {
-								// Set on action.. Download Changelog
-								document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
-									const text = changesData.join("\n");
-									const blob = new Blob([text], { type: "text/plain" });
-									const url = URL.createObjectURL(blob);
-
-									const link = document.createElement("a");
-									link.href = url;
-									// link.download = `melvor-changelog-${new Date().toISOString().split("T")[0]}.txt`;
-									link.download = `melvor-changelog-${new Date().toISOString().split("T")[0]}_${new Date().toTimeString().split(" ")[0].replace(/:/g, "")}.json`;
-									document.body.appendChild(link);
-									link.click();
-									document.body.removeChild(link);
-									URL.revokeObjectURL(url);
-								});
-
-								// Set on action.. Clipboard Changelog
-								document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", async () => {
-									const text = diff.join("\n");
-									try {
-										await navigator.clipboard.writeText(text);
-										Swal.fire({
-											toast: true,
-											position: 'top-end',
-											icon: 'success',
-											title: 'Changelog copied!',
-											showConfirmButton: false,
-											timer: 1200
-										});
-									} catch (err) {
-										Swal.fire({
-											icon: 'error',
-											title: 'Copy failed',
-											text: 'Could not copy changelog to clipboard.'
-										});
-									}
-								});
-							}
-						};
-						Swal.fire(changelogPanel);
-					});
+					document.getElementById("cde-download-button")?.addEventListener("click", onClickExportDownload);
+					document.getElementById("cde-clipboard-button")?.addEventListener("click", onClickExportClipboard);
+					document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", onClickExportHastebin);
+					document.getElementById("cde-viewdiff-button")?.addEventListener("click", onClickExportViewDiff);
 
 					// OPEN EXPORT
 					onExportOpen(); 
@@ -1225,6 +1424,15 @@ export function setup({ characterStorage, settings, api, onInterfaceReady }) {
 		},
 		exportDebug: () => {
 			debugExportSizes();
+		},
+		changesLast: () => {
+			return getChangesData();
+		},
+		changesHistory: () => {
+			return getChangesHistory();
+		},
+		changesHistoryMax: () => {
+			return getMaxHistorySetting();
 		},
 		toggleButtonVisibility: (toggle) => {
 			visibilityExportButton(toggle);

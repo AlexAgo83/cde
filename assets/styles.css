@@ -49,7 +49,8 @@
 #cde-sendtohastebin-button,
 #cde-viewdiff-button,
 #cde-changelog-clipboard-button,
-#cde-changelog-download-button {
+#cde-changelog-download-button,
+#cde-changelog-exportall-button {
   margin-right: 8px;
   margin-top: 6px;
 }
