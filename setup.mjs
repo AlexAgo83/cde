@@ -1,6 +1,6 @@
 // setup.mjs
 
-// === Plan to 1.4.0 ===
+// === Plan to 1.4.X ===
 	// Stage 0 - Renamed openExportUI callback to onExportOpen
 	// Stage 1 – Unified data collection (processCollectData)
 	// Stage 2 – Structured stats display (displayStats)
@@ -11,17 +11,23 @@
 	// Stage 7 – Settings cleanup and consolidation
 	// Stage 8 - API function
 
-// === Plan to 1.5.0 ===
+// === Plan to 1.5.X ===
 	// Stage 9 - Settings V2
 	// Stage 10 - Sharing Export Tools (File, Hashebin, Clipboard)
 
-// === Plan to 1.6.0 ===
+// === Plan to 1.6.X ===
 	// Stage 11 - View Logs
+	// Stage 12 - Export download button in modal footer
+
+// === Plan to 1.7.X ===
+	// Stage 13 - Storage format detection
+	// Stage 14 - Smart diff on arrays using ID/localID/name as key
+	// Stage 15 - "View Diff" button to show changelog with color formatting
 
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.6.1";
+const MOD_VERSION = "v1.7.2";
 
 let debugMode = false;
 let charStorage = null;
@@ -74,6 +80,14 @@ const SettingsReference = {
 		label: "Compress Export Output",
 		hint: "Export JSON in a compressed single-line format", 
 	toggle: true},
+	/*
+	USE_LZSTRING: {
+		section: Sections.General,
+		key: "use-lzstring",
+		label: "Use LZString Compression",
+		hint: "Enable or disable usage of LZString for export compression",
+		toggle: true},
+	 */
 	SAVE_TO_STORAGE: {
 		section: Sections.General,
 		key: "save-to-storage",
@@ -290,18 +304,12 @@ const CS_LAST_EXPORT = "cde_last_export";
 function getExportKey() {
 	return CS_LAST_EXPORT+"_"+(game.characterName || "unknown");
 }
+function getExportLZKey() {
+	return getExportKey()+"_LZ";
+}
 
 function getLastExportFromStorage() {
 	try {
-		/*
-		const storage = charStorage;
-		if (!storage) {
-			console.warn("[CDE] characterStorage not available yet.");
-			return;
-		}
-		const raw = storage.getItem(CS_LAST_EXPORT);
-		*/
-
 		const raw = localStorage.getItem(getExportKey());
 		if (!raw) return null;
 
@@ -324,22 +332,12 @@ function getLastExportFromStorage() {
 
 function saveExportToStorage(jsonData) {
 	try {
-		/*
-		const storage = charStorage;
-		if (!storage) {
-			console.warn("[CDE] characterStorage not available yet.");
-			return;
-		}
 		let raw = JSON.stringify(jsonData);
 		if (lzStringLoaded && typeof LZString !== "undefined") {
 			raw = LZString.compressToUTF16(raw);
-		}
-		storage.setItem(CS_LAST_EXPORT, raw);
-		*/
-
-		let raw = JSON.stringify(jsonData);
-		if (lzStringLoaded && typeof LZString !== "undefined") {
-			raw = LZString.compressToUTF16(raw);
+			localStorage.setItem(getExportLZKey(), true);
+		} else {
+			localStorage.setItem(getExportLZKey(), false);
 		}
 		localStorage.setItem(getExportKey(), raw);
 		if (debugMode) {
@@ -386,30 +384,19 @@ function processCollectData() {
 
 	if (isCfg(SettingsReference.SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));
-		// TODO : to compact before sharing
-		/*
-		copy.currentActivity = null;
-		copy.agility = null;
-		copy.ancientRelics = null;
-		copy.dungeons = null;
-		copy.strongholds = null;
-		copy.equipmentSets = null;
-		if (copy.shop?.purchases) copy.shop.purchases = null;
-		if (copy.bank?.items) copy.bank.items = null;
-		copy.astrology = null;
-		copy.pets = null;
-		if (copy.cartography?.maps) copy.cartography.maps = null;
-		if (copy.farming?.plots) copy.farming.plots = null;
-		 */
 		
 		// Generate Diff
 		if (isCfg(SettingsReference.GENERATE_DIFF)) {
 			const lastExport = getLastExportFromStorage();	
+			const charName = game.characterName || "Unknown";
+			const exportTime = new Date().toLocaleString();
+			const header = `🧾 Changelog for: ${charName} — ${exportTime}`;
 			if (lastExport) {
-				changesData = deepDiff(lastExport, copy);
+				changesData = [header, ...deepDiff(lastExport, copy)];
 			} else {
-				changesData = ["🆕 First export — no previous data to compare."];
+				changesData = [header, "🆕 First export — no previous data to compare."];
 			}
+			changesData.push()
 		}
 
 		// Save to storage
@@ -524,6 +511,7 @@ function collectAgility() {
 function collectTownship() {
 	const ts = game.township;
 	const data = ts.townData;
+	const tasks = ts.tasks;
 
 	return {
 		level: ts.level,
@@ -532,10 +520,14 @@ function collectTownship() {
 		education: data?.education ?? null,
 		health: data?.health ?? null,
 		storageUsed: data?.buildingStorage ?? null,
-		worship: data?.worship?.name || null,
-		worshipProgress: data?.worshipPercent ?? null,
 		souls: data?.souls ?? null,
-		worshipCount: data?.worshipCount ?? null
+		worship: data?.worship?.name || null,
+		worshipCount: data?.worshipCount ?? null,
+		worshipTier: ts?.worshipTier ?? null,
+		worshipPercent: ts?.worshipPercent ?? null,
+		taxRate: ts?.taxRate ?? null,
+		tasksCompleted: tasks?.tasksCompleted ?? null,
+		isAnyTaskReady: tasks?.isAnyTaskReady
 	};
 }
 
@@ -1026,9 +1018,9 @@ function openExportUI() {
 				},
 				customClass: { container: "cde-modal" },
 				footer:`<button id="cde-download-button" class="btn btn-sm btn-secondary">Download</button>
-								<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
-								<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Hastebin</button>
-				<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`,
+						<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
+						<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Hastebin</button>
+						<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`,
 				didOpen: async () => {
 					// Set action on.. DOWNLOAD
 					document.getElementById("cde-download-button")?.addEventListener("click", () => {
@@ -1110,9 +1102,30 @@ function openExportUI() {
 									line.startsWith("❌") ? `<span class="diff-removed">${escapeHtml(line)}</span>` :
 									line.startsWith("🔁") ? `<span class="diff-changed">${escapeHtml(line)}</span>` :
 									escapeHtml(line))
-							.join("<br>"):"No diff available."}</pre><button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary" style="margin-top:10px;">Clip Board</button>`,
+							.join("<br>"):"No diff available."}</pre>
+								<div style="margin-top:10px">
+								<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download</button>
+								<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
+								</div>`,
 							width: 800,
 							didOpen: () => {
+								// Set on action.. Download Changelog
+								document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
+									const text = changesData.join("\n");
+									const blob = new Blob([text], { type: "text/plain" });
+									const url = URL.createObjectURL(blob);
+
+									const link = document.createElement("a");
+									link.href = url;
+									// link.download = `melvor-changelog-${new Date().toISOString().split("T")[0]}.txt`;
+									link.download = `melvor-changelog-${new Date().toISOString().split("T")[0]}_${new Date().toTimeString().split(" ")[0].replace(/:/g, "")}.json`;
+									document.body.appendChild(link);
+									link.click();
+									document.body.removeChild(link);
+									URL.revokeObjectURL(url);
+								});
+
+								// Set on action.. Clipboard Changelog
 								document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", async () => {
 									const text = diff.join("\n");
 									try {

@@ -31,7 +31,6 @@
 /* CDE modal */
 .cde-modal > .swal2-modal {
 	width: 900px;
-	min-width: 700px;
 }
 .cde-modal textarea {
 	height: 440px;
@@ -49,7 +48,8 @@
 #cde-clipboard-button,
 #cde-sendtohastebin-button,
 #cde-viewdiff-button,
-#cde-changelog-clipboard-button {
+#cde-changelog-clipboard-button,
+#cde-changelog-download-button {
   margin-right: 8px;
   margin-top: 6px;
 }
