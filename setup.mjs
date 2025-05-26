@@ -979,6 +979,17 @@ function collectCompletion() {
 	return result;
 }
 
+function getPercentDiff(oldVal, newVal) {
+    if (typeof oldVal === "number" && typeof newVal === "number" && oldVal !== 0) {
+        const pct = ((newVal - oldVal) / Math.abs(oldVal)) * 100;
+        if (Math.abs(pct) <= 1000) {
+            const sign = pct > 0 ? "+" : "";
+            return ` (${sign}${pct.toFixed(2)}%)`;
+        }
+    }
+    return "";
+}
+
 function deepDiff(prev, curr, path = "") {
 	const changes = [];
 
@@ -1004,28 +1015,18 @@ function deepDiff(prev, curr, path = "") {
 				const val2 = curr[key];
 				if (isObject(val1) && isObject(val2) || Array.isArray(val1) && Array.isArray(val2)) {
 					changes.push(...deepDiff(val1, val2, fullPath + "."));
-				}
+				} 
 				else if (val1 !== val2) {
-					changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}`);
+					changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}${getPercentDiff(val1, val2)}`);
 				}
+
 			}
 		}
 		return changes;
 	}
-
-  	// Simple Value
-	else if (val1 !== val2) {
-		let percent = "";
-		if (typeof val1 === "number" && typeof val2 === "number" && val1 !== 0) {
-			const pct = ((val2 - val1) / Math.abs(val1)) * 100;
-			if (Math.abs(pct) <= 1000) {
-				const sign = pct > 0 ? "+" : "";
-				percent = ` (${sign}${pct.toFixed(2)}%)`;
-			}
-		}
-		changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}${percent}`);
+	else if (prev !== curr) {
+		changes.push(`🔁 UPD ${path} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}${getPercentDiff(prev, curr)}`);
 	}
-
 
 	return changes;
 }
@@ -1284,36 +1285,34 @@ function formatChangelogLine(line) {
 		return `<div class="cde-changelog-line cde-changelog-header">${escapeHtml(line)}</div>`;
 	}
 
-  // ➕ Added: path = value
+  	// ➕ ADD
 	if (line.startsWith("➕")) {
-		const m = line.match(/^➕ Added: ([^=]+) = (.+)$/);
+		const m = line.match(/^➕ ADD ([^=]+) = (.+)$/);
 		if (m)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ Added</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${escapeHtml(m[2].trim())}</span></div>`;
-    // Si tableau
-		const m2 = line.match(/^➕ Added \[([^\]]+)\]: (.+)$/);
+		const m2 = line.match(/^➕ ADD \[([^\]]+)\]: (.+)$/);
 		if (m2)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ Added</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${escapeHtml(m2[2].trim())}</span></div>`;
 	}
 
-  // ❌ Removed: path
+  	// ❌ RMV
 	if (line.startsWith("❌")) {
-		const m = line.match(/^❌ Removed: (.+)$/);
+		const m = line.match(/^❌ RMV (.+)$/);
 		if (m)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ Removed</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span></div>`;
-    // Tableau
-		const m2 = line.match(/^❌ Removed \[([^\]]+)\]: (.+)$/);
+    
+		const m2 = line.match(/^❌ RMV \[([^\]]+)\]: (.+)$/);
 		if (m2)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ Removed</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${escapeHtml(m2[2].trim())}</span></div>`;
 	}
 
-  // 🔁 Changed: path = old → new
+  	// 🔁 UPD
 	if (line.startsWith("🔁")) {
-		const m = line.match(/^🔁 Changed: ([^=]+) = ([^→]+) → (.+)$/);
+		const m = line.match(/^🔁 UPD ([^=]+) = ([^→]+) → (.+)$/);
 		if (m)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 Changed</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${escapeHtml(m[3].trim())}</span></div>`;
 	}
 
-  // fallback
 	return `<div class="cde-changelog-line">${escapeHtml(line)}</div>`;
 }
 
