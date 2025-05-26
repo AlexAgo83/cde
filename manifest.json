@@ -3,6 +3,7 @@
   "icon": "assets/cde-icon-dark.png",
   "setup": "setup.mjs",
   "module": [
+    "libs/lz-string.js",
     "displayStats.mjs"
   ],
   "load": [

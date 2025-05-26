@@ -1,3 +1,6 @@
+// Copyright (c) 2025 <a.agostini.fr@gmail.com>
+// This work is free. You can redistribute it and/or modify it
+
 // setup.mjs
 
 // === Plan to 1.4.X ===
@@ -28,14 +31,14 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.7.20";
+const MOD_VERSION = "v1.7.26";
 
 let debugMode = false;
 let charStorage = null;
 let displayStatsModule = null;
 
+let LZString = null;
 let lzStringLoaded = false;
-let pakoLoaded = false;
 
 let loadedSections = null;
 const Sections = {
@@ -66,22 +69,6 @@ const SettingsReference = {
 		label: "Show button",
 		hint: "Show top CDE button (May need restart)", 
 		toggle: true},
-	/*
-	AUTO_SELECT: {
-		section: Sections.General,
-		type: "switch",
-		key: "auto-select",
-		label: "Auto-Select Export",
-		hint: "Automatically select all text when opening the export window", 
-		toggle: false},
-	AUTO_COPY: {
-		section: Sections.General,
-		type: "switch",
-		key: "auto-copy",
-		label: "Auto-Copy Export",
-		hint: "Automatically copy export to clipboard when opened", 
-		toggle: false},
-		*/
 	EXPORT_COMPRESS: {
 		section: Sections.General,
 		type: "switch",
@@ -89,7 +76,6 @@ const SettingsReference = {
 		label: "Compress Export Output",
 		hint: "Export JSON in a compressed single-line format", 
 		toggle: true},
-	/*
 	USE_LZSTRING: {
 		section: Sections.General,
 		type: "switch",
@@ -97,7 +83,6 @@ const SettingsReference = {
 		label: "Use LZString Compression",
 		hint: "Enable or disable usage of LZString for export compression",
 		toggle: true},
-	 */
 	SAVE_TO_STORAGE: {
 		section: Sections.General,
 		type: "switch",
@@ -344,37 +329,6 @@ function getExportString() {
 	JSON.stringify(getExportJSON()) : 
 	JSON.stringify(getExportJSON(), null, 2);
 }
-function getExportLZ() {
-	const json = getExportString();
-	if (isCfg(SettingsReference.EXPORT_COMPRESS) 
-		&& lzStringLoaded 
-		&& typeof LZString !== "undefined") {
-		return LZString.compressToUTF16(json);
-	}
-	return json;
-}
-function getExportPako() {
-	const json = getExportString();
-	if (isCfg(SettingsReference.EXPORT_COMPRESS) && pakoLoaded) {
-		const compressed = pako.deflate(json);
-		return btoa(String.fromCharCode(...compressed));
-	}
-	return json;
-}
-function debugExportSizes() {
-	const obj = getExportJSON();
-	const rawJson = JSON.stringify(obj);
-	const lz = LZString.compressToUTF16(rawJson);
-	const b64 = LZString.compressToBase64(rawJson);
-	const pakoCompressed = pako.deflate(rawJson);
-	const pakoBase64 = btoa(String.fromCharCode(...pakoCompressed));
-	console.log("📊 Export Size Comparison:");
-	console.log("🔹 Raw JSON      :", rawJson.length, "chars");
-	console.log("🔹 LZ UTF16      :", lz.length, "chars");
-	console.log("🔹 LZ Base64     :", b64.length, "chars");
-	console.log("🔹 Pako Uint8[]  :", pakoCompressed.length, "bytes");
-	console.log("🔹 Pako Base64   :", pakoBase64.length, "chars");
-}
 
 // --- Changes Logic ---
 const CS_LAST_CHANGES = "cde_last_changes";
@@ -445,7 +399,10 @@ function readFromStorage(key) {
 		if (!raw) return null;
 
 		let json = raw;
-		if (lzStringLoaded && typeof LZString !== "undefined") {
+		if (lzStringLoaded 
+			&& LZString 
+			&& typeof LZString !== "undefined"
+			&& isCfg(SettingsReference.USE_LZSTRING)) {
 			const decompressed = LZString.decompressFromUTF16(raw);
 			if (decompressed) json = decompressed;
 		}
@@ -476,7 +433,10 @@ function getChangesFromStorage() {
 function saveToStorage(key, jsonData) {
 	try {
 		let raw = JSON.stringify(jsonData);
-		if (lzStringLoaded && typeof LZString !== "undefined") {
+		if (lzStringLoaded 
+			&& LZString
+			&& typeof LZString !== "undefined"
+			&& isCfg(SettingsReference.USE_LZSTRING) ) {
 			raw = LZString.compressToUTF16(raw);
 		}
 		localStorage.setItem(key, raw);
@@ -1003,7 +963,6 @@ function deepDiff(prev, curr, path = "") {
 	return changes;
 }
 
-
 function diffArraysSmart(prevArr, currArr, path = "") {
 	const changes = [];
 	if (!Array.isArray(prevArr) || !Array.isArray(currArr)) {
@@ -1101,35 +1060,8 @@ function visibilityExportButton(visible) {
 	lazyBtCde.style.visibility = visible ? "visible" : "hidden";
 }
 
-function writeToClipboard() {
-	return new Promise(() => {
-		const _asyncCopyFn = async () => {
-			try {
-				await navigator.clipboard.writeText(getExportString());
-				console.log("[CDE] Export successfully copied to clipboard");
-			} catch (e) {
-				console.error(e);
-			}
-			window.removeEventListener("focus", _asyncCopyFn);
-		};
-		window.addEventListener("focus", _asyncCopyFn);
-		if (debugMode) console.log("Hit <Tab> to refocus and avoid DOMException");
-	});
-}
-
 function onExportOpen() {
 	if (!isCfg(SettingsReference.MOD_ENABLED)) return;
-	
-	/*
-	const cdeTextarea = Swal.getInput();
-	if (!cdeTextarea) return;
-
-	cdeTextarea.focus();
-	if (isCfg(SettingsReference.AUTO_SELECT)) {
-		cdeTextarea.select();
-		if (isCfg(SettingsReference.AUTO_COPY)) writeToClipboard();
-	}
-	*/
 
 	// Clean-up
 	const viewDiffButton = document.getElementById("cde-viewdiff-button");
@@ -1441,11 +1373,7 @@ function openExportUI() {
 
 // --- Init ---
 
-export function setup({ characterStorage, settings, api, onInterfaceReady }) {
-	console.log("[CDE] Loading ...");
-
-	// STORAGE
-	charStorage = characterStorage;
+export function setup({settings, api, onLoad, onInterfaceReady }) {
 
 	// SETTINGS
 	createSettings(settings);
@@ -1454,35 +1382,34 @@ export function setup({ characterStorage, settings, api, onInterfaceReady }) {
 		debugMode = true;
 	}
 
+	// Setup OnLoad
+	onLoad(async (ctx) => {
+		// Load LZString (Compression Tools) module
+		LZString = await ctx.loadModule("libs/lz-string.js");
+		if (LZString && typeof LZString.default === 'object') {
+		    LZString = LZString.default;
+		}
+		lzStringLoaded = !!LZString && typeof LZString.compressToUTF16 === 'function';
+		if (lzStringLoaded && debugMode) {
+			console.log("[CDE] LZString loaded", LZString);
+		}
+
+		// Load stats module
+		displayStatsModule = await ctx.loadModule("displayStats.mjs");
+
+		console.log("[CDE] Module loaded !");
+	});
+
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		// console.log("[CDE] On Interface Ready");
-
-		// Compression Tools
-		ctx.loadScript("https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js")
-		.then(() => {
-			lzStringLoaded = true;
-			console.log("[CDE] LZString loaded");
-		});
-		/*
-		ctx.loadScript("https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js")
-  		.then(() => {
-  			pakoLoaded = true;
-    		console.log("[CDE] Pako loaded");
-  		});
-  		*/
-
 		// CSS
 		createIconCSS(ctx);
-
-		// Load stats
-		displayStatsModule = await ctx.loadModule("displayStats.mjs");
 
 		// Setup Export Button
 		setupExportButtonUI(openExportUI);
 		visibilityExportButton(isCfg(SettingsReference.SHOW_BUTTON));
 
-		console.log("[CDE] loaded !");
+		console.log("[CDE] Interface ready !");
 	});
 
 	// Setup API
@@ -1495,15 +1422,6 @@ export function setup({ characterStorage, settings, api, onInterfaceReady }) {
 		},
 		exportString: () => {
 			return getExportString();
-		},
-		exportLZ: () => {
-			return getExportLZ();
-		},
-		exportPako: () => {
-			return getExportPako();
-		},
-		exportDebug: () => {
-			debugExportSizes();
 		},
 		changesLast: () => {
 			return getChangesData();
