@@ -34,7 +34,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.5";
+const MOD_VERSION = "v1.8.7";
 
 let debugMode = false;
 let charStorage = null;
@@ -1283,10 +1283,10 @@ async function onClickExportViewDiff() {
     	`${dropdownHTML}
       	<div id="cde-changelog-content">${renderChangelogPanel(selectedKey)}</div>
       	<div style="margin-top:10px">
-      		<button id="cde-changelog-reset-button" class="btn btn-sm btn-secondary">Reset</button>
-        	<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download Current</button>
-        	<button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download All</button>
-        	<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
+      		<button id="cde-changelog-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
+        	<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download / Share Current</button>
+        	<button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download / Share All</button>
+        	<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Copy to Clip Board</button>
       	</div>`;
 
     Swal.fire({
@@ -1401,12 +1401,12 @@ function renderPrettyJSON(obj) {
 
 let exportUI = null;
 const exportFooter = 
-	`<button id="cde-reset-button" class="btn btn-sm btn-secondary">Reset</button>
-	<button id="cde-refresh-button" class="btn btn-sm btn-secondary">Refresh</button>
-	<button id="cde-download-button" class="btn btn-sm btn-secondary">Download</button>
-	<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
-	<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Hastebin</button>
-	<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`;
+	`<div style="margin-top:10px"><button id="cde-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
+	<button id="cde-refresh-button" class="btn btn-sm btn-secondary">Refresh Data</button>
+	<button id="cde-download-button" class="btn btn-sm btn-secondary">Download / Share</button>
+	<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Copy to Clip Board</button>
+	<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Copy to Hastebin</button>
+	<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">Compare Changes</button></div>`;
 
 function openExportUI(forceCollect = false) {
 	if (isCfg(SettingsReference.AUTO_EXPORT_ONWINDOW) || forceCollect) {
@@ -1419,7 +1419,7 @@ function openExportUI(forceCollect = false) {
         const autoExportCheckbox = 
 			`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
 			<input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />
-			<span style="font-size:15px">Auto Export on CDE Window Open</span></label>`;
+			<span style="font-size:15px">Automatically generate new export when CDE window opens</span></label>`;
         const panelHTML = `<div id="cde-autoexport-panel" style="margin-bottom:12px;">${autoExportCheckbox}</div>${renderCollapsibleJSON(getExportJSON())}`;
 
 		if (exportUI) {
