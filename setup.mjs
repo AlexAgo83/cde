@@ -34,7 +34,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.7";
+const MOD_VERSION = "v1.8.8";
 
 let debugMode = false;
 let charStorage = null;
@@ -1251,6 +1251,45 @@ async function onClickRefreshExport() {
 	openExportUI(true);
 }
 
+function formatChangelogLine(line) {
+  // HEADER
+	if (line.startsWith("🧾")) {
+		return `<div class="cde-changelog-line cde-changelog-header">${escapeHtml(line)}</div>`;
+	}
+
+  // ➕ Added: path = value
+	if (line.startsWith("➕")) {
+		const m = line.match(/^➕ Added: ([^=]+) = (.+)$/);
+		if (m)
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ Added</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${escapeHtml(m[2].trim())}</span></div>`;
+    // Si tableau
+		const m2 = line.match(/^➕ Added \[([^\]]+)\]: (.+)$/);
+		if (m2)
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ Added</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${escapeHtml(m2[2].trim())}</span></div>`;
+	}
+
+  // ❌ Removed: path
+	if (line.startsWith("❌")) {
+		const m = line.match(/^❌ Removed: (.+)$/);
+		if (m)
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ Removed</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span></div>`;
+    // Tableau
+		const m2 = line.match(/^❌ Removed \[([^\]]+)\]: (.+)$/);
+		if (m2)
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ Removed</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${escapeHtml(m2[2].trim())}</span></div>`;
+	}
+
+  // 🔁 Changed: path = old → new
+	if (line.startsWith("🔁")) {
+		const m = line.match(/^🔁 Changed: ([^=]+) = ([^→]+) → (.+)$/);
+		if (m)
+			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 Changed</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${escapeHtml(m[3].trim())}</span></div>`;
+	}
+
+  // fallback
+	return `<div class="cde-changelog-line">${escapeHtml(line)}</div>`;
+}
+
 async function onClickExportViewDiff() {
     const history = getChangesHistory();
     if (!history || history.size === 0) {
@@ -1267,16 +1306,10 @@ async function onClickExportViewDiff() {
     	`<label for="cde-changelog-history">Select Changelog (Max: ${getMaxHistorySetting()}):</label>
 		<select id="cde-changelog-history" style="margin-bottom:8px">${keys.map(k => `<option value="${k}">${k.replace(/_/g, ' ')}</option>`).join("")}</select>`;
 
-    function renderChangelogPanel(key) {
-        const diff = history.get(key) || [];
-        return `<pre id="cde-changelog-panel" class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">${
-              diff.length ? diff.map(line =>
-                  line.startsWith("➕") ? `<span class="diff-added">${escapeHtml(line)}</span>` :
-                  line.startsWith("❌") ? `<span class="diff-removed">${escapeHtml(line)}</span>` :
-                  line.startsWith("🔁") ? `<span class="diff-changed">${escapeHtml(line)}</span>` :
-                  escapeHtml(line)).join("<br>") : "No diff available."
-          }</pre>`;
-    }
+	function renderChangelogPanel(key) {
+		const diff = history.get(key) || [];
+		return `<div id="cde-changelog-panel">${diff.map(formatChangelogLine).join('')}</div>`;
+	}
 
     // First init
     let panelHTML = 
@@ -1304,7 +1337,6 @@ async function onClickExportViewDiff() {
                 selectedKey = this.value;
                 document.getElementById("cde-changelog-content").innerHTML = renderChangelogPanel(selectedKey);
             });
-
 
             document.getElementById("cde-changelog-reset-button")?.addEventListener("click", onClickResetChangelogs);
             document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {

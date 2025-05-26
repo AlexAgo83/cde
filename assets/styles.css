@@ -75,11 +75,43 @@
   font-family: 'Fira Mono', 'Consolas', monospace;
   font-size: 14px;
   transition: background 0.2s;
+  max-height: 400px;
+  overflow-y: auto;
 }
 #cde-changelog-panel:hover { background: #2e3440; }
 #cde-changelog-panel .diff-added   { color: #38d39f; }
 #cde-changelog-panel .diff-removed { color: #e57373; }
 #cde-changelog-panel .diff-changed { color: #ffd166; }
+
+.cde-changelog-line {
+  padding: 2px 0;
+  border-radius: 4px;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  font-size: 14px;
+  transition: background 0.11s;
+  line-height: 1.5;
+}
+.cde-changelog-line:hover { background: #2e344033; }
+
+.cde-changelog-header {
+  color: #90caf9;
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #38405844;
+  display: block;
+}
+
+.cde-changelog-key    { color: var(--cde-key); font-weight: 600; }
+.cde-changelog-arrow  { color: #ffd166; font-weight: bold; margin: 0 4px;}
+.cde-changelog-value  { color: #67d8ef; }
+.cde-changelog-old    { color: #ffab70; text-decoration: line-through; }
+.cde-changelog-new    { color: #38d39f; font-weight: 600; }
+
+.cde-changelog-added    { color: #38d39f; font-weight: 600; }
+.cde-changelog-removed  { color: #ef596f; font-weight: 600; }
+.cde-changelog-changed  { color: #ffd166; }
 
 /* --- JSON VIEWER --- */
 .cde-json-viewer {
