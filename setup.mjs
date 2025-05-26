@@ -39,7 +39,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.11";
+const MOD_VERSION = "v1.8.12";
 
 let debugMode = false;
 let charStorage = null;
@@ -907,10 +907,48 @@ function collectBankData() {
 	};
 }
 
+function getDiffMs(start, end) {
+	return Math.abs(new Date(end) - new Date(start));
+}
+
+function formatDiffToHHMMSS(diffMs) {
+  	const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  	const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  	const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+  	return [
+	  	hours.toString().padStart(2, '0'),
+	  	minutes.toString().padStart(2, '0'),
+	  	seconds.toString().padStart(2, '0'),
+  	].join(':');
+}
+
+function calculateKillsPerHour(elapsedMs, killCount) {
+	if (elapsedMs <= 0 || killCount < 0 || !Number.isFinite(elapsedMs) || !Number.isFinite(killCount)) {
+    	return 0;
+	}
+
+ 	const hours = elapsedMs / (1000 * 60 * 60); // Convert ms to hours
+
+  	if (hours < 1e-9) {
+    	return 0;
+  	}
+
+  	const kph = killCount / hours;
+  	if (!Number.isFinite(kph) || kph > 1e6) {
+    	return 0;
+  	}
+  	return Math.round(kph);
+}
+
 function collectCurrentActivity() {
 	const result = [];
 	const player = game.combat.player;
 	const stats = game.stats;
+
+	const lastActivities = getExportJSON()?.currentActivity;
+	const lastTimestamp = getExportJSON()?.meta?.exportTimestamp;
+
 	game.activeActions.registeredObjects.forEach((a) => {
 		if (a.isActive) {
 			const entry = {
@@ -928,6 +966,30 @@ function collectCurrentActivity() {
 					};
 				}
 				entry.attackType = player.attackType;
+
+				const currentTimestamp = new Date().toISOString();
+				if (lastTimestamp) {
+					lastActivities?.forEach((lastActivity) => {
+						if (lastActivity 
+							&& lastActivity.activity === "Combat"
+							&& lastActivity.monster?.id === entry?.monster.id) {
+
+							const diffMs = getDiffMs(lastTimestamp, currentTimestamp);
+							const diffKill = entry.monster.killCount - lastActivity.monster.killCount;
+							entry.analyse = {
+								timeElapsed: formatDiffToHHMMSS(diffMs),
+								monster: entry.monster.id,
+								newKill: diffKill,
+								attackType: player.attackType,
+								estimedKillPerHour: calculateKillsPerHour(diffMs, diffKill)
+							}
+
+							if (debugMode) {
+								console.log("[CDE] Current Analyse:", entry.analyse);
+							}
+						}
+					});
+				}
 			}
 			result.push(entry);
 		}
@@ -1154,16 +1216,12 @@ async function onClickExportDownload() {
 	const exportString = getExportString();
 	const blob = new Blob([exportString], { type: "application/json" });
 	const url = URL.createObjectURL(blob);
-
 	const link = document.createElement("a");
 	link.href = url;
-	// link.download = `melvor-export-${new Date().toISOString().split("T")[0]}.json`;
 	link.download = `melvor-export-${new Date().toISOString().split("T")[0]}_${new Date().toTimeString().split(" ")[0].replace(/:/g, "")}.json`;
 	document.body.appendChild(link);
 	link.click();
 	document.body.removeChild(link);
-
-	// Nettoyer l’URL blob
 	URL.revokeObjectURL(url);
 }
 
