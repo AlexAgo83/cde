@@ -101,7 +101,7 @@ const SettingsReference = {
 		type: "switch",
 		key: "save-to-storage",
 		label: "Save export in storage",
-		hint: "Save the latest export JSON in characterStorage",
+		hint: "Save the latest export JSON in localStorage",
 		toggle: true},
 	GENERATE_DIFF: {
 		section: Sections.General,
@@ -115,7 +115,7 @@ const SettingsReference = {
 		type: "dropdown",
 		key: "max-changes-history",
 		label: "Changes History Size Limit",
-		hint: "Maximum number of change history entries to keep (0 disables history)",
+		hint: "Maximum number of change history entries to keep in localStorage (0 disables history)",
 		options: [
 	        { value: 0, display: "0 (Disable history)" },
 	        { value: 1, display: "1" },
@@ -275,11 +275,25 @@ function createSettings(settings) {
 		if (key == SettingsReference.MOD_DEBUG.key) {
 			onChange = (value) => {
 				debugMode = value;
+				if (debugMode) {
+					console.log("[CDE] settings - Debugmode :", value);
+				}
 			};
 		}
 		if (key == SettingsReference.SHOW_BUTTON.key) {
 			onChange = (value) => {
 				visibilityExportButton(value);
+				if (debugMode) {
+					console.log("[CDE] settings - showButton :", value);
+				}
+			};
+		}
+		if (key == SettingsReference.MAX_CHANGES_HISTORY.key) {
+			onChange = (value) => {
+				cleanChangesHistory();
+				if (debugMode) {
+					console.log("[CDE] settings - maxChangesHistory :", value);
+				}
 			};
 		}
 		const item = new SettingsReferenceItem(reference, onChange);
