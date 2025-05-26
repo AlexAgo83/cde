@@ -28,7 +28,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.7.19";
+const MOD_VERSION = "v1.7.20";
 
 let debugMode = false;
 let charStorage = null;
@@ -1261,18 +1261,13 @@ async function onClickExportViewDiff() {
 
     // Select the most recent
     let selectedKey = keys[0];
-    const dropdownHTML = `
-      <label for="cde-changelog-history">Select Changelog (Max:${getMaxHistorySetting()}):</label>
-      <select id="cde-changelog-history" style="margin-bottom:8px">
-        ${keys.map(k => `<option value="${k}">${k.replace(/_/g, ' ')}</option>`).join("")}
-      </select>
-    `;
+    const dropdownHTML = 
+    	`<label for="cde-changelog-history">Select Changelog (Max:${getMaxHistorySetting()}):</label>
+		<select id="cde-changelog-history" style="margin-bottom:8px">${keys.map(k => `<option value="${k}">${k.replace(/_/g, ' ')}</option>`).join("")}</select>`;
 
     function renderChangelogPanel(key) {
         const diff = history.get(key) || [];
-        return `<pre id="cde-changelog-panel" 
-                     class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded"
-                  >${
+        return `<pre id="cde-changelog-panel" class="block w-full text-left whitespace-pre-wrap max-h-[400px] overflow-auto bg-light text-dark dark:bg-dark dark:text-light p-2 rounded">${
               diff.length ? diff.map(line =>
                   line.startsWith("➕") ? `<span class="diff-added">${escapeHtml(line)}</span>` :
                   line.startsWith("❌") ? `<span class="diff-removed">${escapeHtml(line)}</span>` :
@@ -1282,25 +1277,24 @@ async function onClickExportViewDiff() {
     }
 
     // First init
-    let panelHTML = `
-      ${dropdownHTML}
-      <div id="cde-changelog-content">
-        ${renderChangelogPanel(selectedKey)}
-      </div>
-      <div style="margin-top:10px">
-        <button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download Current</button>
-        <button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download All</button>
-        <button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
-      </div>
-    `;
+    let panelHTML = 
+    	`${dropdownHTML}
+      	<div id="cde-changelog-content">${renderChangelogPanel(selectedKey)}</div>
+      	<div style="margin-top:10px">
+        	<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download Current</button>
+        	<button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download All</button>
+        	<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
+      	</div>`;
 
     Swal.fire({
+
         title: "Changelog History",
         showCloseButton: true,
         showConfirmButton: false,
         allowEnterKey: false,
         html: panelHTML,
         width: 800,
+
         didOpen: () => {
             // Mise à jour quand on change de sélection
             document.getElementById("cde-changelog-history").addEventListener("change", function () {
@@ -1403,19 +1397,20 @@ function renderPrettyJSON(obj) {
 }
 
 let exportUI = null;
+const exportFooter = 
+	`<button id="cde-download-button" class="btn btn-sm btn-secondary">Download</button>
+	<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
+	<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Hastebin</button>
+	<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`;
+
 function openExportUI() {
 	processCollectData();
 	if (isCfg(SettingsReference.MOD_ENABLED)) {
 		if (exportUI) {
-			// exportUI.inputValue = getExportString();
-			// exportUI.html = renderPrettyJSON(getExportJSON());
 			exportUI.html = renderCollapsibleJSON(getExportJSON());
 		} else {
 			exportUI = {
 				title: "Character Data Exporter",
-				// input: "textarea",
-				// inputValue: getExportString(),
-				// html: renderPrettyJSON(getExportJSON()),
 				html: renderCollapsibleJSON(getExportJSON()),
 				showCloseButton: true,
 				showConfirmButton: false,
@@ -1423,11 +1418,9 @@ function openExportUI() {
 				inputAttributes: {
 					readonly: true
 				},
+
 				customClass: { container: "cde-modal" },
-				footer:`<button id="cde-download-button" class="btn btn-sm btn-secondary">Download</button>
-						<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
-						<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Hastebin</button>
-						<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`,
+				footer: exportFooter,
 				
 				didOpen: async () => {
 					setupCollapsibleJSON();
