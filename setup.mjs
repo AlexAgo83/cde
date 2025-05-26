@@ -29,12 +29,17 @@
 	// Stage 16 - Timelapse history
 
 // === Plan to 1.8.X === 
-	// Stage 17 - Fully fonctionnal changelog viewer & export viewer
+	// Stage 17 - Better data storage management & remove online ress (offline mode)
+	// Stage 18 - Fully fonctionnal changelog viewer & export viewer
+	// Stage 19 - Fix Active Potion collector and polish viewer
+
+// === Plan to 1.9.X ===
+	// Stage 20 - ETA like !
 
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.9";
+const MOD_VERSION = "v1.8.10";
 
 let debugMode = false;
 let charStorage = null;
@@ -987,13 +992,13 @@ function deepDiff(prev, curr, path = "") {
 	if (isObject(prev) && isObject(curr)) {
 		for (const key in prev) {
 			if (!(key in curr)) {
-				changes.push(`❌ Removed: ${path + key}`);
+				changes.push(`❌ RMV ${path + key}`);
 			}
 		}
 		for (const key in curr) {
 			const fullPath = path + key;
 			if (!(key in prev)) {
-				changes.push(`➕ Added: ${fullPath} = ${JSON.stringify(curr[key])}`);
+				changes.push(`➕ ADD ${fullPath} = ${JSON.stringify(curr[key])}`);
 			} else {
 				const val1 = prev[key];
 				const val2 = curr[key];
@@ -1001,7 +1006,7 @@ function deepDiff(prev, curr, path = "") {
 					changes.push(...deepDiff(val1, val2, fullPath + "."));
 				}
 				else if (val1 !== val2) {
-					changes.push(`🔁 Changed: ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}`);
+					changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}`);
 				}
 			}
 		}
@@ -1009,9 +1014,18 @@ function deepDiff(prev, curr, path = "") {
 	}
 
   	// Simple Value
-	if (prev !== curr) {
-		changes.push(`🔁 Changed: ${path.slice(0, -1)} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}`);
+	else if (val1 !== val2) {
+		let percent = "";
+		if (typeof val1 === "number" && typeof val2 === "number" && val1 !== 0) {
+			const pct = ((val2 - val1) / Math.abs(val1)) * 100;
+			if (Math.abs(pct) <= 1000) {
+				const sign = pct > 0 ? "+" : "";
+				percent = ` (${sign}${pct.toFixed(2)}%)`;
+			}
+		}
+		changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}${percent}`);
 	}
+
 
 	return changes;
 }
@@ -1043,7 +1057,7 @@ function diffArraysSmart(prevArr, currArr, path = "") {
   	// Record add & update
 	for (const key in currMap) {
 		if (!(key in prevMap)) {
-			changes.push(`➕ Added [${path}${key}]: ${JSON.stringify(currMap[key])}`);
+			changes.push(`➕ ADD [${path}${key}]: ${JSON.stringify(currMap[key])}`);
 		} else {
 
 			const subChanges = deepDiff(prevMap[key], currMap[key], path + key + ".");
@@ -1056,7 +1070,7 @@ function diffArraysSmart(prevArr, currArr, path = "") {
   	// Record Sup
 	for (const key in prevMap) {
 		if (!(key in currMap)) {
-			changes.push(`❌ Removed [${path}${key}]: ${JSON.stringify(prevMap[key])}`);
+			changes.push(`❌ RMV [${path}${key}]: ${JSON.stringify(prevMap[key])}`);
 		}
 	}
 	return changes;

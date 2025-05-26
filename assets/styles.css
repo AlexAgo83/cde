@@ -73,7 +73,7 @@
   border-radius: 8px;
   padding: 12px;
   font-family: 'Fira Mono', 'Consolas', monospace;
-  font-size: 14px;
+  font-size: 12px;
   transition: background 0.2s;
   max-height: 400px;
   overflow-y: auto;
@@ -88,7 +88,7 @@
   padding: 2px 0;
   border-radius: 4px;
   font-family: 'Fira Mono', 'Consolas', monospace;
-  font-size: 14px;
+  font-size: 12px;
   transition: background 0.11s;
   line-height: 1.5;
   text-align: left !important;
@@ -123,7 +123,7 @@
   background: var(--cde-bg-dark);
   color: #e0e6f0;
   font-family: 'Fira Mono', 'Consolas', monospace;
-  font-size: 13px;
+  font-size: 12px;
   padding: 20px 28px 20px 24px; 
   border-radius: 10px;
   overflow-x: auto;
