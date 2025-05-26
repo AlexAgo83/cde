@@ -508,6 +508,7 @@ function processCollectData() {
 
 	newData.currentActivity = collectCurrentActivity();
 	newData.agility = collectAgility();
+	newData.activePotions = collectActivePotions();
 	newData.dungeons = collectDungeons();
 	newData.strongholds = collectStrongholds();
 	newData.ancientRelics = collectAncientRelics();
@@ -655,6 +656,18 @@ function collectAgility() {
 		result.push(courseData);
 	});
 
+	return result;
+}
+
+function collectActivePotions() {
+	const result = [];
+	game.potions.activePotions?.forEach((currPotion, activity) => {
+        result.push({
+            activity: activity.localID,
+            potion: currPotion.item.localID,
+            charges: currPotion.charges
+        });
+	});
 	return result;
 }
 
