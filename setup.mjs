@@ -34,7 +34,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.8";
+const MOD_VERSION = "v1.8.9";
 
 let debugMode = false;
 let charStorage = null;

@@ -77,6 +77,7 @@
   transition: background 0.2s;
   max-height: 400px;
   overflow-y: auto;
+  text-align: left !important;
 }
 #cde-changelog-panel:hover { background: #2e3440; }
 #cde-changelog-panel .diff-added   { color: #38d39f; }
@@ -90,8 +91,11 @@
   font-size: 14px;
   transition: background 0.11s;
   line-height: 1.5;
+  text-align: left !important;
 }
-.cde-changelog-line:hover { background: #2e344033; }
+.cde-changelog-line:hover { 
+  background: #2e344033; 
+}
 
 .cde-changelog-header {
   color: #90caf9;
@@ -101,12 +105,13 @@
   padding-bottom: 4px;
   border-bottom: 1px solid #38405844;
   display: block;
+  text-align: center !important;
 }
 
 .cde-changelog-key    { color: var(--cde-key); font-weight: 600; }
 .cde-changelog-arrow  { color: #ffd166; font-weight: bold; margin: 0 4px;}
 .cde-changelog-value  { color: #67d8ef; }
-.cde-changelog-old    { color: #ffab70; text-decoration: line-through; }
+.cde-changelog-old    { color: #ffab70; /*text-decoration: line-through;*/ }
 .cde-changelog-new    { color: #38d39f; font-weight: 600; }
 
 .cde-changelog-added    { color: #38d39f; font-weight: 600; }
