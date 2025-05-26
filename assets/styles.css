@@ -49,10 +49,13 @@
 }
 
 /* --- EXPORT BUTTONS --- */
+#cde-reset-button,
+#cde-refresh-button,
 #cde-download-button,
 #cde-clipboard-button,
 #cde-sendtohastebin-button,
 #cde-viewdiff-button,
+#cde-changelog-reset-button,
 #cde-changelog-clipboard-button,
 #cde-changelog-download-button,
 #cde-changelog-exportall-button {
@@ -95,6 +98,8 @@
   transition: box-shadow .2s;
   text-align: left !important;
   margin: 0 !important;
+  margin-left: 4px; 
+  margin-right: 4px; 
   padding-left: 0 !important;
   width: 100% !important;
   box-sizing: border-box;
@@ -181,5 +186,84 @@
   .cde-json-type {
     background: #eef2fa;
     color: #626363;
+  }
+}
+
+/* === CDE Auto Export Checkbox === */
+#cde-autoexport-panel {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 8px 0 8px 2px;
+  border-radius: 7px;
+  background: var(--cde-bg-dark, #23272e);
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px 0 #14171b10;
+}
+
+#cde-autoexport-panel label {
+  font-size: 15px;
+  color: #e0e6f0;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+}
+
+#cde-autoexport-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--cde-border, #4a5568);
+  border-radius: 5px;
+  background: #181c20;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.18s, background 0.15s;
+  margin-right: 8px;
+  margin-left: 12px; 
+}
+
+#cde-autoexport-checkbox:checked {
+  border-color: #38d39f;
+  background: #23272e;
+}
+
+#cde-autoexport-checkbox:focus {
+  outline: 2px solid #38d39f;
+}
+
+#cde-autoexport-checkbox:checked::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 8px;
+  height: 12px;
+  border: solid #38d39f;
+  border-width: 0 3px 3px 0;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+
+/* Light mode adaptation */
+@media (prefers-color-scheme: light) {
+  #cde-autoexport-panel {
+    background: var(--cde-bg-light, #f4f4fa);
+  }
+  #cde-autoexport-panel label {
+    color: #23272e;
+  }
+  #cde-autoexport-checkbox {
+    background: #f9fafc;
+    border-color: var(--cde-border-light, #aab);
+  }
+  #cde-autoexport-checkbox:checked {
+    background: #e3fbee;
+    border-color: #38d39f;
   }
 }

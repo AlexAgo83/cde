@@ -28,10 +28,13 @@
 	// Stage 15 - "View Diff" button to show changelog with color formatting
 	// Stage 16 - Timelapse history
 
+// === Plan to 1.8.X === 
+	// Stage 17 - Fully fonctionnal changelog viewer & export viewer
+
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.7.26";
+const MOD_VERSION = "v1.8.5";
 
 let debugMode = false;
 let charStorage = null;
@@ -54,49 +57,72 @@ const SettingsReference = {
 		key: "mod-enabled", 
 		label: "Enable Mod", 
 		hint: "Toggle the Character Data Exporter on or off", 
-		toggle: true},
+		toggle: true
+	},
 	MOD_DEBUG: {
 		section: Sections.General,
 		type: "switch",
 		key: "mod-debug", 
 		label: "Enable Debug", 
 		hint: "Toggle Debug on or off (May need restart)", 
-		toggle: false},
+		toggle: false
+	},
 	SHOW_BUTTON: {
 		section: Sections.General,
 		type: "switch",
 		key: "show-button",
 		label: "Show button",
 		hint: "Show top CDE button (May need restart)", 
-		toggle: true},
+		toggle: true
+	},
+	AUTO_EXPORT_ONLOAD: {
+		section: Sections.General,
+		type: "switch",
+		key: "export-onload",
+		label: "Auto Export on Game Load",
+		hint: "Automatically generate and save export when the game loads.",
+		toggle: false
+	},
+	AUTO_EXPORT_ONWINDOW: {
+		section: Sections.General,
+		type: "switch",
+		key: "export-onwindow",
+		label: "Auto Export on CDE Window Open",
+		hint: "Automatically generate export each time the CDE window is opened.",
+		toggle: true
+	},
 	EXPORT_COMPRESS: {
 		section: Sections.General,
 		type: "switch",
 		key: "export-compress",
 		label: "Compress Export Output",
 		hint: "Export JSON in a compressed single-line format", 
-		toggle: true},
+		toggle: true
+	},
 	USE_LZSTRING: {
 		section: Sections.General,
 		type: "switch",
 		key: "use-lzstring",
 		label: "Use LZString Compression",
 		hint: "Enable or disable usage of LZString for export compression",
-		toggle: true},
+		toggle: true
+	},
 	SAVE_TO_STORAGE: {
 		section: Sections.General,
 		type: "switch",
 		key: "save-to-storage",
 		label: "Save export in storage",
 		hint: "Save the latest export JSON in localStorage",
-		toggle: true},
+		toggle: true
+	},
 	GENERATE_DIFF: {
 		section: Sections.General,
 		type: "switch",
 		key: "generate-diff",
 		label: "Generate Changelog (Diff)",
 		hint: "Enable changelog comparison between current and previous export",
-		toggle: true},
+		toggle: true
+	},
 	MAX_CHANGES_HISTORY: {
 		section: Sections.General,
 		type: "dropdown",
@@ -112,7 +138,8 @@ const SettingsReference = {
 	        { value: 50, display: "50" },
 	        { value: 100, display: "100" }
 	    ],
-		toggle: 10},
+		toggle: 10
+	},
 
 	// DATA OPTIONS SETTINGS
 	EXPORT_BANK: {
@@ -121,91 +148,104 @@ const SettingsReference = {
 		key: "export-bank",
 		label: "Include Bank Data",
 		hint: "Include inventory and bank items in export", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_SHOP: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-shop",
 		label: "Include Shop Data",
 		hint: "Include purchased shop items in export", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_EQUIPMENT: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-equipment",
 		label: "Include Current Equipment Data",
 		hint: "Include current equipment items in export", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_EQUIPMENT_SETS: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-equipment-sets",
 		label: "Include Equipment Sets Data",
 		hint: "Include equipment sets items in export", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_FARMING: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-farming",
 		label: "Include Farming Data",
 		hint: "Include current farming plots in export", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_GAMESTATS: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-stats",
 		label: "Include Game Stats",
 		hint: "Include general statistics from all skills and actions", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_CARTOGRAPHY: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-cartography",
 		label: "Include Cartography Data",
 		hint: "Include discovered POIs and map progress in export", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_SKILLS: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-skills",
 		label: "Include Skills Data",
 		hint: "Include skills levels and XP", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_MASTERY: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-mastery",
 		label: "Include Mastery Data",
 		hint: "Include mastery levels and XP for each skill action", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_PETS: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-pets",
 		label: "Include Pets Data",
 		hint: "Include discovered pets data", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_TOWNSHIP: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-township",
 		label: "Include Township Data",
 		hint: "Include township statistics", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_ASTROLOGY: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-astrology",
 		label: "Include Astrology Data",
 		hint: "Include astrology data", 
-		toggle: true},
+		toggle: true
+	},
 	EXPORT_COMPLETION: {
 		section: Sections.DataOptions,
 		type: "switch",
 		key: "export-completion",
 		label: "Include Completion Data",
 		hint: "Include completion data", 
-		toggle: true}
+		toggle: true
+	}
 }
 
 class SettingsReferenceItem {
@@ -259,7 +299,7 @@ function createSettings(settings) {
 	for (const key in SettingsReference) {
 		const reference = SettingsReference[key];
 		let onChange = null;
-		if (key == SettingsReference.MOD_DEBUG.key) {
+		if (reference.key === SettingsReference.MOD_DEBUG.key) {
 			onChange = (value) => {
 				debugMode = value;
 				if (debugMode) {
@@ -267,7 +307,7 @@ function createSettings(settings) {
 				}
 			};
 		}
-		if (key == SettingsReference.SHOW_BUTTON.key) {
+		if (reference.key === SettingsReference.SHOW_BUTTON.key) {
 			onChange = (value) => {
 				visibilityExportButton(value);
 				if (debugMode) {
@@ -275,7 +315,7 @@ function createSettings(settings) {
 				}
 			};
 		}
-		if (key == SettingsReference.MAX_CHANGES_HISTORY.key) {
+		if (reference.key === SettingsReference.MAX_CHANGES_HISTORY.key) {
 			onChange = (value) => {
 				cleanChangesHistory();
 				if (debugMode) {
@@ -1181,6 +1221,36 @@ async function onClickExportAllChangelogs() {
 	}
 }
 
+async function onClickResetExport() {
+	exportData = null;
+	saveExportToStorage(null);
+	Swal.fire({
+		toast: true,
+		position: 'top-end',
+		icon: 'success',
+		title: 'Export reset!',
+		showConfirmButton: false,
+		timer: 1200
+	});
+}
+async function onClickResetChangelogs() {
+	changesData = [];
+	changesHistory = null;
+	saveChangesToStorage(null);
+	Swal.fire({
+		toast: true,
+		position: 'top-end',
+		icon: 'success',
+		title: 'Changelogs reset!',
+		showConfirmButton: false,
+		timer: 1200
+	});
+}
+async function onClickRefreshExport() {
+	// Todo: to improve..
+	openExportUI(true);
+}
+
 async function onClickExportViewDiff() {
     const history = getChangesHistory();
     if (!history || history.size === 0) {
@@ -1194,7 +1264,7 @@ async function onClickExportViewDiff() {
     // Select the most recent
     let selectedKey = keys[0];
     const dropdownHTML = 
-    	`<label for="cde-changelog-history">Select Changelog (Max:${getMaxHistorySetting()}):</label>
+    	`<label for="cde-changelog-history">Select Changelog (Max: ${getMaxHistorySetting()}):</label>
 		<select id="cde-changelog-history" style="margin-bottom:8px">${keys.map(k => `<option value="${k}">${k.replace(/_/g, ' ')}</option>`).join("")}</select>`;
 
     function renderChangelogPanel(key) {
@@ -1213,6 +1283,7 @@ async function onClickExportViewDiff() {
     	`${dropdownHTML}
       	<div id="cde-changelog-content">${renderChangelogPanel(selectedKey)}</div>
       	<div style="margin-top:10px">
+      		<button id="cde-changelog-reset-button" class="btn btn-sm btn-secondary">Reset</button>
         	<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download Current</button>
         	<button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download All</button>
         	<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
@@ -1228,12 +1299,14 @@ async function onClickExportViewDiff() {
         width: 800,
 
         didOpen: () => {
-            // Mise à jour quand on change de sélection
+            // --- UPDATE SELECTION ---
             document.getElementById("cde-changelog-history").addEventListener("change", function () {
                 selectedKey = this.value;
                 document.getElementById("cde-changelog-content").innerHTML = renderChangelogPanel(selectedKey);
             });
 
+
+            document.getElementById("cde-changelog-reset-button")?.addEventListener("click", onClickResetChangelogs);
             document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
                 const text = (history.get(selectedKey) || []).join("\n");
                 const blob = new Blob([text], { type: "text/plain" });
@@ -1291,19 +1364,17 @@ function renderCollapsibleJSON(obj, key = null, path = '') {
 		const displayKey = key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : '';
 		const preview = isArray ? `[Array (${obj.length})]` : `{Object (${Object.keys(obj).length})}`;
 		html += `<div><span class="${caretClass}" data-node="${nodeId}"></span>${displayKey}<span class="cde-json-type">${preview}</span><div class="cde-json-node" style="${nodeStyle}" id="node-${nodeId}">`;
-		Object.entries(obj).forEach(([k, v], idx) => {
-		html += renderCollapsibleJSON(v, k, nodeId + '-' + k);
-	});
-	html += `</div></div>`;
-} else {
-	let valClass = 'cde-json-string';
-	let valDisplay = JSON.stringify(obj);
-	if (typeof obj === 'number') valClass = 'cde-json-number';
-	else if (typeof obj === 'boolean') valClass = 'cde-json-boolean';
-	else if (obj === null) valClass = 'cde-json-null';
-	html += `<div>${key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : ''}<span class="${valClass}">${valDisplay}</span></div>`;
+		Object.entries(obj).forEach(([k, v], idx) => {html += renderCollapsibleJSON(v, k, nodeId + '-' + k);});
+		html += `</div></div>`;
+	} else {
+		let valClass = 'cde-json-string';
+		let valDisplay = JSON.stringify(obj);
+		if (typeof obj === 'number') valClass = 'cde-json-number';
+		else if (typeof obj === 'boolean') valClass = 'cde-json-boolean';
+		else if (obj === null) valClass = 'cde-json-null';
+			html += `<div>${key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : ''}<span class="${valClass}">${valDisplay}</span></div>`;
 }
-return html;
+	return html;
 }
 
 function renderPrettyJSON(obj) {
@@ -1330,20 +1401,33 @@ function renderPrettyJSON(obj) {
 
 let exportUI = null;
 const exportFooter = 
-	`<button id="cde-download-button" class="btn btn-sm btn-secondary">Download</button>
+	`<button id="cde-reset-button" class="btn btn-sm btn-secondary">Reset</button>
+	<button id="cde-refresh-button" class="btn btn-sm btn-secondary">Refresh</button>
+	<button id="cde-download-button" class="btn btn-sm btn-secondary">Download</button>
 	<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Clip Board</button>
 	<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Hastebin</button>
 	<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">View Diff</button>`;
 
-function openExportUI() {
-	processCollectData();
+function openExportUI(forceCollect = false) {
+	if (isCfg(SettingsReference.AUTO_EXPORT_ONWINDOW) || forceCollect) {
+		processCollectData();
+	}
 	if (isCfg(SettingsReference.MOD_ENABLED)) {
+
+		// --- Ajout de la checkbox ---
+        const autoExportChecked = isCfg(SettingsReference.AUTO_EXPORT_ONWINDOW);
+        const autoExportCheckbox = 
+			`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
+			<input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />
+			<span style="font-size:15px">Auto Export on CDE Window Open</span></label>`;
+        const panelHTML = `<div id="cde-autoexport-panel" style="margin-bottom:12px;">${autoExportCheckbox}</div>${renderCollapsibleJSON(getExportJSON())}`;
+
 		if (exportUI) {
-			exportUI.html = renderCollapsibleJSON(getExportJSON());
+			exportUI.html = panelHTML;
 		} else {
 			exportUI = {
 				title: "Character Data Exporter",
-				html: renderCollapsibleJSON(getExportJSON()),
+				html: panelHTML,
 				showCloseButton: true,
 				showConfirmButton: false,
 				allowEnterKey: false,
@@ -1355,8 +1439,20 @@ function openExportUI() {
 				footer: exportFooter,
 				
 				didOpen: async () => {
+
+			        const checkbox = document.getElementById('cde-autoexport-checkbox');
+			        if (checkbox) {
+			            checkbox.addEventListener('change', (e) => {
+			                const isChecked = e.target.checked;
+			                const section = loadedSections[SettingsReference.AUTO_EXPORT_ONWINDOW.section];
+			                section.set(SettingsReference.AUTO_EXPORT_ONWINDOW.key, isChecked);
+			            });
+			        }
+
 					setupCollapsibleJSON();
 
+					document.getElementById("cde-reset-button")?.addEventListener("click", onClickResetExport);
+					document.getElementById("cde-refresh-button")?.addEventListener("click", onClickRefreshExport);
 					document.getElementById("cde-download-button")?.addEventListener("click", onClickExportDownload);
 					document.getElementById("cde-clipboard-button")?.addEventListener("click", onClickExportClipboard);
 					document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", onClickExportHastebin);
@@ -1373,7 +1469,7 @@ function openExportUI() {
 
 // --- Init ---
 
-export function setup({settings, api, onLoad, onInterfaceReady }) {
+export function setup({settings, api, onInterfaceReady }) {
 
 	// SETTINGS
 	createSettings(settings);
@@ -1382,8 +1478,8 @@ export function setup({settings, api, onLoad, onInterfaceReady }) {
 		debugMode = true;
 	}
 
-	// Setup OnLoad
-	onLoad(async (ctx) => {
+	// Setup OnInterfaceReady
+	onInterfaceReady(async (ctx) => {
 		// Load LZString (Compression Tools) module
 		LZString = await ctx.loadModule("libs/lz-string.js");
 		if (LZString && typeof LZString.default === 'object') {
@@ -1398,10 +1494,7 @@ export function setup({settings, api, onLoad, onInterfaceReady }) {
 		displayStatsModule = await ctx.loadModule("displayStats.mjs");
 
 		console.log("[CDE] Module loaded !");
-	});
 
-	// Setup OnInterfaceReady
-	onInterfaceReady(async (ctx) => {
 		// CSS
 		createIconCSS(ctx);
 
@@ -1410,6 +1503,10 @@ export function setup({settings, api, onLoad, onInterfaceReady }) {
 		visibilityExportButton(isCfg(SettingsReference.SHOW_BUTTON));
 
 		console.log("[CDE] Interface ready !");
+
+		if (isCfg(SettingsReference.AUTO_EXPORT_ONLOAD)) {
+			processCollectData();
+		}
 	});
 
 	// Setup API
