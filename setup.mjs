@@ -4,37 +4,37 @@
 // setup.mjs
 
 // === Plan to 1.4.X ===
-	// Stage 0 - Renamed openExportUI callback to onExportOpen
-	// Stage 1 – Unified data collection (processCollectData)
-	// Stage 2 – Structured stats display (displayStats)
-	// Stage 3 – Naming normalization & typo cleanup
-	// Stage 4 – Structured JSON export
-	// Stage 5 – Custom export JSON support
-	// Stage 6 – Export compression (e.g., UTF16)
-	// Stage 7 – Settings cleanup and consolidation
-	// Stage 8 - API function
+// Stage 0 - Renamed openExportUI callback to onExportOpen
+// Stage 1 – Unified data collection (processCollectData)
+// Stage 2 – Structured stats display (displayStats)
+// Stage 3 – Naming normalization & typo cleanup
+// Stage 4 – Structured JSON export
+// Stage 5 – Custom export JSON support
+// Stage 6 – Export compression (e.g., UTF16)
+// Stage 7 – Settings cleanup and consolidation
+// Stage 8 - API function
 
 // === Plan to 1.5.X ===
-	// Stage 9 - Settings V2
-	// Stage 10 - Sharing Export Tools (File, Hashebin, Clipboard)
+// Stage 9 - Settings V2
+// Stage 10 - Sharing Export Tools (File, Hashebin, Clipboard)
 
 // === Plan to 1.6.X ===
-	// Stage 11 - View Logs
-	// Stage 12 - Export download button in modal footer
+// Stage 11 - View Logs
+// Stage 12 - Export download button in modal footer
 
 // === Plan to 1.7.X ===
-	// Stage 13 - Storage format detection
-	// Stage 14 - Smart diff on arrays using ID/localID/name as key
-	// Stage 15 - "View Diff" button to show changelog with color formatting
-	// Stage 16 - Timelapse history
+// Stage 13 - Storage format detection
+// Stage 14 - Smart diff on arrays using ID/localID/name as key
+// Stage 15 - "View Diff" button to show changelog with color formatting
+// Stage 16 - Timelapse history
 
 // === Plan to 1.8.X === 
-	// Stage 17 - Better data storage management & remove online ress (offline mode)
-	// Stage 18 - Fully fonctionnal changelog viewer & export viewer
-	// Stage 19 - Fix Active Potion collector and polish viewer
+// Stage 17 - Better data storage management & remove online ress (offline mode)
+// Stage 18 - Fully fonctionnal changelog viewer & export viewer
+// Stage 19 - Fix Active Potion collector and polish viewer
 
 // === Plan to 1.9.X ===
-	// Stage 20 - ETA like !
+// Stage 20 - ETA like !
 
 
 // --- Configuration ---
@@ -42,7 +42,7 @@ const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"
 const MOD_VERSION = "v1.8.12";
 
 let debugMode = false;
-let charStorage = null;
+let storage = null;
 let displayStatsModule = null;
 
 let LZString = null;
@@ -135,17 +135,17 @@ const SettingsReference = {
 		label: "Changes History Size Limit",
 		hint: "Maximum number of change history entries to keep in localStorage (0 disables history)",
 		options: [
-	        { value: 0, display: "0 (Disable history)" },
-	        { value: 1, display: "1" },
-	        { value: 5, display: "5" },
-	        { value: 10, display: "10 (Default)" },
-	        { value: 25, display: "25" },
-	        { value: 50, display: "50" },
-	        { value: 100, display: "100" }
-	    ],
+			{ value: 0, display: "0 (Disable history)" },
+			{ value: 1, display: "1" },
+			{ value: 5, display: "5" },
+			{ value: 10, display: "10 (Default)" },
+			{ value: 25, display: "25" },
+			{ value: 50, display: "50" },
+			{ value: 100, display: "100" }
+		],
 		toggle: 10
 	},
-
+	
 	// DATA OPTIONS SETTINGS
 	EXPORT_BANK: {
 		section: Sections.DataOptions,
@@ -300,7 +300,7 @@ function createSettings(settings) {
 		[Sections.General]: settings.section(Sections.General),
 		[Sections.DataOptions]: settings.section(Sections.DataOptions)
 	}
-
+	
 	for (const key in SettingsReference) {
 		const reference = SettingsReference[key];
 		let onChange = null;
@@ -367,6 +367,12 @@ function getStorage_ExportKey() {
 }
 let exportData = {};
 function getExportJSON() {
+	if (exportData == null) {
+		if (debugMode) {
+			console.log("[CDE] Export cache requested!")
+		}
+		exportData = getLastExportFromStorage();
+	}
 	return exportData;
 }
 function getExportString() {
@@ -378,13 +384,13 @@ function getExportString() {
 // --- Changes Logic ---
 const CS_LAST_CHANGES = "cde_last_changes";
 function sanitizeCharacterName(name) {
-    if (!name) return "unknown";
-    return name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, "_")
-        .replace(/[^a-zA-Z0-9_\-]/g, "")
-        .substring(0, 32);
+	if (!name) return "unknown";
+	return name
+	.normalize("NFD")
+	.replace(/[\u0300-\u036f]/g, "")
+	.replace(/\s+/g, "_")
+	.replace(/[^a-zA-Z0-9_\-]/g, "")
+	.substring(0, 32);
 }
 function getStorage_ChangesKey() {
 	return CS_LAST_CHANGES+"_"+(sanitizeCharacterName(game.characterName));
@@ -407,7 +413,7 @@ function submitChangesHistory(data) {
 	
 	const items = getChangesHistory();
 	items.set(key, data);
-
+	
 	cleanChangesHistory();
 	if (getMaxHistorySetting() > 0) {
 		saveChangesToStorage(items);
@@ -427,14 +433,21 @@ function getMaxHistorySetting() {
 function cleanChangesHistory() {
 	const history = getChangesHistory();
 	const maxHistory = getMaxHistorySetting();
+	
+	while (history.size > maxHistory) {
+		const oldestKey = history.keys().next().value;
+		history.delete(oldestKey);
+		if (debugMode) {
+			console.log("[CDE] Remove old history entry:", oldestKey);
+		}
+	}
+}
 
-    while (history.size > maxHistory) {
-        const oldestKey = history.keys().next().value;
-        history.delete(oldestKey);
-        if (debugMode) {
-        	console.log("[CDE] Remove old history entry:", oldestKey);
-        }
-    }
+function isLZStringReady() {
+	return lzStringLoaded 
+	&& LZString 
+	&& typeof LZString !== "undefined"
+	&& isCfg(SettingsReference.USE_LZSTRING);
 }
 
 // READ FROM STORAGE
@@ -442,16 +455,13 @@ function readFromStorage(key) {
 	try {
 		const raw = localStorage.getItem(key);
 		if (!raw) return null;
-
+		
 		let json = raw;
-		if (lzStringLoaded 
-			&& LZString 
-			&& typeof LZString !== "undefined"
-			&& isCfg(SettingsReference.USE_LZSTRING)) {
+		if (isLZStringReady()) {
 			const decompressed = LZString.decompressFromUTF16(raw);
 			if (decompressed) json = decompressed;
 		}
-
+		
 		json = JSON.parse(json);
 		if (debugMode) {
 			console.log("[CDE] Object read:", json);
@@ -478,10 +488,7 @@ function getChangesFromStorage() {
 function saveToStorage(key, jsonData) {
 	try {
 		let raw = JSON.stringify(jsonData);
-		if (lzStringLoaded 
-			&& LZString
-			&& typeof LZString !== "undefined"
-			&& isCfg(SettingsReference.USE_LZSTRING) ) {
+		if (isLZStringReady()) {
 			raw = LZString.compressToUTF16(raw);
 		}
 		localStorage.setItem(key, raw);
@@ -510,14 +517,14 @@ function collector(cfgRef, collectorFn, fallbackMsg) {
 function processCollectData() {
 	const newData = {};
 	newData.basics = collectBasics();
-
+	
 	newData.currentActivity = collectCurrentActivity();
 	newData.agility = collectAgility();
 	newData.activePotions = collectActivePotions();
 	newData.dungeons = collectDungeons();
 	newData.strongholds = collectStrongholds();
 	newData.ancientRelics = collectAncientRelics();
-
+	
 	newData.stats = collector(SettingsReference.EXPORT_GAMESTATS, collectGameStats, "Stats data unavailable");
 	newData.shop = collector(SettingsReference.EXPORT_SHOP, collectShopData, "Shop data unavailable");
 	newData.equipment = collector(SettingsReference.EXPORT_EQUIPMENT, collectEquipments, "Equipment data unavailable");
@@ -531,13 +538,13 @@ function processCollectData() {
 	newData.pets = collector(SettingsReference.EXPORT_PETS, collectPets, "Pets data unavailable");
 	newData.cartography = collector(SettingsReference.EXPORT_CARTOGRAPHY, collectCartography, "Cartography data unavailable");
 	newData.farming = collector(SettingsReference.EXPORT_FARMING, collectFarming, "Farming data unavailable");
-
+	
 	newData.meta = {
 		exportTimestamp: new Date().toISOString(),
 		version: game.lastLoadedGameVersion,
 		modVersion: MOD_VERSION
 	};
-
+	
 	if (isCfg(SettingsReference.SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));
 		
@@ -554,11 +561,11 @@ function processCollectData() {
 			}
 			submitChangesHistory(changesData);
 		}
-
+		
 		// Save to storage
 		saveExportToStorage(copy);
 	}
-
+	
 	// Finalize..
 	exportData = newData;
 	if (debugMode) {
@@ -619,11 +626,11 @@ function collectSkills() {
 
 function collectMastery() {
 	const result = {};
-
+	
 	game.skills.registeredObjects.forEach((skill) => {
 		const masteryMap = skill.actionMastery;
 		if (!masteryMap || masteryMap.size === 0) return;
-
+		
 		const entries = {};
 		masteryMap.forEach((progress, entry) => {
 			entries[entry.name] = {
@@ -632,24 +639,24 @@ function collectMastery() {
 				xp: progress.xp
 			};
 		});
-
+		
 		if (Object.keys(entries).length > 0) {
 			result[skill.name] = entries;
 		}
 	});
-
+	
 	return result;
 }
 
 function collectAgility() {
 	const result = [];
-
+	
 	game.agility.courses.forEach((course, realm) => {
 		const courseData = {
 			realm: realm?.name || realm,
 			obstacles: [],
 		};
-
+		
 		course.builtObstacles?.forEach((obstacle, position) => {
 			courseData.obstacles.push({
 				position,
@@ -657,21 +664,21 @@ function collectAgility() {
 				name: obstacle.name,
 			});
 		});
-
+		
 		result.push(courseData);
 	});
-
+	
 	return result;
 }
 
 function collectActivePotions() {
 	const result = [];
 	game.potions.activePotions?.forEach((currPotion, activity) => {
-        result.push({
-            activity: activity.localID,
-            potion: currPotion.item.localID,
-            charges: currPotion.charges
-        });
+		result.push({
+			activity: activity.localID,
+			potion: currPotion.item.localID,
+			charges: currPotion.charges
+		});
 	});
 	return result;
 }
@@ -680,7 +687,7 @@ function collectTownship() {
 	const ts = game.township;
 	const data = ts.townData;
 	const tasks = ts.tasks;
-
+	
 	return {
 		level: ts.level,
 		population: data?.population ?? null,
@@ -701,7 +708,7 @@ function collectTownship() {
 
 function collectPets() {
 	const result = [];
-
+	
 	if (game.petManager?.unlocked instanceof Set) {
 		game.petManager.unlocked.forEach((pet) => {
 			result.push({
@@ -711,21 +718,21 @@ function collectPets() {
 			});
 		});
 	}
-
+	
 	return result;
 }
 
 function collectAncientRelics() {
 	const result = [];
-
+	
 	game.skills.registeredObjects.forEach((skill) => {
 		if (!skill.ancientRelicSets || skill.ancientRelicSets.size === 0) return;
-
+		
 		const relics = [];
-
+		
 		skill.ancientRelicSets.forEach((set) => {
 			if (!set.foundRelics || set.foundRelics.size === 0) return;
-
+			
 			set.foundRelics.forEach((_, relic) => {
 				relics.push({
 					name: relic.name,
@@ -733,7 +740,7 @@ function collectAncientRelics() {
 				});
 			});
 		});
-
+		
 		if (relics.length > 0) {
 			result.push({
 				skill: skill.name,
@@ -742,7 +749,7 @@ function collectAncientRelics() {
 			});
 		}
 	});
-
+	
 	return result;
 }
 
@@ -750,15 +757,15 @@ function collectAncientRelics() {
 function collectCartography() {
 	const maps = game.cartography.worldMaps?.registeredObjects;
 	const result = [];
-
+	
 	if (!maps || !(maps instanceof Map)) {
 		console.warn("[CDE] Cartography maps not found");
 		return { level: game.cartography?.level ?? null, maps: result };
 	}
-
+	
 	maps.forEach((mapObj, mapKey) => {
 		const pois = [];
-
+		
 		// Certains POIs sont dans discoveredPOIs, d'autres dans .pointsOfInterest.registeredObjects
 		if (Array.isArray(mapObj.discoveredPOIs)) {
 			mapObj.discoveredPOIs.forEach((poi) => {
@@ -769,7 +776,7 @@ function collectCartography() {
 				});
 			});
 		}
-
+		
 		result.push({
 			name: mapObj.name,
 			id: mapObj.localID,
@@ -782,7 +789,7 @@ function collectCartography() {
 			unlockedBonuses: mapObj.unlockedMasteryBonuses
 		});
 	});
-
+	
 	return {
 		level: game.cartography.level,
 		maps: result
@@ -819,12 +826,12 @@ function collectGameStats() {
 
 function collectAstrology() {
 	const result = [];
-
+	
 	if (!game?.astrology?.masteryXPConstellations) {
 		console.warn("[CDE] astrology.masteryXPConstellations is missing");
 		return result;
 	}
-
+	
 	game.astrology.masteryXPConstellations.forEach((entry) => {
 		result.push({
 			name: entry.name,
@@ -843,7 +850,7 @@ function collectAstrology() {
 
 function collectShopData() {
 	const purchases = [];
-
+	
 	const purchased = game.shop.upgradesPurchased;
 	if (purchased && purchased.size > 0) {
 		purchased.forEach((qty, item) => {
@@ -854,7 +861,7 @@ function collectShopData() {
 			});
 		});
 	}
-
+	
 	return { purchases };
 }
 
@@ -899,7 +906,7 @@ function collectBankData() {
 			quantity: entry.quantity
 		});
 	});
-
+	
 	return {
 		size: game.bank.items.size,
 		capacity: (game.combat.player.modifiers.bankSpace ?? 0) + game.bank.baseSlots,
@@ -912,43 +919,43 @@ function getDiffMs(start, end) {
 }
 
 function formatDiffToHHMMSS(diffMs) {
-  	const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  	const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  	const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-  	return [
-	  	hours.toString().padStart(2, '0'),
-	  	minutes.toString().padStart(2, '0'),
-	  	seconds.toString().padStart(2, '0'),
-  	].join(':');
+	const hours = Math.floor(diffMs / (1000 * 60 * 60));
+	const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+	const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+	
+	return [
+		hours.toString().padStart(2, '0'),
+		minutes.toString().padStart(2, '0'),
+		seconds.toString().padStart(2, '0'),
+	].join(':');
 }
 
 function calculateKillsPerHour(elapsedMs, killCount) {
 	if (elapsedMs <= 0 || killCount < 0 || !Number.isFinite(elapsedMs) || !Number.isFinite(killCount)) {
-    	return 0;
+		return 0;
 	}
-
- 	const hours = elapsedMs / (1000 * 60 * 60); // Convert ms to hours
-
-  	if (hours < 1e-9) {
-    	return 0;
-  	}
-
-  	const kph = killCount / hours;
-  	if (!Number.isFinite(kph) || kph > 1e6) {
-    	return 0;
-  	}
-  	return Math.round(kph);
+	
+	const hours = elapsedMs / (1000 * 60 * 60); // Convert ms to hours
+	
+	if (hours < 1e-9) {
+		return 0;
+	}
+	
+	const kph = killCount / hours;
+	if (!Number.isFinite(kph) || kph > 1e6) {
+		return 0;
+	}
+	return Math.round(kph);
 }
 
 function collectCurrentActivity() {
 	const result = [];
 	const player = game.combat.player;
 	const stats = game.stats;
-
+	
 	const lastActivities = getExportJSON()?.currentActivity;
 	const lastTimestamp = getExportJSON()?.meta?.exportTimestamp;
-
+	
 	game.activeActions.registeredObjects.forEach((a) => {
 		if (a.isActive) {
 			const entry = {
@@ -957,6 +964,7 @@ function collectCurrentActivity() {
 				recipe: a.selectedRecipe?.product?.name || null
 			};
 			if (a.localID === "Combat") {
+
 				entry.area = { name: a.selectedArea?.name, id: a.selectedArea?.localID };
 				if (a.selectedMonster) {
 					entry.monster = {
@@ -966,14 +974,12 @@ function collectCurrentActivity() {
 					};
 				}
 				entry.attackType = player.attackType;
-
+				
+				// ETA - Mode 1
 				const currentTimestamp = new Date().toISOString();
 				if (lastTimestamp) {
 					lastActivities?.forEach((lastActivity) => {
-						if (lastActivity 
-							&& lastActivity.activity === "Combat"
-							&& lastActivity.monster?.id === entry?.monster.id) {
-
+						if (lastActivity && lastActivity.activity === "Combat" && lastActivity.monster?.id === entry?.monster.id) {
 							const diffMs = getDiffMs(lastTimestamp, currentTimestamp);
 							const diffKill = entry.monster.killCount - lastActivity.monster.killCount;
 							entry.analyse = {
@@ -983,7 +989,6 @@ function collectCurrentActivity() {
 								attackType: player.attackType,
 								estimedKillPerHour: calculateKillsPerHour(diffMs, diffKill)
 							}
-
 							if (debugMode) {
 								console.log("[CDE] Current Analyse:", entry.analyse);
 							}
@@ -1042,26 +1047,26 @@ function collectCompletion() {
 }
 
 function getPercentDiff(oldVal, newVal) {
-    if (typeof oldVal === "number" && typeof newVal === "number" && oldVal !== 0) {
-        const pct = ((newVal - oldVal) / Math.abs(oldVal)) * 100;
-        if (Math.abs(pct) <= 1000) {
-            const sign = pct > 0 ? "+" : "";
-            return ` (${sign}${pct.toFixed(2)}%)`;
-        }
-    }
-    return "";
+	if (typeof oldVal === "number" && typeof newVal === "number" && oldVal !== 0) {
+		const pct = ((newVal - oldVal) / Math.abs(oldVal)) * 100;
+		if (Math.abs(pct) <= 1000) {
+			const sign = pct > 0 ? "+" : "";
+			return ` (${sign}${pct.toFixed(2)}%)`;
+		}
+	}
+	return "";
 }
 
 function deepDiff(prev, curr, path = "") {
 	const changes = [];
-
-  	// Arrays: diff
+	
+	// Arrays: diff
 	if (Array.isArray(prev) && Array.isArray(curr)) {
 		changes.push(...diffArraysSmart(prev, curr, path));
 		return changes;
 	}
-
-  	// Objects
+	
+	// Objects
 	if (isObject(prev) && isObject(curr)) {
 		for (const key in prev) {
 			if (!(key in curr)) {
@@ -1081,7 +1086,7 @@ function deepDiff(prev, curr, path = "") {
 				else if (val1 !== val2) {
 					changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}${getPercentDiff(val1, val2)}`);
 				}
-
+				
 			}
 		}
 		return changes;
@@ -1089,7 +1094,7 @@ function deepDiff(prev, curr, path = "") {
 	else if (prev !== curr) {
 		changes.push(`🔁 UPD ${path} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}${getPercentDiff(prev, curr)}`);
 	}
-
+	
 	return changes;
 }
 
@@ -1099,13 +1104,13 @@ function diffArraysSmart(prevArr, currArr, path = "") {
 		changes.push(`❓ Not arrays at ${path}`);
 		return changes;
 	}
-
-  	// Try 'id' OR 'localID' OR 'name' as Key, else index
+	
+	// Try 'id' OR 'localID' OR 'name' as Key, else index
 	function getKey(obj) {
 		return obj?.id ?? obj?.localID ?? obj?.name ?? null;
 	}
-
-  	// Smart Diff
+	
+	// Smart Diff
 	const prevMap = Object.create(null);
 	prevArr.forEach((obj, i) => {
 		const key = getKey(obj) ?? `idx_${i}`;
@@ -1116,21 +1121,21 @@ function diffArraysSmart(prevArr, currArr, path = "") {
 		const key = getKey(obj) ?? `idx_${i}`;
 		currMap[key] = obj;
 	});
-
-  	// Record add & update
+	
+	// Record add & update
 	for (const key in currMap) {
 		if (!(key in prevMap)) {
 			changes.push(`➕ ADD [${path}${key}]: ${JSON.stringify(currMap[key])}`);
 		} else {
-
+			
 			const subChanges = deepDiff(prevMap[key], currMap[key], path + key + ".");
 			if (subChanges.length > 0) {
 				changes.push(...subChanges);
 			}
 		}
 	}
-
-  	// Record Sup
+	
+	// Record Sup
 	for (const key in prevMap) {
 		if (!(key in currMap)) {
 			changes.push(`❌ RMV [${path}${key}]: ${JSON.stringify(prevMap[key])}`);
@@ -1152,15 +1157,7 @@ function isObject(value) {
 
 // --- UI Setup ---
 function createIconCSS(ctx) {
-	document.head.insertAdjacentHTML("beforeend", 
-		`<style>
-	      :root {
-	        --icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");
-	      }
-	      .darkMode {
-	        --icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");
-	      }
-	    </style>`);
+	document.head.insertAdjacentHTML("beforeend", `<style>:root {--icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");}.darkMode {--icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");}</style>`);
 }
 
 function CDEButton(template, cb) {
@@ -1192,7 +1189,7 @@ function visibilityExportButton(visible) {
 
 function onExportOpen() {
 	if (!isCfg(SettingsReference.MOD_ENABLED)) return;
-
+	
 	// Clean-up
 	const viewDiffButton = document.getElementById("cde-viewdiff-button");
 	if (viewDiffButton) {
@@ -1252,7 +1249,7 @@ async function onClickExportHastebin() {
 		const raw = getExportString();
 		const hastebinLink = await uploadToHastebin(raw);
 		await navigator.clipboard.writeText(hastebinLink);
-
+		
 		Swal.fire({
 			icon: 'success',
 			title: 'Hastebin link copied!',
@@ -1272,31 +1269,31 @@ async function onClickExportHastebin() {
 }
 
 async function onClickExportAllChangelogs() {
-    const history = getChangesHistory();
-    if (!history || history.size === 0) {
-        Swal.fire({ title: "Export All", html: "No changelog history to export." });
-        return;
-    }
-
+	const history = getChangesHistory();
+	if (!history || history.size === 0) {
+		Swal.fire({ title: "Export All", html: "No changelog history to export." });
+		return;
+	}
+	
 	try {
-	    const allData = {};
-	    Array.from(history.entries()).forEach(([key, value]) => {
-	        allData[key] = value;
-	    });
-
-	    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
-	    const now = new Date();
-	    const stamp = now.toISOString().replace(/[-:T]/g,"").slice(0, 15);
-	    const fileName = `melvor-changelog-ALL-${stamp}.json`;
-
-	    const url = URL.createObjectURL(blob);
-	    const link = document.createElement("a");
-	    link.href = url;
-	    link.download = fileName;
-	    document.body.appendChild(link);
-	    link.click();
-	    document.body.removeChild(link);
-	    URL.revokeObjectURL(url);
+		const allData = {};
+		Array.from(history.entries()).forEach(([key, value]) => {
+			allData[key] = value;
+		});
+		
+		const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+		const now = new Date();
+		const stamp = now.toISOString().replace(/[-:T]/g,"").slice(0, 15);
+		const fileName = `melvor-changelog-ALL-${stamp}.json`;
+		
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = fileName;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
 	} catch (err) {
 		console.error("Failed to generate full changelogs:", err);
 		Swal.fire({
@@ -1338,12 +1335,12 @@ async function onClickRefreshExport() {
 }
 
 function formatChangelogLine(line) {
-  // HEADER
+	// HEADER
 	if (line.startsWith("🧾")) {
 		return `<div class="cde-changelog-line cde-changelog-header">${escapeHtml(line)}</div>`;
 	}
-
-  	// ➕ ADD
+	
+	// ➕ ADD
 	if (line.startsWith("➕")) {
 		const m = line.match(/^➕ ADD ([^=]+) = (.+)$/);
 		if (m)
@@ -1352,118 +1349,118 @@ function formatChangelogLine(line) {
 		if (m2)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${escapeHtml(m2[2].trim())}</span></div>`;
 	}
-
-  	// ❌ RMV
+	
+	// ❌ RMV
 	if (line.startsWith("❌")) {
 		const m = line.match(/^❌ RMV (.+)$/);
 		if (m)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span></div>`;
-    
+		
 		const m2 = line.match(/^❌ RMV \[([^\]]+)\]: (.+)$/);
 		if (m2)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${escapeHtml(m2[2].trim())}</span></div>`;
 	}
-
-  	// 🔁 UPD
+	
+	// 🔁 UPD
 	if (line.startsWith("🔁")) {
 		const m = line.match(/^🔁 UPD ([^=]+) = ([^→]+) → (.+)$/);
 		if (m)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 UPD</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${escapeHtml(m[3].trim())}</span></div>`;
 	}
-
+	
 	return `<div class="cde-changelog-line">${escapeHtml(line)}</div>`;
 }
 
 async function onClickExportViewDiff() {
-    const history = getChangesHistory();
-    if (!history || history.size === 0) {
-        Swal.fire({ title: "Changelog", html: "No history available." });
-        return;
-    }
-
-    // Sort by timestamp
-    const keys = Array.from(history.keys()).sort((a, b) => b.localeCompare(a));
-
-    // Select the most recent
-    let selectedKey = keys[0];
-    const dropdownHTML = 
-    	`<label for="cde-changelog-history">Select Changelog (Max: ${getMaxHistorySetting()}):</label>
+	const history = getChangesHistory();
+	if (!history || history.size === 0) {
+		Swal.fire({ title: "Changelog", html: "No history available." });
+		return;
+	}
+	
+	// Sort by timestamp
+	const keys = Array.from(history.keys()).sort((a, b) => b.localeCompare(a));
+	
+	// Select the most recent
+	let selectedKey = keys[0];
+	const dropdownHTML = 
+	`<label for="cde-changelog-history">Select Changelog (Max: ${getMaxHistorySetting()}):</label>
 		<select id="cde-changelog-history" style="margin-bottom:8px">${keys.map(k => `<option value="${k}">${k.replace(/_/g, ' ')}</option>`).join("")}</select>`;
-
+	
 	function renderChangelogPanel(key) {
 		const diff = history.get(key) || [];
 		return `<div id="cde-changelog-panel">${diff.map(formatChangelogLine).join('')}</div>`;
 	}
-
-    // First init
-    let panelHTML = 
-    	`${dropdownHTML}
-      	<div id="cde-changelog-content">${renderChangelogPanel(selectedKey)}</div>
-      	<div style="margin-top:10px">
-      		<button id="cde-changelog-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
-        	<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download / Share Current</button>
-        	<button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download / Share All</button>
-        	<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Copy to Clip Board</button>
-      	</div>`;
-
-    Swal.fire({
-
-        title: "Changelog History",
-        showCloseButton: true,
-        showConfirmButton: false,
-        allowEnterKey: false,
-        html: panelHTML,
-        width: 800,
-
-        didOpen: () => {
-            // --- UPDATE SELECTION ---
-            document.getElementById("cde-changelog-history").addEventListener("change", function () {
-                selectedKey = this.value;
-                document.getElementById("cde-changelog-content").innerHTML = renderChangelogPanel(selectedKey);
-            });
-
-            document.getElementById("cde-changelog-reset-button")?.addEventListener("click", onClickResetChangelogs);
-            document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
-                const text = (history.get(selectedKey) || []).join("\n");
-                const blob = new Blob([text], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `melvor-changelog-${selectedKey}.txt`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            });
-            document.getElementById("cde-changelog-exportall-button")?.addEventListener("click", onClickExportAllChangelogs);
-
-            document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", () => {
-                const text = (history.get(selectedKey) || []).join("\n");
-                navigator.clipboard.writeText(text);
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Changelog copied!',
-                    showConfirmButton: false,
-                    timer: 1200
-                });
-            });
-        }
-    });
+	
+	// First init
+	let panelHTML = 
+	`${dropdownHTML}
+	  	<div id="cde-changelog-content">${renderChangelogPanel(selectedKey)}</div>
+	  	<div style="margin-top:10px">
+	  		<button id="cde-changelog-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
+			<button id="cde-changelog-download-button" class="btn btn-sm btn-secondary">Download / Share Current</button>
+			<button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download / Share All</button>
+			<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Copy to Clip Board</button>
+	  	</div>`;
+	
+	Swal.fire({
+		
+		title: "Changelog History",
+		showCloseButton: true,
+		showConfirmButton: false,
+		allowEnterKey: false,
+		html: panelHTML,
+		width: 800,
+		
+		didOpen: () => {
+			// --- UPDATE SELECTION ---
+			document.getElementById("cde-changelog-history").addEventListener("change", function () {
+				selectedKey = this.value;
+				document.getElementById("cde-changelog-content").innerHTML = renderChangelogPanel(selectedKey);
+			});
+			
+			document.getElementById("cde-changelog-reset-button")?.addEventListener("click", onClickResetChangelogs);
+			document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
+				const text = (history.get(selectedKey) || []).join("\n");
+				const blob = new Blob([text], { type: "text/plain" });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = `melvor-changelog-${selectedKey}.txt`;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(url);
+			});
+			document.getElementById("cde-changelog-exportall-button")?.addEventListener("click", onClickExportAllChangelogs);
+			
+			document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", () => {
+				const text = (history.get(selectedKey) || []).join("\n");
+				navigator.clipboard.writeText(text);
+				Swal.fire({
+					toast: true,
+					position: 'top-end',
+					icon: 'success',
+					title: 'Changelog copied!',
+					showConfirmButton: false,
+					timer: 1200
+				});
+			});
+		}
+	});
 }
 
 function setupCollapsibleJSON() {
-  document.querySelectorAll('.cde-json-caret').forEach(caret => {
-    caret.addEventListener('click', function() {
-      const nodeId = caret.getAttribute('data-node');
-      const nodeDiv = document.getElementById('node-' + nodeId);
-      const isCollapsed = caret.classList.contains('collapsed');
-      if (nodeDiv) nodeDiv.style.display = isCollapsed ? 'block' : 'none';
-      caret.classList.toggle('collapsed', !isCollapsed);
-      caret.classList.toggle('expanded', isCollapsed);
-    });
-  });
+	document.querySelectorAll('.cde-json-caret').forEach(caret => {
+		caret.addEventListener('click', function() {
+			const nodeId = caret.getAttribute('data-node');
+			const nodeDiv = document.getElementById('node-' + nodeId);
+			const isCollapsed = caret.classList.contains('collapsed');
+			if (nodeDiv) nodeDiv.style.display = isCollapsed ? 'block' : 'none';
+			caret.classList.toggle('collapsed', !isCollapsed);
+			caret.classList.toggle('expanded', isCollapsed);
+		});
+	});
 }
 
 function renderCollapsibleJSON(obj, key = null, path = '') {
@@ -1471,11 +1468,11 @@ function renderCollapsibleJSON(obj, key = null, path = '') {
 	const isArray = Array.isArray(obj);
 	const nodeId = path || 'root';
 	let html = '';
-
+	
 	const isRoot = nodeId === 'root';
 	const caretClass = isRoot ? 'cde-json-caret expanded' : 'cde-json-caret collapsed';
 	const nodeStyle = isRoot ? 'display:block' : 'display:none';
-
+	
 	if (type === '[object Object]' || isArray) {
 		const displayKey = key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : '';
 		const preview = isArray ? `[Array (${obj.length})]` : `{Object (${Object.keys(obj).length})}`;
@@ -1488,36 +1485,36 @@ function renderCollapsibleJSON(obj, key = null, path = '') {
 		if (typeof obj === 'number') valClass = 'cde-json-number';
 		else if (typeof obj === 'boolean') valClass = 'cde-json-boolean';
 		else if (obj === null) valClass = 'cde-json-null';
-			html += `<div>${key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : ''}<span class="${valClass}">${valDisplay}</span></div>`;
-}
+		html += `<div>${key !== null ? `<span class="cde-json-key">"${key}"</span>: ` : ''}<span class="${valClass}">${valDisplay}</span></div>`;
+	}
 	return html;
 }
 
 function renderPrettyJSON(obj) {
-    function syntaxHighlight(json) {
-        if (typeof json !== 'string') {
-            json = JSON.stringify(json, null, 2);
-        }
-        json = escapeHtml(json);
-        return json.replace(
-            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(true|false|null)\b|-?\d+(\.\d*)?([eE][+\-]?\d+)?)/g,
-            function (match) {
-                let cls = 'json-number';
-                if (/^"/.test(match)) {
-                    if (/:$/.test(match)) cls = 'json-key';
-                    else cls = 'json-string';
-                } else if (/true|false/.test(match)) cls = 'json-boolean';
-                else if (/null/.test(match)) cls = 'json-null';
-                return '<span class="' + cls + '">' + match + '</span>';
-            }
-        );
-    }
-    return `<pre class="cde-json-viewer">${syntaxHighlight(obj)}</pre>`;
+	function syntaxHighlight(json) {
+		if (typeof json !== 'string') {
+			json = JSON.stringify(json, null, 2);
+		}
+		json = escapeHtml(json);
+		return json.replace(
+			/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(true|false|null)\b|-?\d+(\.\d*)?([eE][+\-]?\d+)?)/g,
+			function (match) {
+				let cls = 'json-number';
+				if (/^"/.test(match)) {
+					if (/:$/.test(match)) cls = 'json-key';
+					else cls = 'json-string';
+				} else if (/true|false/.test(match)) cls = 'json-boolean';
+				else if (/null/.test(match)) cls = 'json-null';
+				return '<span class="' + cls + '">' + match + '</span>';
+			}
+		);
+	}
+	return `<pre class="cde-json-viewer">${syntaxHighlight(obj)}</pre>`;
 }
 
 let exportUI = null;
 const exportFooter = 
-	`<div style="margin-top:10px"><button id="cde-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
+`<div style="margin-top:10px"><button id="cde-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
 	<button id="cde-refresh-button" class="btn btn-sm btn-secondary">Refresh Data</button>
 	<button id="cde-download-button" class="btn btn-sm btn-secondary">Download / Share</button>
 	<button id="cde-clipboard-button" class="btn btn-sm btn-secondary">Copy to Clip Board</button>
@@ -1529,15 +1526,15 @@ function openExportUI(forceCollect = false) {
 		processCollectData();
 	}
 	if (isCfg(SettingsReference.MOD_ENABLED)) {
-
+		
 		// --- Ajout de la checkbox ---
-        const autoExportChecked = isCfg(SettingsReference.AUTO_EXPORT_ONWINDOW);
-        const autoExportCheckbox = 
-			`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
+		const autoExportChecked = isCfg(SettingsReference.AUTO_EXPORT_ONWINDOW);
+		const autoExportCheckbox = 
+		`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
 			<input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />
 			<span style="font-size:15px">Automatically generate new export when CDE window opens</span></label>`;
-        const panelHTML = `<div id="cde-autoexport-panel" style="margin-bottom:12px;">${autoExportCheckbox}</div>${renderCollapsibleJSON(getExportJSON())}`;
-
+		const panelHTML = `<div id="cde-autoexport-panel" style="margin-bottom:12px;">${autoExportCheckbox}</div>${renderCollapsibleJSON(getExportJSON())}`;
+		
 		if (exportUI) {
 			exportUI.html = panelHTML;
 		} else {
@@ -1550,30 +1547,30 @@ function openExportUI(forceCollect = false) {
 				inputAttributes: {
 					readonly: true
 				},
-
+				
 				customClass: { container: "cde-modal" },
 				footer: exportFooter,
 				
 				didOpen: async () => {
-
-			        const checkbox = document.getElementById('cde-autoexport-checkbox');
-			        if (checkbox) {
-			            checkbox.addEventListener('change', (e) => {
-			                const isChecked = e.target.checked;
-			                const section = loadedSections[SettingsReference.AUTO_EXPORT_ONWINDOW.section];
-			                section.set(SettingsReference.AUTO_EXPORT_ONWINDOW.key, isChecked);
-			            });
-			        }
-
+					
+					const checkbox = document.getElementById('cde-autoexport-checkbox');
+					if (checkbox) {
+						checkbox.addEventListener('change', (e) => {
+							const isChecked = e.target.checked;
+							const section = loadedSections[SettingsReference.AUTO_EXPORT_ONWINDOW.section];
+							section.set(SettingsReference.AUTO_EXPORT_ONWINDOW.key, isChecked);
+						});
+					}
+					
 					setupCollapsibleJSON();
-
+					
 					document.getElementById("cde-reset-button")?.addEventListener("click", onClickResetExport);
 					document.getElementById("cde-refresh-button")?.addEventListener("click", onClickRefreshExport);
 					document.getElementById("cde-download-button")?.addEventListener("click", onClickExportDownload);
 					document.getElementById("cde-clipboard-button")?.addEventListener("click", onClickExportClipboard);
 					document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", onClickExportHastebin);
 					document.getElementById("cde-viewdiff-button")?.addEventListener("click", onClickExportViewDiff);
-
+					
 					// OPEN EXPORT
 					onExportOpen(); 
 				}
@@ -1584,47 +1581,53 @@ function openExportUI(forceCollect = false) {
 }
 
 // --- Init ---
-
-export function setup({settings, api, onInterfaceReady }) {
-
+export function setup({settings, api, characterStorage, onModsLoaded, onInterfaceReady }) {
+	
 	// SETTINGS
 	createSettings(settings);
 	if (isCfg(SettingsReference.MOD_DEBUG)) {
 		console.log("[CDE] Warning: debug mode allowed");
 		debugMode = true;
 	}
-
-	// Setup OnInterfaceReady
-	onInterfaceReady(async (ctx) => {
+	
+	// Setup OnModsLoaded
+	onModsLoaded(async (ctx) => {
 		// Load LZString (Compression Tools) module
 		LZString = await ctx.loadModule("libs/lz-string.js");
 		if (LZString && typeof LZString.default === 'object') {
-		    LZString = LZString.default;
+			LZString = LZString.default;
 		}
 		lzStringLoaded = !!LZString && typeof LZString.compressToUTF16 === 'function';
 		if (lzStringLoaded && debugMode) {
 			console.log("[CDE] LZString loaded", LZString);
 		}
-
+		
 		// Load stats module
 		displayStatsModule = await ctx.loadModule("displayStats.mjs");
-
+		
 		console.log("[CDE] Module loaded !");
+	});
 
-		// CSS
-		createIconCSS(ctx);
-
-		// Setup Export Button
-		setupExportButtonUI(openExportUI);
-		visibilityExportButton(isCfg(SettingsReference.SHOW_BUTTON));
-
-		console.log("[CDE] Interface ready !");
-
+	// Setup OnCharacterLoaded
+	ctx.onCharacterLoaded(async (ctx) => {
+		cloudStorage = characterStorage;
 		if (isCfg(SettingsReference.AUTO_EXPORT_ONLOAD)) {
 			processCollectData();
 		}
 	});
 
+	// Setup OnInterfaceReady
+	onInterfaceReady(async (ctx) => {
+		// CSS
+		createIconCSS(ctx);
+		
+		// Setup Export Button
+		setupExportButtonUI(openExportUI);
+		visibilityExportButton(isCfg(SettingsReference.SHOW_BUTTON));
+		
+		console.log("[CDE] Interface ready !");
+	});
+	
 	// Setup API
 	api({
 		generate: () => {
