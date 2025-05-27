@@ -1,6 +1,7 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
+// @ts-check
 // setup.mjs
 
 // === Plan to 1.4.X ===
@@ -39,7 +40,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.25";
+const MOD_VERSION = "v1.8.26";
 
 let debugMode = false;
 let cloudStorage = null;
@@ -51,7 +52,8 @@ let lzStringLoaded = false;
 let loadedSections = null;
 const Sections = {
 	General: "General",
-	DataOptions: "Data Options"
+	DataOptions: "Data Options",
+	ETA: "ETA"
 }
 
 const SettingsReference = {
@@ -250,7 +252,17 @@ const SettingsReference = {
 		label: "Include Completion Data",
 		hint: "Include completion data", 
 		toggle: true
+	},
+
+	ETA_COMBAT: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-combat",
+		label: "Display Combat ETA",
+		hint: "Toggle to show the estimated time remaining to complete your current combat activity, based on recent kills and efficiency.",
+		toggle: true
 	}
+
 }
 
 class SettingsReferenceItem {
@@ -996,7 +1008,7 @@ function collectCurrentActivity() {
 				}
 
 				// ETA - Mode 2
-				if (entry.monster) {
+				if (isCfg(SettingsReference.ETA_COMBAT) && entry.monster) {
 					if (currentMonsterData 
 						&& typeof currentMonsterData === 'object' 
 						&& currentMonsterData.id === entry.monster.id
