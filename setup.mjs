@@ -39,7 +39,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.16";
+const MOD_VERSION = "v1.8.25";
 
 let debugMode = false;
 let cloudStorage = null;
@@ -948,14 +948,35 @@ function calculateKillsPerHour(elapsedMs, killCount) {
 	return Math.round(kph);
 }
 
+function formatDuration(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}min`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(' ');
+}
+
+const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
+
 function collectCurrentActivity() {
 	const result = [];
 	const player = game.combat.player;
 	const stats = game.stats;
 	
-	const lastActivities = getExportJSON()?.currentActivity;
-	const lastTimestamp = getExportJSON()?.meta?.exportTimestamp;
-	
+	// ETA - Mode 1
+	// const lastActivities = getExportJSON()?.currentActivity;
+	// const lastTimestamp = getExportJSON()?.meta?.exportTimestamp;
+
+	// ETA - Mode 2
+	const currentMonsterData = cloudStorage.getItem(CS_CURRENT_MONSTER_DATA);
+	const now = new Date();
+
 	game.activeActions.registeredObjects.forEach((a) => {
 		if (a.isActive) {
 			const entry = {
@@ -964,7 +985,7 @@ function collectCurrentActivity() {
 				recipe: a.selectedRecipe?.product?.name || null
 			};
 			if (a.localID === "Combat") {
-
+				entry.attackType = player.attackType;
 				entry.area = { name: a.selectedArea?.name, id: a.selectedArea?.localID };
 				if (a.selectedMonster) {
 					entry.monster = {
@@ -973,27 +994,53 @@ function collectCurrentActivity() {
 						killCount: stats.monsterKillCount(a.selectedMonster)
 					};
 				}
-				entry.attackType = player.attackType;
-				
-				// ETA - Mode 1
-				const currentTimestamp = new Date().toISOString();
-				if (lastTimestamp) {
-					lastActivities?.forEach((lastActivity) => {
-						if (lastActivity && lastActivity.activity === "Combat" && lastActivity.monster?.id === entry?.monster.id) {
-							const diffMs = getDiffMs(lastTimestamp, currentTimestamp);
-							const diffKill = entry.monster.killCount - lastActivity.monster.killCount;
-							entry.analyse = {
-								timeElapsed: formatDiffToHHMMSS(diffMs),
-								monster: entry.monster.id,
-								newKill: diffKill,
-								attackType: player.attackType,
-								estimedKillPerHour: calculateKillsPerHour(diffMs, diffKill)
-							}
-							if (debugMode) {
-								console.log("[CDE] Current Analyse:", entry.analyse);
-							}
+
+				// ETA - Mode 2
+				if (entry.monster) {
+					if (currentMonsterData 
+						&& typeof currentMonsterData === 'object' 
+						&& currentMonsterData.id === entry.monster.id
+						&& currentMonsterData.startKillcount
+						&& currentMonsterData.startTime
+					) {
+						entry.monster.startKillcount = currentMonsterData.startKillcount;
+						entry.monster.diffKillcount = entry.monster.killCount - entry.monster.startKillcount;
+
+						entry.monster.startTime = new Date(currentMonsterData.startTime);
+						entry.monster.diffTime = now - entry.monster.startTime;
+
+						entry.monster.diffTimeStr = formatDuration(entry.monster.diffTime);
+						if (entry.monster.diffTime > 0) {
+							entry.monster.kph = Math.round(
+								(entry.monster.diffKillcount / (entry.monster.diffTime / 3600000)) || 0
+							);
+						} else {
+							entry.monster.kph = "NaN";
 						}
-					});
+						entry.monster.kphStr = `${entry.monster.kph} kills/h`;
+						if (debugMode) {
+							console.log("[CDE] Matching current monster data", entry.monster);
+						}
+					} else {
+						entry.monster.diffKillcount = 0;
+						entry.monster.diffTime = 0;
+						entry.monster.diffTimeStr = "NaN";
+						entry.monster.kph = 0;
+						entry.monster.kphStr = "NaN kills/h";
+						entry.monster.startKillcount = entry.monster.killCount;
+						entry.monster.startTime = now;
+						if (debugMode) {
+							console.log("[CDE] Start activity trace", entry.monster);
+						}
+					}
+					cloudStorage.setItem(CS_CURRENT_MONSTER_DATA, entry.monster);
+				}
+			} else {
+				if (currentMonsterData) {
+					cloudStorage.removeItem(CS_CURRENT_MONSTER_DATA);
+					if (debugMode) {
+						console.log("[CDE] Clear activity trace", entry.monster);
+					}
 				}
 			}
 			result.push(entry);
@@ -1633,6 +1680,9 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		generate: () => {
 			return processCollectData();
 		},
+		collectCurrentActivity: () => {
+			return collectCurrentActivity();
+		},
 		exportJson: () => {
 			return getExportJSON();
 		},
@@ -1653,6 +1703,9 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		},
 		getCfgValue: (settingsReference) => {
 			return isCfg(settingsReference);
+		},
+		getCloudStorage: () => {
+			return cloudStorage;
 		},
 		debugMode: (toggle) => {
 			debugMode = toggle;
