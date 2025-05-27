@@ -39,10 +39,10 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.12";
+const MOD_VERSION = "v1.8.16";
 
 let debugMode = false;
-let storage = null;
+let cloudStorage = null;
 let displayStatsModule = null;
 
 let LZString = null;
@@ -1581,7 +1581,7 @@ function openExportUI(forceCollect = false) {
 }
 
 // --- Init ---
-export function setup({settings, api, characterStorage, onModsLoaded, onInterfaceReady }) {
+export function setup({settings, api, characterStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
 	
 	// SETTINGS
 	createSettings(settings);
@@ -1609,7 +1609,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onInterfac
 	});
 
 	// Setup OnCharacterLoaded
-	ctx.onCharacterLoaded(async (ctx) => {
+	onCharacterLoaded(async (ctx) => {
 		cloudStorage = characterStorage;
 		if (isCfg(SettingsReference.AUTO_EXPORT_ONLOAD)) {
 			processCollectData();
