@@ -35,7 +35,8 @@
 // Stage 19 - Fix Active Potion collector and polish viewer
 
 // === Plan to 1.9.X ===
-// Stage 20 - ETA like !
+// Stage 20 - ETA - Combat duration & KpH
+// Stage 21 - ETA - Recipe duration & PpH
 
 
 // --- Configuration ---
