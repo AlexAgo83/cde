@@ -1,7 +1,7 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
-// @ts-check
+// #@ts-check
 // setup.mjs
 
 // === Plan to 1.4.X ===
@@ -673,7 +673,7 @@ function collectAgility() {
 			courseData.obstacles.push({
 				position,
 				id: obstacle.localID,
-				name: obstacle.name,
+				name: obstacle.name
 			});
 		});
 		
