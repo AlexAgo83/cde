@@ -40,10 +40,27 @@ export function getLZString() {
     return mLZString;
 }
 
-export function Stg() {
-    return getSettings()?.SettingsReference;
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return getSettings()?.SettingsReference;
 }
 
+/**
+ * Get the boolean value for a settings reference.
+ * @returns {boolean} True if the reference is allowed, false otherwise.
+ */
+function isCfg(reference) {
+	return getSettings()?.isCfg(reference);
+}
+
+/**
+ * Loads all required libraries and modules for the mod.
+ * This should be called once during mod initialization.
+ * @param {*} ctx - The context object provided by the mod loader, used to load dependencies.
+ */
 export async function onModuleLoad(ctx) {
     // Load Libs :
     mLZString = await ctx.loadModule("libs/lz-string.js");
@@ -60,6 +77,13 @@ export async function onModuleLoad(ctx) {
     mCollector = await ctx.loadModule("modules/collector.mjs");
 }
 
+/**
+ * Initializes all modules with the current settings and storage.
+ * Should be called after the character and settings are loaded.
+ * @param {*} settings - The settings object for the mod.
+ * @param {*} characterStorage - The storage object for the current character.
+ * @param {*} onSettingsChange - Callback to handle settings changes.
+ */
 export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     /// Initialize settings module
     mSettings.init(this, settings);

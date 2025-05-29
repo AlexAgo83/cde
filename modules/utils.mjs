@@ -16,13 +16,6 @@ export function init(modules) {
   mods = modules;
 }
 
-/**
- * Get the boolean value for a settings reference.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
-}
 
 /**
  * Get the settings reference object.
@@ -32,6 +25,19 @@ function Stg() {
 	return mods.getSettings()?.SettingsReference;
 }
 
+/**
+ * Get the boolean value for a settings reference.
+ * @returns {boolean} True if the reference is allowed, false otherwise.
+ */
+function isCfg(reference) {
+	return mods.getSettings()?.isCfg(reference);
+}
+
+/**
+ * Formats a duration in milliseconds into a human-readable string (e.g., "1h 2min 3s").
+ * @param {number} ms - The duration in milliseconds.
+ * @returns {string} The formatted duration string.
+ */
 export function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
@@ -46,6 +52,12 @@ export function formatDuration(ms) {
   return parts.join(' ');
 }
 
+/**
+ * Returns the percentage difference between two numeric values, formatted as a string.
+ * @param {number} oldVal - The original value.
+ * @param {number} newVal - The new value.
+ * @returns {string} The formatted percent difference (e.g., " (+12.34%)"), or an empty string if not applicable.
+ */
 export function getPercentDiff(oldVal, newVal) {
 	if (typeof oldVal === "number" && typeof newVal === "number" && oldVal !== 0) {
 		const pct = ((newVal - oldVal) / Math.abs(oldVal)) * 100;
@@ -57,20 +69,41 @@ export function getPercentDiff(oldVal, newVal) {
 	return "";
 }
 
+/**
+ * Escapes HTML special characters in a string to prevent XSS or HTML injection.
+ * @param {string} str - The string to escape.
+ * @returns {string} The escaped string.
+ */
 export function escapeHtml(str) {
 	return str.replace(/[&<>"']/g, m => ({
 		'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 	}[m]));
 }
 
+/**
+ * Checks if a value is a plain object (not an array and not null).
+ * @param {*} value - The value to check.
+ * @returns {boolean} True if the value is a plain object, false otherwise.
+ */
 export function isObject(value) {
 	return value && typeof value === "object" && !Array.isArray(value);
 }
 
+/**
+ * Injects the CDE icon CSS into the document head for light and dark mode.
+ * @param {*} ctx - The context object providing getResourceUrl.
+ */
 export function createIconCSS(ctx) {
 	document.head.insertAdjacentHTML("beforeend", `<style>:root {--icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");}.darkMode {--icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");}</style>`);
 }
 
+/**
+ * Recursively computes the differences between two objects or arrays, returning a list of change descriptions.
+ * @param {*} prev - The previous object or array.
+ * @param {*} curr - The current object or array.
+ * @param {string} [path=""] - The property path (used internally for recursion).
+ * @returns {string[]} An array of human-readable change descriptions.
+ */
 export function deepDiff(prev, curr, path = "") {
 	const changes = [];
 	
@@ -112,6 +145,14 @@ export function deepDiff(prev, curr, path = "") {
 	return changes;
 }
 
+/**
+ * Compares two arrays and returns a list of human-readable descriptions of additions, removals, and updates.
+ * Uses 'id', 'localID', or 'name' as a key if available, otherwise uses the index.
+ * @param {Array} prevArr - The previous array.
+ * @param {Array} currArr - The current array.
+ * @param {string} [path=""] - The property path (used internally for recursion).
+ * @returns {string[]} An array of change descriptions.
+ */
 export function diffArraysSmart(prevArr, currArr, path = "") {
 	const changes = [];
 	if (!Array.isArray(prevArr) || !Array.isArray(currArr)) {
@@ -158,6 +199,13 @@ export function diffArraysSmart(prevArr, currArr, path = "") {
 	return changes;
 }
 
+/**
+ * Sanitizes a character name for use as a storage key or identifier.
+ * Removes diacritics, replaces spaces with underscores, removes non-alphanumeric characters,
+ * and limits the result to 32 characters.
+ * @param {string} name - The character name to sanitize.
+ * @returns {string} The sanitized character name.
+ */
 export function sanitizeCharacterName(name) {
 	if (!name) return "unknown";
 	return name
