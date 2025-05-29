@@ -1,7 +1,7 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
-// #@ts-check
+// @ts-check
 // displayStats.mjs
 
 let mods = null;
@@ -14,29 +14,31 @@ export function init(modules) {
   mods = modules;
 }
 
+
 export const StatTypes = [
-  GeneralStats,
-  ShopStats,
-  CombatStats,
-  PrayerStats,
-  SlayerStats,
-  WoodcuttingStats,
-  FishingStats,
-  FiremakingStats,
-  CookingsStats,
-  MiningStats,
-  SmithingStats,
-  ThievingStats,
-  FarmingStats,
-  FletchingStats,
-  CraftingStats,
-  RunecraftingStats,
-  HerbloreStats,
-  AgilityStats,
-  SummoningStats,
-  AstrologyStats,
-  AltMagicStats,
-  TownshipStats
+  // @ts-ignore
+  GeneralStats, // @ts-ignore
+  ShopStats, // @ts-ignore
+  CombatStats, // @ts-ignore
+  PrayerStats, // @ts-ignore
+  SlayerStats, // @ts-ignore 
+  WoodcuttingStats, // @ts-ignore
+  FishingStats, // @ts-ignore
+  FiremakingStats, // @ts-ignore
+  CookingsStats, // @ts-ignore
+  MiningStats, // @ts-ignore
+  SmithingStats, // @ts-ignore
+  ThievingStats, // @ts-ignore
+  FarmingStats, // @ts-ignore
+  FletchingStats, // @ts-ignore
+  CraftingStats, // @ts-ignore
+  RunecraftingStats, // @ts-ignore
+  HerbloreStats, // @ts-ignore
+  AgilityStats, // @ts-ignore
+  SummoningStats, // @ts-ignore
+  AstrologyStats, // @ts-ignore
+  AltMagicStats, // @ts-ignore
+  TownshipStats 
 ];
 
 export const StatLabelMap = {
@@ -219,32 +221,35 @@ export const StatLabelMap = {
 };
 
 export const StatNameMap = new Map([
-  [GeneralStats, "General"],
-  [ShopStats, "Shop"],
-  [CombatStats, "Combat"],
-  [PrayerStats, "Prayer"],
-  [SlayerStats, "Slayer"],
-  [WoodcuttingStats, "Woodcutting"],
-  [FishingStats, "Fishing"],
-  [FiremakingStats, "Firemaking"],
-  [CookingsStats, "Cooking"],
-  [MiningStats, "Mining"],
-  [SmithingStats, "Smithing"],
-  [ThievingStats, "Thieving"],
-  [FarmingStats, "Farming"],
-  [FletchingStats, "Fletching"],
-  [CraftingStats, "Crafting"],
-  [RunecraftingStats, "Runecrafting"],
-  [HerbloreStats, "Herblore"],
-  [AgilityStats, "Agility"],
-  [SummoningStats, "Summoning"],
-  [AstrologyStats, "Astrology"],
-  [AltMagicStats, "Magic"],
-  [TownshipStats, "Township"]
+  // @ts-ignore
+  [GeneralStats, "General"], // @ts-ignore
+  [ShopStats, "Shop"], // @ts-ignore
+  [CombatStats, "Combat"], // @ts-ignore
+  [PrayerStats, "Prayer"], // @ts-ignore
+  [SlayerStats, "Slayer"], // @ts-ignore
+  [WoodcuttingStats, "Woodcutting"], // @ts-ignore
+  [FishingStats, "Fishing"], // @ts-ignore
+  [FiremakingStats, "Firemaking"], // @ts-ignore
+  [CookingsStats, "Cooking"], // @ts-ignore
+  [MiningStats, "Mining"], // @ts-ignore
+  [SmithingStats, "Smithing"], // @ts-ignore
+  [ThievingStats, "Thieving"], // @ts-ignore
+  [FarmingStats, "Farming"], // @ts-ignore
+  [FletchingStats, "Fletching"], // @ts-ignore
+  [CraftingStats, "Crafting"], // @ts-ignore
+  [RunecraftingStats, "Runecrafting"], // @ts-ignore
+  [HerbloreStats, "Herblore"], // @ts-ignore
+  [AgilityStats, "Agility"], // @ts-ignore
+  [SummoningStats, "Summoning"], // @ts-ignore
+  [AstrologyStats, "Astrology"], // @ts-ignore
+  [AltMagicStats, "Magic"], // @ts-ignore
+  [TownshipStats, "Township"] // @ts-ignore
 ]);
 
 export function displayStatsAsObject(allStats, statType) {
   const statName = StatNameMap.get(statType);
+  if (typeof statName === "undefined" || !allStats[statName]) return null;
+  
   const curStats = allStats[statName]?.stats;
 
   if (!curStats || curStats.size === 0) return null;

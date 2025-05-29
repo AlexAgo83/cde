@@ -1,7 +1,7 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
-// #@ts-check
+// @ts-check
 // setup.mjs
 
 // === Plan to 1.4.X ===
@@ -40,148 +40,35 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.49";
+const MOD_VERSION = "v1.8.50";
 
 // --- Module Imports ---
 let mModules = null;
 
-// --- Export Logic ---
-let exportData = {};
-function getExportJSON() {
-	if (exportData == null) {
-		if (mModules.getSettings().isDebug()) {
-			console.log("[CDE] Export cache requested!")
-		}
-		exportData = mModules.getLocalStorage().getLastExportFromStorage();
-	}
-	return exportData;
+// --- ENV ---
+function _game() {
+	// @ts-ignore
+	return game; 
 }
-function getExportString() {
-	return mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.EXPORT_COMPRESS) ? 
-	JSON.stringify(getExportJSON()) : 
-	JSON.stringify(getExportJSON(), null, 2);
+function _ui() {
+	// @ts-ignore
+	return ui; 
+}
+function _Swal() {
+	// @ts-ignore
+	return Swal; 
 }
 
-// --- Changes Logic ---
-let changesData = [];
-function getChangesData() {
-	return changesData;
-}
-let changesHistory = null;
-function getChangesHistory() {
-	if (changesHistory == null) {
-		const stored = mModules.getLocalStorage().getChangesFromStorage();
-		changesHistory = stored instanceof Map ? stored : new Map();
-	}
-	return changesHistory;
-}
-function submitChangesHistory(data) {
-	const date = new Date();
-	const key = date.toISOString().split("T")[0] + "_" + date.toTimeString().split(" ")[0].replace(/:/g, "");
-	
-	const items = getChangesHistory();
-	items.set(key, data);
-	
-	cleanChangesHistory();
-	if (getMaxHistorySetting() > 0) {
-		mModules.getLocalStorage().saveChangesToStorage(items);
-	}
-}
-function getMaxHistorySetting() {
-	try {
-		let val = mModules.getSettings().getCfg(mModules.getSettings().SettingsReference.MAX_CHANGES_HISTORY);
-		val = parseInt(val, 10);
-		if (isNaN(val)) val = 10; // fallback
-		return val;
-	} catch (e) {
-		console.error(e);
-	}
-	return 0;
-}
-function cleanChangesHistory() {
-	const history = getChangesHistory();
-	const maxHistory = getMaxHistorySetting();
-	
-	while (history.size > maxHistory) {
-		const oldestKey = history.keys().next().value;
-		history.delete(oldestKey);
-		if (mModules.getSettings().isDebug()) {
-			console.log("[CDE] Remove old history entry:", oldestKey);
-		}
-	}
-}
-
-// Collector
-function collector(cfgRef, collectorFn, fallbackMsg) {
-	return mModules.getSettings().isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
-}
-
-function processCollectData() {
-	const newData = {};
-
-	const _mc = mModules.getCollector();
-	const _sr = mModules.getSettings().SettingsReference;
-
-	newData.basics = _mc.collectBasics();
-	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat);
-	newData.agility = _mc.collectAgility();
-	newData.activePotions = _mc.collectActivePotions();
-	newData.dungeons = _mc.collectDungeons();
-	newData.strongholds = _mc.collectStrongholds();
-	newData.ancientRelics = _mc.collectAncientRelics();
-
-	newData.stats = collector(_sr.EXPORT_GAMESTATS, _mc.collectGameStats, "Stats data unavailable");
-	newData.shop = collector(_sr.EXPORT_SHOP, _mc.collectShopData, "Shop data unavailable");
-	newData.equipment = collector(_sr.EXPORT_EQUIPMENT, _mc.collectEquipments, "Equipment data unavailable");
-	newData.equipmentSets = collector(_sr.EXPORT_EQUIPMENT_SETS, _mc.collectEquipmentSets, "Equipment sets data unavailable");
-	newData.bank = collector(_sr.EXPORT_BANK, _mc.collectBankData, "Bank data unavailable");
-	newData.skills = collector(_sr.EXPORT_SKILLS, _mc.collectSkills, "Skills data unavailable");
-	newData.mastery = collector(_sr.EXPORT_MASTERY, _mc.collectMastery, "Mastery data unavailable");
-	newData.astrology = collector(_sr.EXPORT_ASTROLOGY, _mc.collectAstrology, "Astrology data unavailable");
-	newData.completion = collector(_sr.EXPORT_COMPLETION, _mc.collectCompletion, "Completion data unavailable");
-	newData.township = collector(_sr.EXPORT_TOWNSHIP, _mc.collectTownship, "Township data unavailable");
-	newData.pets = collector(_sr.EXPORT_PETS, _mc.collectPets, "Pets data unavailable");
-	newData.cartography = collector(_sr.EXPORT_CARTOGRAPHY, _mc.collectCartography, "Cartography data unavailable");
-	newData.farming = collector(_sr.EXPORT_FARMING, _mc.collectFarming, "Farming data unavailable");
-
-	newData.meta = {
-		exportTimestamp: new Date().toISOString(),
-		version: game.lastLoadedGameVersion,
-		modVersion: MOD_VERSION
-	};
-	
-	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.SAVE_TO_STORAGE)) {
-		const copy = JSON.parse(JSON.stringify(newData));
-		
-		// Generate Diff
-		if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.GENERATE_DIFF)) {
-			const lastExport = mModules.getLocalStorage().getLastExportFromStorage();	
-			const charName = game.characterName || "Unknown";
-			const exportTime = new Date().toLocaleString();
-			const header = `🧾 Changelog for: ${charName} — ${exportTime}`;
-			if (lastExport) {
-				changesData = [header, ...mModules.getUtils().deepDiff(lastExport, copy)];
-			} else {
-				changesData = [header, "🆕 First export — no previous data to compare."];
-			}
-			submitChangesHistory(changesData);
-		}
-		
-		// Save to storage
-		mModules.getLocalStorage().saveExportToStorage(copy);
-	}
-	
-	// Finalize..
-	exportData = newData;
-	if (mModules.getSettings().isDebug()) {
-		console.log("[CDE] exportData updated: ", exportData);
-	}
-	return exportData;
+// --- Data Collection Logic ---
+function implProcessCollectData() {
+	mModules.getExport().processCollectData(onCombat, onNonCombat, (meta) => {
+		meta.modVersion = MOD_VERSION
+	});
 }
 
 /**
  * ETA - Callback for combat start event.
- * @param {Data} entry 
+ * @param {object} entry 
  */
 function onCombat(entry) {
 	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
@@ -198,7 +85,7 @@ function onCombat(entry) {
 			entry.monster.diffKillcount = entry.monster.killCount - entry.monster.startKillcount;
 
 			entry.monster.startTime = new Date(currentMonsterData.startTime);
-			entry.monster.diffTime = now - entry.monster.startTime;
+			entry.monster.diffTime = now.getTime() - entry.monster.startTime.getTime();
 
 			entry.monster.diffTimeStr = mModules.getUtils().formatDuration(entry.monster.diffTime);
 			if (entry.monster.diffTime > 0) {
@@ -232,7 +119,7 @@ function onCombat(entry) {
 
 /**
  * ETA - Callback for non-combat activity events.
- * @param {Data} entry 
+ * @param {object} entry 
  */
 function onNonCombat(entry) {
 	if (mModules.getCloudStorage().getCurrentMonsterData()) {
@@ -256,10 +143,12 @@ function CDEButton(template, cb) {
 
 let lazyBtCde = null;
 function setupExportButtonUI(cb) {
-	ui.create(CDEButton("#cde-button-topbar", cb), document.body);
+	_ui().create(CDEButton("#cde-button-topbar", cb), document.body);
 	const cde = document.getElementById("cde");
 	const potions = document.getElementById("page-header-potions-dropdown")?.parentNode;
-	potions?.insertAdjacentElement("beforebegin", cde);
+	if (potions instanceof Element && cde instanceof Element) {
+		potions.insertAdjacentElement("beforebegin", cde);
+	}
 	lazyBtCde = cde;
 }
 
@@ -293,7 +182,7 @@ async function uploadToHastebin(text) {
 }
 
 async function onClickExportDownload() {
-	const exportString = getExportString();
+	const exportString = mModules.getExport().getExportString();
 	const blob = new Blob([exportString], { type: "application/json" });
 	const url = URL.createObjectURL(blob);
 	const link = document.createElement("a");
@@ -307,9 +196,9 @@ async function onClickExportDownload() {
 
 async function onClickExportClipboard() {
 	try {
-		await navigator.clipboard.writeText(getExportString());
+		await navigator.clipboard.writeText(mModules.getExport().getExportString());
 		console.log("[CDE] Export copied to clipboard");
-		Swal.fire({
+		_Swal().fire({
 			toast: true,
 			position: 'top-end',
 			icon: 'success',
@@ -319,7 +208,7 @@ async function onClickExportClipboard() {
 		});
 	} catch (err) {
 		console.error("Clipboard copy failed:", err);
-		Swal.fire({
+		_Swal().fire({
 			icon: 'error',
 			title: 'Oops...',
 			text: 'Could not copy to clipboard.'
@@ -329,11 +218,11 @@ async function onClickExportClipboard() {
 
 async function onClickExportHastebin() {
 	try {
-		const raw = getExportString();
+		const raw = mModules.getExport().getExportString();
 		const hastebinLink = await uploadToHastebin(raw);
 		await navigator.clipboard.writeText(hastebinLink);
-		
-		Swal.fire({
+
+		_Swal().fire({
 			icon: 'success',
 			title: 'Hastebin link copied!',
 			html: `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`,
@@ -343,7 +232,7 @@ async function onClickExportHastebin() {
 		window.open(hastebinLink, "_blank");
 	} catch (err) {
 		console.error("Failed to upload to Hastebin:", err);
-		Swal.fire({
+		_Swal().fire({
 			icon: 'error',
 			title: 'Upload failed',
 			text: 'Could not upload to Hastebin. Please try again later.'
@@ -352,9 +241,9 @@ async function onClickExportHastebin() {
 }
 
 async function onClickExportAllChangelogs() {
-	const history = getChangesHistory();
+	const history = mModules.getExport().getChangesHistory();
 	if (!history || history.size === 0) {
-		Swal.fire({ title: "Export All", html: "No changelog history to export." });
+		_Swal().fire({ title: "Export All", html: "No changelog history to export." });
 		return;
 	}
 	
@@ -379,7 +268,7 @@ async function onClickExportAllChangelogs() {
 		URL.revokeObjectURL(url);
 	} catch (err) {
 		console.error("Failed to generate full changelogs:", err);
-		Swal.fire({
+		_Swal().fire({
 			icon: 'error',
 			title: 'Export failed',
 			text: 'Could not generate full changelogs.'
@@ -388,9 +277,8 @@ async function onClickExportAllChangelogs() {
 }
 
 async function onClickResetExport() {
-	exportData = null;
-	mModules.getLocalStorage().saveExportToStorage(null);
-	Swal.fire({
+	mModules.getExport().resetExportData()
+	_Swal().fire({
 		toast: true,
 		position: 'top-end',
 		icon: 'success',
@@ -400,10 +288,8 @@ async function onClickResetExport() {
 	});
 }
 async function onClickResetChangelogs() {
-	changesData = [];
-	changesHistory = null;
-	mModules.getLocalStorage().saveChangesToStorage(null);
-	Swal.fire({
+	mModules.getExport().resetChangesHistory()
+	_Swal().fire({
 		toast: true,
 		position: 'top-end',
 		icon: 'success',
@@ -455,9 +341,9 @@ function formatChangelogLine(line) {
 }
 
 async function onClickExportViewDiff() {
-	const history = getChangesHistory();
+	const history = mModules.getExport().getChangesHistory();
 	if (!history || history.size === 0) {
-		Swal.fire({ title: "Changelog", html: "No history available." });
+		_Swal().fire({ title: "Changelog", html: "No history available." });
 		return;
 	}
 	
@@ -467,7 +353,7 @@ async function onClickExportViewDiff() {
 	// Select the most recent
 	let selectedKey = keys[0];
 	const dropdownHTML = 
-	`<label for="cde-changelog-history">Select Changelog (Max: ${getMaxHistorySetting()}):</label>
+	`<label for="cde-changelog-history">Select Changelog (Max: ${mModules.getExport().getMaxHistorySetting()}):</label>
 		<select id="cde-changelog-history" style="margin-bottom:8px">${keys.map(k => `<option value="${k}">${k.replace(/_/g, ' ')}</option>`).join("")}</select>`;
 	
 	function renderChangelogPanel(key) {
@@ -485,9 +371,9 @@ async function onClickExportViewDiff() {
 			<button id="cde-changelog-exportall-button" class="btn btn-sm btn-secondary">Download / Share All</button>
 			<button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Copy to Clip Board</button>
 	  	</div>`;
-	
-	Swal.fire({
-		
+
+	_Swal().fire({
+
 		title: "Changelog History",
 		showCloseButton: true,
 		showConfirmButton: false,
@@ -497,9 +383,12 @@ async function onClickExportViewDiff() {
 		
 		didOpen: () => {
 			// --- UPDATE SELECTION ---
-			document.getElementById("cde-changelog-history").addEventListener("change", function () {
-				selectedKey = this.value;
-				document.getElementById("cde-changelog-content").innerHTML = renderChangelogPanel(selectedKey);
+			document.getElementById("cde-changelog-history")?.addEventListener("change", function () {
+				selectedKey = /** @type {HTMLSelectElement} */(this).value;
+				const contentElem = document.getElementById("cde-changelog-content");
+				if (contentElem) {
+					contentElem.innerHTML = renderChangelogPanel(selectedKey);
+				}
 			});
 			
 			document.getElementById("cde-changelog-reset-button")?.addEventListener("click", onClickResetChangelogs);
@@ -520,7 +409,7 @@ async function onClickExportViewDiff() {
 			document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", () => {
 				const text = (history.get(selectedKey) || []).join("\n");
 				navigator.clipboard.writeText(text);
-				Swal.fire({
+				_Swal().fire({
 					toast: true,
 					position: 'top-end',
 					icon: 'success',
@@ -546,6 +435,11 @@ function setupCollapsibleJSON() {
 	});
 }
 
+/**
+ * @param {any} obj
+ * @param {string|null} [key]
+ * @param {string} [path]
+ */
 function renderCollapsibleJSON(obj, key = null, path = '') {
 	const type = Object.prototype.toString.call(obj);
 	const isArray = Array.isArray(obj);
@@ -584,7 +478,7 @@ const exportFooter =
 
 function openExportUI(forceCollect = false) {
 	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW) || forceCollect) {
-		processCollectData();
+		implProcessCollectData();
 	}
 	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.MOD_ENABLED)) {
 
@@ -594,7 +488,7 @@ function openExportUI(forceCollect = false) {
 		`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
 			<input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />
 			<span style="font-size:15px">Automatically generate new export when CDE window opens</span></label>`;
-		const panelHTML = `<div id="cde-autoexport-panel" style="margin-bottom:12px;">${autoExportCheckbox}</div>${renderCollapsibleJSON(getExportJSON())}`;
+		const panelHTML = `<div id="cde-autoexport-panel" style="margin-bottom:12px;">${autoExportCheckbox}</div>${renderCollapsibleJSON(mModules.getExport().getExportJSON())}`;
 		
 		if (exportUI) {
 			exportUI.html = panelHTML;
@@ -617,7 +511,7 @@ function openExportUI(forceCollect = false) {
 					const checkbox = document.getElementById('cde-autoexport-checkbox');
 					if (checkbox) {
 						checkbox.addEventListener('change', (e) => {
-							const isChecked = e.target.checked;
+							const isChecked = /** @type {HTMLInputElement} */(e.target).checked;
 							const sections = mModules.getSettings().getLoadedSections()
 							const section = sections[mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW.section];
 							section.set(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW.key, isChecked);
@@ -638,7 +532,7 @@ function openExportUI(forceCollect = false) {
 				}
 			};
 		}
-		Swal.fire(exportUI);
+		_Swal().fire(exportUI);
 	}
 }
 
@@ -661,7 +555,7 @@ function onSettingsChange(reference) {
 	}
 	if (reference.key === mModules.getSettings().SettingsReference.MAX_CHANGES_HISTORY.key) {
 		return (value) => {
-			cleanChangesHistory();
+			mModules.getExport().cleanChangesHistory();
 			if (mModules.getSettings().isDebug()) {
 				console.log("[CDE] settings - maxChangesHistory :", value);
 			}
@@ -673,7 +567,7 @@ function onSettingsChange(reference) {
 export function setup({settings, api, characterStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
-		mModules = await ctx.loadModule("modulesManager.mjs");
+		mModules = await ctx.loadModule("modules.mjs");
 		mModules.onModuleLoad(ctx);
 		console.info("[CDE] Modules loaded !");
 	});
@@ -682,7 +576,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	onCharacterLoaded(async () => {
 		mModules.onDataLoad(settings, characterStorage, onSettingsChange);
 		if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONLOAD)) {
-			processCollectData();
+			implProcessCollectData();
 		}
 		console.info("[CDE] Data loaded !");
 	});
@@ -702,22 +596,10 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup API
 	api({
 		generate: () => {
-			return processCollectData();
+			return implProcessCollectData();
 		},
-		exportJson: () => {
-			return getExportJSON();
-		},
-		exportString: () => {
-			return getExportString();
-		},
-		changesLast: () => {
-			return getChangesData();
-		},
-		changesHistory: () => {
-			return getChangesHistory();
-		},
-		changesHistoryMax: () => {
-			return getMaxHistorySetting();
+		getExport: () => {
+			return mModules.getExport();
 		},
 		toggleButtonVisibility: (toggle) => {
 			visibilityExportButton(toggle);

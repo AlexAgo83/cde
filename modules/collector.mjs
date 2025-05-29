@@ -1,7 +1,7 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
-// #@ts-check
+// @ts-check
 // collector.mjs
 
 let mods = null;
@@ -13,46 +13,50 @@ let mods = null;
 export function init(modules) {
 	mods = modules;
 }
+function _game() {
+	// @ts-ignore
+	return game;
+}
 
 export function collectBasics() {
-	const player = game.combat.player;
-	const stats = game.stats;
+	const player = _game().combat.player;
+	const stats = _game().stats;
 	const now = new Date();
 	const rawCreation = stats.General.stats.get(3);
 	const creation = rawCreation ? new Date(rawCreation) : new Date(0);
-	const daysPlayed = Math.floor((now - creation) / (1000 * 60 * 60 * 24));
+	const daysPlayed = Math.floor((now.getTime() - creation.getTime()) / (1000 * 60 * 60 * 24));
 	return {
 		general: {
 			currentTime: now.toLocaleString(),
 			daysPlayed,
 			creationDate: creation.toLocaleString(),
-			character: game.characterName,
-			gameMode: game.currentGamemode.localID,
-			version: game.lastLoadedGameVersion
+			character: _game().characterName,
+			gameMode: _game().currentGamemode.localID,
+			version: _game().lastLoadedGameVersion
 		},
 		currency: {
-			gp: game.currencies.getObject('melvorD', 'GP').amount,
-			slayerCoins: game.currencies.getObject('melvorD', 'SlayerCoins').amount,
+			gp: _game().currencies.getObject('melvorD', 'GP').amount,
+			slayerCoins: _game().currencies.getObject('melvorD', 'SlayerCoins').amount,
 			prayerPoints: player.prayerPoints
 		},
 		configuration: {
 			lootStacking: player.modifiers.allowLootContainerStacking,
-			merchantsPermit: game.merchantsPermitRead,
+			merchantsPermit: _game().merchantsPermitRead,
 			autoSlayer: player.modifiers.autoSlayerUnlocked,
 			autoSwapFood: player.modifiers.autoSwapFoodUnlocked,
 			autoBurying: player.modifiers.autoBurying,
-			autoEatLimit: game.modifiers.autoEatHPLimit,
-			autoLooting: game.modifiers.autoLooting
+			autoEatLimit: _game().modifiers.autoEatHPLimit,
+			autoLooting: _game().modifiers.autoLooting
 		},
 		modifiers: {
-			thievingStealth: game.modifiers.thievingStealth
+			thievingStealth: _game().modifiers.thievingStealth
 		}
 	};
 }
 
 export function collectSkills() {
 	const result = {};
-	game.skills.forEach((skill) => {
+	_game().skills.forEach((skill) => {
 		result[skill.id] = {
 			name: skill.name,
 			level: skill.level,
@@ -64,8 +68,8 @@ export function collectSkills() {
 
 export function collectMastery() {
 	const result = {};
-	
-	game.skills.registeredObjects.forEach((skill) => {
+
+	_game().skills.registeredObjects.forEach((skill) => {
 		const masteryMap = skill.actionMastery;
 		if (!masteryMap || masteryMap.size === 0) return;
 		
@@ -88,19 +92,21 @@ export function collectMastery() {
 
 export function collectAgility() {
 	const result = [];
-	
-	game.agility.courses.forEach((course, realm) => {
+
+	_game().agility.courses.forEach((course, realm) => {
+		/** @type {{ realm: string, obstacles: Array<{ position: any, id: any, name: any }> }} */
 		const courseData = {
 			realm: realm?.name || realm,
 			obstacles: [],
 		};
 		
 		course.builtObstacles?.forEach((obstacle, position) => {
-			courseData.obstacles.push({
-				position,
+			const row = {
+				position: position,
 				id: obstacle.localID,
 				name: obstacle.name
-			});
+			};
+			courseData.obstacles.push(row);
 		});
 		
 		result.push(courseData);
@@ -111,7 +117,7 @@ export function collectAgility() {
 
 export function collectActivePotions() {
 	const result = [];
-	game.potions.activePotions?.forEach((currPotion, activity) => {
+	_game().potions.activePotions?.forEach((currPotion, activity) => {
 		result.push({
 			activity: activity.localID,
 			potion: currPotion.item.localID,
@@ -122,7 +128,7 @@ export function collectActivePotions() {
 }
 
 export function collectTownship() {
-	const ts = game.township;
+	const ts = _game().township;
 	const data = ts.townData;
 	const tasks = ts.tasks;
 	
@@ -146,9 +152,9 @@ export function collectTownship() {
 
 export function collectPets() {
 	const result = [];
-	
-	if (game.petManager?.unlocked instanceof Set) {
-		game.petManager.unlocked.forEach((pet) => {
+
+	if (_game().petManager?.unlocked instanceof Set) {
+		_game().petManager.unlocked.forEach((pet) => {
 			result.push({
 				name: pet.name,
 				id: pet.localID,
@@ -163,7 +169,7 @@ export function collectPets() {
 export function collectAncientRelics() {
 	const result = [];
 	
-	game.skills.registeredObjects.forEach((skill) => {
+	_game().skills.registeredObjects.forEach((skill) => {
 		if (!skill.ancientRelicSets || skill.ancientRelicSets.size === 0) return;
 		
 		const relics = [];
@@ -192,12 +198,12 @@ export function collectAncientRelics() {
 }
 
 export function collectCartography() {
-	const maps = game.cartography.worldMaps?.registeredObjects;
+	const maps = _game().cartography.worldMaps?.registeredObjects;
 	const result = [];
 	
 	if (!maps || !(maps instanceof Map)) {
 		console.warn("[CDE] Cartography maps not found");
-		return { level: game.cartography?.level ?? null, maps: result };
+		return { level: _game().cartography?.level ?? null, maps: result };
 	}
 	
 	maps.forEach((mapObj, mapKey) => {
@@ -228,26 +234,26 @@ export function collectCartography() {
 	});
 	
 	return {
-		level: game.cartography.level,
+		level: _game().cartography.level,
 		maps: result
 	};
 }
 
 export function collectFarming() {
 	const result = [];
-	game.farming.plots.forEach((plot) => {
+	_game().farming.plots.forEach((plot) => {
 		const planted = plot.plantedRecipe;
 		if (planted) {
 			result.push({ category: plot.category.localID, plotID: plot.localID, crop: planted.name, cropID: planted.localID });
 		}
 	});
-	return { level: game.farming.level, plots: result };
+	return { level: _game().farming.level, plots: result };
 }
 
 export function collectGameStats() {
 	const result = {};
 	mods.getDisplayStats().StatTypes.forEach((type) => {
-		const section = mods.getDisplayStats().displayStatsAsObject(game.stats, type);
+		const section = mods.getDisplayStats().displayStatsAsObject(_game().stats, type);
 		if (section) {
 			const statName = mods.getDisplayStats().StatNameMap.get(type);
 			result[statName] = section;
@@ -259,12 +265,12 @@ export function collectGameStats() {
 export function collectAstrology() {
 	const result = [];
 	
-	if (!game?.astrology?.masteryXPConstellations) {
+	if (!_game()?.astrology?.masteryXPConstellations) {
 		console.warn("[CDE] astrology.masteryXPConstellations is missing");
 		return result;
 	}
-	
-	game.astrology.masteryXPConstellations.forEach((entry) => {
+
+	_game().astrology.masteryXPConstellations.forEach((entry) => {
 		result.push({
 			name: entry.name,
 			standard: entry.standardModifiers.map((mod) => ({
@@ -282,8 +288,8 @@ export function collectAstrology() {
 
 export function collectShopData() {
 	const purchases = [];
-	
-	const purchased = game.shop.upgradesPurchased;
+
+	const purchased = _game().shop.upgradesPurchased;
 	if (purchased && purchased.size > 0) {
 		purchased.forEach((qty, item) => {
 			purchases.push({
@@ -299,7 +305,7 @@ export function collectShopData() {
 
 export function collectEquipments() {
 	const equipped = {};
-	game.combat.player.equipment.equippedArray.forEach((slotItem) => {
+	_game().combat.player.equipment.equippedArray.forEach((slotItem) => {
 		if (slotItem.quantity > 0) {
 			equipped[slotItem.slot.localID] = {
 				name: slotItem.item.name,
@@ -313,7 +319,7 @@ export function collectEquipments() {
 
 export function collectEquipmentSets() {
 	const sets = [];
-	game.combat.player.equipmentSets.forEach((set) => {
+	_game().combat.player.equipmentSets.forEach((set) => {
 		const gear = {};
 		set.equipment.equippedArray.forEach((item) => {
 			if (item.quantity > 0) {
@@ -331,7 +337,7 @@ export function collectEquipmentSets() {
 
 export function collectBankData() {
 	const bank = [];
-	game.bank.items.forEach((entry) => {
+	_game().bank.items.forEach((entry) => {
 		bank.push({
 			name: entry.item.name,
 			id: entry.item.localID,
@@ -340,16 +346,16 @@ export function collectBankData() {
 	});
 	
 	return {
-		size: game.bank.items.size,
-		capacity: (game.combat.player.modifiers.bankSpace ?? 0) + game.bank.baseSlots,
+		size: _game().bank.items.size,
+		capacity: (_game().combat.player.modifiers.bankSpace ?? 0) + _game().bank.baseSlots,
 		items: bank
 	};
 }
 
 export function collectDungeons() {
 	const result = [];
-	game.combat.dungeonCompletion.keys().forEach((d) => {
-		const count = game.combat.dungeonCompletion.get(d);
+	_game().combat.dungeonCompletion.keys().forEach((d) => {
+		const count = _game().combat.dungeonCompletion.get(d);
 		if (count > 0) {
 			result.push({ name: d.name, id: d.localID, completions: count });
 		}
@@ -359,7 +365,7 @@ export function collectDungeons() {
 
 export function collectStrongholds() {
 	const result = [];
-	game.strongholds.namespaceMaps.forEach((e) => {
+	_game().strongholds.namespaceMaps.forEach((e) => {
 		e.forEach((s) => {
 			if (s.timesCompleted > 0) {
 				result.push({ name: s.name, id: s.localID, completions: s.timesCompleted });
@@ -371,10 +377,10 @@ export function collectStrongholds() {
 
 export function collectCompletion() {
 	const result = {};
-	const itemCur = game.completion.itemProgress.currentCount.data;
-	const itemMax = game.completion.itemProgress.maximumCount.data;
-	const monCur = game.completion.monsterProgress.currentCount.data;
-	const monMax = game.completion.monsterProgress.maximumCount.data;
+	const itemCur = _game().completion.itemProgress.currentCount.data;
+	const itemMax = _game().completion.itemProgress.maximumCount.data;
+	const monCur = _game().completion.monsterProgress.currentCount.data;
+	const monMax = _game().completion.monsterProgress.maximumCount.data;
 	mods.getUtils().NameSpaces.forEach((n) => {
 		const itemCount = itemCur.get(n) || 0;
 		const itemMaxCount = itemMax.get(n);
@@ -392,11 +398,11 @@ export function collectCompletion() {
 
 export function collectCurrentActivity(onCombat, onNonCombat) {
 	const result = [];
-	const player = game.combat.player;
-	const stats = game.stats;
+	const player = _game().combat.player;
+	const stats = _game().stats;
 
 	// ETA - Mode 2
-	game.activeActions.registeredObjects.forEach((a) => {
+	_game().activeActions.registeredObjects.forEach((a) => {
 		if (a.isActive) {
 			const entry = {
 				activity: a.localID,

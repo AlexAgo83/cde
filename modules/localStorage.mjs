@@ -1,7 +1,7 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
-// #@ts-check
+// @ts-check
 // localStorage.mjs
 
 const CS_LAST_EXPORT = "cde_last_export";
@@ -20,6 +20,10 @@ export function init(modules) {
     if (!isLoaded) {
         console.warn("[CDE] LZString is not loaded or does not have the expected methods.");
     }
+}
+function _game() {
+	// @ts-ignore
+	return game;
 }
 
 export function isLZStringReady() {
@@ -67,7 +71,7 @@ function saveToStorage(key, jsonData) {
 }
 
 function getStorage_ExportKey() {
-	return CS_LAST_EXPORT+"_"+(mods.getUtils().sanitizeCharacterName(game.characterName));
+	return CS_LAST_EXPORT+"_"+(mods.getUtils().sanitizeCharacterName(_game().characterName));
 }
 export function getLastExportFromStorage() {
 	return readFromStorage(getStorage_ExportKey());
@@ -80,7 +84,7 @@ export function removeExportFromStorage() {
 }
 
 function getStorage_ChangesKey() {
-	return CS_LAST_CHANGES+"_"+(mods.getUtils().sanitizeCharacterName(game.characterName));
+	return CS_LAST_CHANGES+"_"+(mods.getUtils().sanitizeCharacterName(_game().characterName));
 }
 export function getChangesFromStorage() {
 	const raw = readFromStorage(getStorage_ChangesKey());
