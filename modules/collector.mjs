@@ -3,6 +3,14 @@
 
 // collector.mjs
 
+let onGameStatsHandler = () => {
+	console.warn("[CDE] Game stats handler not set");
+	return null;
+}
+export function setOnGameStatsHandler(handler) {
+	onGameStatsHandler = handler;
+}
+
 export function collectBasics() {
 	const player = game.combat.player;
 	const stats = game.stats;
@@ -235,14 +243,14 @@ export function collectFarming() {
 
 export function collectGameStats() {
 	const result = {};
-	if (!mDisplayStats || !mDisplayStats.StatTypes || typeof mDisplayStats.displayStatsAsObject !== "function") {
+	if (!onGameStatsHandler || !onGameStatsHandler.StatTypes || typeof onGameStatsHandler.displayStatsAsObject !== "function") {
 		console.warn("[CDE] displayStats module not ready");
 		return { error: "Stats module unavailable" };
 	}
-	mDisplayStats.StatTypes.forEach((type) => {
-		const section = mDisplayStats.displayStatsAsObject(game.stats, type);
+	onGameStatsHandler.StatTypes.forEach((type) => {
+		const section = onGameStatsHandler.displayStatsAsObject(game.stats, type);
 		if (section) {
-			const statName = mDisplayStats.StatNameMap.get(type);
+			const statName = onGameStatsHandler.StatNameMap.get(type);
 			result[statName] = section;
 		}
 	});

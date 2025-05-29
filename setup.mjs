@@ -41,7 +41,7 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.36";
+const MOD_VERSION = "v1.8.38";
 
 let debugMode = false;
 
@@ -1141,7 +1141,11 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
 		mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
 		mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
+
 		mCollector = await ctx.loadModule("modules/collector.mjs");
+		mCollector.setOnGameStatsHandler(() => {
+			return mDisplayStats;
+		});
 
 		console.log("[CDE] Module loaded !");
 	});
