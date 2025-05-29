@@ -560,7 +560,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				const item = {
 					// idSkill: skill.localID,
 					skillXp: skill.xp,
-					skillNextLevelProgress: skill.nextLevelProgress+" %",
+					skillNextLevelProgress: skill.nextLevelProgress,
 					skillLevel: skill.level
 				}
 				items[skill.localID] = item;
@@ -591,7 +591,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 					const item = {};
 					if (mastery) {
 						item.maxteryXp = mastery.xp;
-						item.maxteryNextLevelProgress = mods.getUtils().getMasteryProgressPercent(mastery.nextLevelProgress)+" %",
+						item.maxteryNextLevelProgress = mods.getUtils().getMasteryProgressPercent(mastery.nextLevelProgress)?.percent,
 						item.masteryLevel = mastery.level;
 						queue[key.localID] = item;
 					}
