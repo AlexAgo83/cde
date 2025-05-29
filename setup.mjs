@@ -45,21 +45,27 @@ const MOD_VERSION = "v1.8.50";
 // --- Module Imports ---
 let mModules = null;
 
-// --- ENV ---
-function _game() {
-	// @ts-ignore
+// --- MOCK ---
+function _game() { // @ts-ignore Handle DEVMODE
 	return game; 
 }
-function _ui() {
-	// @ts-ignore
+function _ui() { // @ts-ignore Handle DEVMODE
 	return ui; 
 }
-function _Swal() {
-	// @ts-ignore
+function _Swal() { // @ts-ignore Handle DEVMODE
 	return Swal; 
 }
 
-// --- Data Collection Logic ---
+/**
+ * Process and collect data for export.
+ * This function gathers combat and non-combat data, updating the current monster data
+ * and calculating relevant statistics such as kill count, time difference, and Kills per Hour (KpH).
+ * It also updates the export metadata with the current module version.
+ * @description
+ * This function is called to collect data when the game starts or when the export UI is opened.
+ * It uses the `mModules.getExport().processCollectData` method to handle the data collection.
+ * The `onCombat` and `onNonCombat` callbacks are used to process combat and non-combat events respectively.
+ */
 function implProcessCollectData() {
 	mModules.getExport().processCollectData(onCombat, onNonCombat, (meta) => {
 		meta.modVersion = MOD_VERSION
@@ -67,7 +73,11 @@ function implProcessCollectData() {
 }
 
 /**
- * ETA - Callback for combat start event.
+ * ETA - Callback for combat event.
+ * This function processes combat entries, updating the current monster data with kill count,
+ * time difference, and calculating Kills per Hour (KpH).
+ * It also sets the start kill count and start time for the current monster.
+ * If the current monster data matches the entry, it updates the statistics accordingly.
  * @param {object} entry 
  */
 function onCombat(entry) {
@@ -118,8 +128,10 @@ function onCombat(entry) {
 }
 
 /**
- * ETA - Callback for non-combat activity events.
- * @param {object} entry 
+ * ETA - Callback for non-combat event.
+ * This function clears the current monster data when a non-combat event occurs,
+ * effectively resetting the activity trace for the current monster.
+ * @param {object} entry
  */
 function onNonCombat(entry) {
 	if (mModules.getCloudStorage().getCurrentMonsterData()) {
@@ -170,17 +182,6 @@ function onExportOpen() {
 	}
 }
 
-const HASTE_ENDPOINT = "https://haste.zneix.eu";
-async function uploadToHastebin(text) {
-	const res = await fetch(`${HASTE_ENDPOINT}/documents`, {
-		method: "POST",
-		body: text,
-		headers: { "Content-Type": "text/plain" }
-	});
-	const data = await res.json();
-	return `${HASTE_ENDPOINT}/${data.key}`;
-}
-
 async function onClickExportDownload() {
 	const exportString = mModules.getExport().getExportString();
 	const blob = new Blob([exportString], { type: "application/json" });
@@ -219,7 +220,7 @@ async function onClickExportClipboard() {
 async function onClickExportHastebin() {
 	try {
 		const raw = mModules.getExport().getExportString();
-		const hastebinLink = await uploadToHastebin(raw);
+		const hastebinLink = await mModules.getUtils().uploadToHastebin(raw);
 		await navigator.clipboard.writeText(hastebinLink);
 
 		_Swal().fire({
@@ -303,6 +304,16 @@ async function onClickRefreshExport() {
 	openExportUI(true);
 }
 
+/**
+ * Formats a changelog line for display.
+ * @param {*} line 
+ * @returns {string} HTML formatted line
+ * @description
+ * This function takes a changelog line and formats it into HTML.
+ * It handles different types of lines such as headers, additions, removals, and updates.
+ * It uses specific symbols to identify the type of change and applies appropriate HTML classes for styling.
+ * The function also escapes HTML characters to prevent XSS attacks.
+ */
 function formatChangelogLine(line) {
 	// HEADER
 	if (line.startsWith("🧾")) {
@@ -340,6 +351,10 @@ function formatChangelogLine(line) {
 	return `<div class="cde-changelog-line">${mModules.getUtils().escapeHtml(line)}</div>`;
 }
 
+/**
+ * Opens the export UI for viewing differences.
+ * @returns {Promise<void>}
+ */
 async function onClickExportViewDiff() {
 	const history = mModules.getExport().getChangesHistory();
 	if (!history || history.size === 0) {
@@ -373,7 +388,6 @@ async function onClickExportViewDiff() {
 	  	</div>`;
 
 	_Swal().fire({
-
 		title: "Changelog History",
 		showCloseButton: true,
 		showConfirmButton: false,
@@ -422,6 +436,11 @@ async function onClickExportViewDiff() {
 	});
 }
 
+/**
+ * Setup collapsible JSON display.
+ * This function initializes the click event listeners for the JSON caret elements,
+ * allowing users to expand or collapse JSON nodes in the export UI.
+ */
 function setupCollapsibleJSON() {
 	document.querySelectorAll('.cde-json-caret').forEach(caret => {
 		caret.addEventListener('click', function() {
@@ -476,6 +495,12 @@ const exportFooter =
 	<button id="cde-sendtohastebin-button" class="btn btn-sm btn-secondary">Copy to Hastebin</button>
 	<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">Compare Changes</button></div>`;
 
+/**
+ * Open the export UI for character data.
+ * This function checks the settings to determine if data collection should be forced,
+ * and if so, it processes the data collection before displaying the export UI.
+ * @param {*} forceCollect 
+ */
 function openExportUI(forceCollect = false) {
 	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW) || forceCollect) {
 		implProcessCollectData();
@@ -536,6 +561,10 @@ function openExportUI(forceCollect = false) {
 	}
 }
 
+/**
+ * Handle changes to settings.
+ * @param {*} reference 
+ */
 function onSettingsChange(reference) {
 	if (reference.key === mModules.getSettings().SettingsReference.MOD_DEBUG.key) {
 		return (value) => {

@@ -5,6 +5,7 @@
 // utils.mjs
 
 export const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
+export const HASTE_ENDPOINT = "https://haste.zneix.eu";
 
 let mods = null;
 /**
@@ -149,4 +150,19 @@ export function sanitizeCharacterName(name) {
 	.replace(/\s+/g, "_")
 	.replace(/[^a-zA-Z0-9_\-]/g, "")
 	.substring(0, 32);
+}
+
+/**
+ * Uploads text to Hastebin and returns the link.
+ * @param {string} text - The text to upload.
+ * @returns {Promise<string>} - The Hastebin link.
+ */
+export async function uploadToHastebin(text) {
+	const res = await fetch(`${HASTE_ENDPOINT}/documents`, {
+		method: "POST",
+		body: text,
+		headers: { "Content-Type": "text/plain" }
+	});
+	const data = await res.json();
+	return `${HASTE_ENDPOINT}/${data.key}`;
 }
