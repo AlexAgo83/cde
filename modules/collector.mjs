@@ -546,15 +546,16 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				activity: a.localID,
 			};
 			
-			const items = []
+			const items = {};
 			skills.forEach((skill) => {
 				const item = {
-					idSkill: skill.localID,
+					// idSkill: skill.localID,
 					skillXp: skill.xp,
 					skillNextLevelProgress: skill.nextLevelProgress+"%",
 					skillLevel: skill.level
 				}
-				items.push(item);
+				// items.push(item);
+				items[item.idSkill] = item;
 			});
 			entry.skills = items;
 
@@ -576,21 +577,21 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update combat", entry);
 			} else { /** NON COMBAT SKILLS */
-				const queue = [];
+				const queue = {};
 				a.acionItemQueryCache?.keys().forEach((key) => {
 					const mastery = a.actionMastery?.get(key);
 					const item = {};
 
-					item.idSkill = a.localID;
-					item.idMastery = key.localID;
-					item.idQuery = a.localID + " - " + key.localID;
+					// item.idSkill = a.localID;
+					// item.idMastery = key.localID;
 
 					if (mastery) {
 						item.maxteryXp = mastery.xp;
 						// item.maxteryNextLevelProgress = mastery.nextLevelProgress+"%",
 						item.masteryLevel = mastery.level;
+						// queue.push(item);
+						queue[key.localID] = item;
 					}
-					queue.push(item);
 				});
 				entry.recipeQueue = queue;
 				onNonCombat(a, entry);
