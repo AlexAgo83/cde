@@ -33,7 +33,7 @@ function Stg() {
  * @returns {boolean} True if the reference is allowed, false otherwise.
  */
 function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
+	return mods.getSettings()?.isCfg(reference) ?? false;
 }
 
 /**
@@ -125,25 +125,23 @@ export function collectMastery() {
  * @returns {Object} An object containing the player's agility course data.
  */
 export function collectAgility() {
-	const result = [];
+	const result = {};
 
 	_game().agility.courses.forEach((course, realm) => {
-		/** @type {{ realm: string, obstacles: Array<{ position: any, id: any, name: any }> }} */
-		const courseData = {
-			realm: realm?.name || realm,
-			obstacles: [],
-		};
-		
+		const courseData = {}
+		courseData.realmId = realm.localID;
+		courseData.obstacles = {};
+			
 		course.builtObstacles?.forEach((obstacle, position) => {
 			const row = {
 				position: position,
 				id: obstacle.localID,
 				name: obstacle.name
 			};
-			courseData.obstacles.push(row);
+			courseData.obstacles[row.id] = row;
 		});
-		
-		result.push(courseData);
+
+		result[courseData.realmId] = courseData;
 	});
 	
 	return result;
@@ -151,16 +149,17 @@ export function collectAgility() {
 
 /**
  * Collect the active potions in the game.
- * @returns {Array<{ activity: string, potion: string, charges: number }>}
+ * @returns {Object} An object containing the active potions.
  */
 export function collectActivePotions() {
-	const result = [];
+	const result = {};
 	_game().potions.activePotions?.forEach((currPotion, activity) => {
-		result.push({
+		const item = {
 			activity: activity.localID,
 			potion: currPotion.item.localID,
 			charges: currPotion.charges
-		});
+		};
+		result[item.activity] = item;
 	});
 	return result;
 }
@@ -198,18 +197,19 @@ export function collectTownship() {
  * Collect the player's pets.
  * This function gathers information about the pets the player has unlocked, including their names,
  * IDs, and the number of times they have been unlocked.
- * @returns {Array<{ name: string, id: string, unlockCount: number }>}
+ * @returns {Object} An object containing the player's pet data.
  */
 export function collectPets() {
-	const result = [];
+	const result = {};
 
-	if (_game().petManager?.unlocked instanceof Set) {
+	if (_game().petManager && _game().petManager.unlocked instanceof Set) {
 		_game().petManager.unlocked.forEach((pet) => {
-			result.push({
+			const item = {
 				name: pet.name,
 				id: pet.localID,
 				unlockCount: pet.unlockCount
-			});
+			};
+			result[item.id] = item;
 		});
 	}
 	
@@ -221,33 +221,35 @@ export function collectPets() {
  * This function iterates through all registered skills in the game and collects information about
  * ancient relic sets and the relics found within those sets. It returns an array of objects,
  * where each object contains the skill name, skill ID, and an array of relics with their names and IDs.
- * @returns {Array<{ skill: string, skillID: string, relics: Array<{ name: string, id: string }> }>}	
+ * @returns {Object} An object containing the player's ancient relics data. 	
  */
 export function collectAncientRelics() {
-	const result = [];
+	const result = {};
 	
 	_game().skills.registeredObjects.forEach((skill) => {
 		if (!skill.ancientRelicSets || skill.ancientRelicSets.size === 0) return;
 		
-		const relics = [];
+		const relics = {};
 		
 		skill.ancientRelicSets.forEach((set) => {
 			if (!set.foundRelics || set.foundRelics.size === 0) return;
 			
 			set.foundRelics.forEach((_, relic) => {
-				relics.push({
+				const item = {
 					name: relic.name,
 					id: relic.localID
-				});
+				}
+				relics[item.id] = item;
 			});
 		});
 		
 		if (relics.length > 0) {
-			result.push({
+			const item = {
 				skill: skill.name,
 				skillID: skill.localID,
 				relics
-			});
+			};
+			result[item.skillID] = item;
 		}
 	});
 	
@@ -262,8 +264,8 @@ export function collectAncientRelics() {
  * @returns {Object} An object containing the player's cartography data.
  */
 export function collectCartography() {
-	const maps = _game().cartography.worldMaps?.registeredObjects;
-	const result = [];
+	const maps = _game().cartography?.worldMaps?.registeredObjects;
+	const result = {};
 	
 	if (!maps || !(maps instanceof Map)) {
 		console.warn("[CDE] Cartography maps not found");
@@ -271,20 +273,20 @@ export function collectCartography() {
 	}
 	
 	maps.forEach((mapObj, mapKey) => {
-		const pois = [];
+		const pois = {};
 		
-		// Certains POIs sont dans discoveredPOIs, d'autres dans .pointsOfInterest.registeredObjects
 		if (Array.isArray(mapObj.discoveredPOIs)) {
 			mapObj.discoveredPOIs.forEach((poi) => {
-				pois.push({
+				const item = {
 					name: poi.name,
 					id: poi.localID,
 					type: poi.constructor.name
-				});
+				};
+				pois[item.id] = item;
 			});
 		}
 		
-		result.push({
+		const item = {
 			name: mapObj.name,
 			id: mapObj.localID,
 			discoveredPOIs: pois,
@@ -294,7 +296,8 @@ export function collectCartography() {
 			masteredHexes: mapObj.masteredHexes,
 			fullySurveyedHexes: mapObj.fullySurveyedHexes,
 			unlockedBonuses: mapObj.unlockedMasteryBonuses
-		});
+		};
+		result[item.id] = item;
 	});
 	
 	return {
@@ -308,11 +311,12 @@ export function collectCartography() {
  * @returns {Object} An object containing the farming plots and their planted crops.
  */
 export function collectFarming() {
-	const result = [];
+	const result = {};
 	_game().farming.plots.forEach((plot) => {
 		const planted = plot.plantedRecipe;
 		if (planted) {
-			result.push({ category: plot.category.localID, plotID: plot.localID, crop: planted.name, cropID: planted.localID });
+			const item = { category: plot.category.localID, plotID: plot.localID, crop: planted.name, cropID: planted.localID };
+			result[item.plotID] = item;
 		}
 	});
 	return { level: _game().farming.level, plots: result };
@@ -345,7 +349,7 @@ export function collectGameStats() {
  * @returns {Object} An object containing the player's astrology mastery data.
  */
 export function collectAstrology() {
-	const result = [];
+	const result = {};
 	
 	if (!_game()?.astrology?.masteryXPConstellations) {
 		console.warn("[CDE] astrology.masteryXPConstellations is missing");
@@ -353,7 +357,8 @@ export function collectAstrology() {
 	}
 
 	_game().astrology.masteryXPConstellations.forEach((entry) => {
-		result.push({
+		const item = {
+			id: entry.localID,
 			name: entry.name,
 			standard: entry.standardModifiers.map((mod) => ({
 				bought: mod.timesBought,
@@ -363,7 +368,8 @@ export function collectAstrology() {
 				bought: mod.timesBought,
 				max: mod.maxCount
 			}))
-		});
+		};
+		result[item.id] = item;
 	});
 	return result;
 }
@@ -376,16 +382,17 @@ export function collectAstrology() {
  * @returns {Object} An object containing the player's shop purchases.
  */
 export function collectShopData() {
-	const purchases = [];
+	const purchases = {};
 
-	const purchased = _game().shop.upgradesPurchased;
+	const purchased = _game().shop?.upgradesPurchased;
 	if (purchased && purchased.size > 0) {
-		purchased.forEach((qty, item) => {
-			purchases.push({
-				name: item.name,
-				id: item.localID,
+		purchased.forEach((qty, cursor) => {
+			const item = {
+				name: cursor.name,
+				id: cursor.localID,
 				quantity: qty
-			});
+			};
+			purchases[item.id] = item;
 		});
 	}
 	
@@ -414,10 +421,11 @@ export function collectEquipments() {
  * Collect the player's equipment sets.
  * This function gathers all the equipment sets that the player has created.
  * It iterates through the player's equipment sets and collects the equipped items for each set.	
- * @returns {Array<Object>} An array of equipment sets, each containing the equipped items.
+ * @returns {Object} An object of equipment sets, each containing the equipped items.
  */
 export function collectEquipmentSets() {
-	const sets = [];
+	const sets = {};
+	let slotNum = 1;
 	_game().combat.player.equipmentSets.forEach((set) => {
 		const gear = {};
 		set.equipment.equippedArray.forEach((item) => {
@@ -429,7 +437,7 @@ export function collectEquipmentSets() {
 				};
 			}
 		});
-		sets.push(gear);
+		sets["Slot_"+slotNum] = gear; slotNum+=1;
 	});
 	return sets;
 }
@@ -441,13 +449,14 @@ export function collectEquipmentSets() {
  * The items are represented as an array of objects, each containing the item's name, ID, and quantity.
  */
 export function collectBankData() {
-	const bank = [];
+	const bank = {};
 	_game().bank.items.forEach((entry) => {
-		bank.push({
+		const item = {
 			name: entry.item.name,
 			id: entry.item.localID,
 			quantity: entry.quantity
-		});
+		};
+		bank[item.id] = item;
 	});
 	
 	return {
@@ -459,14 +468,14 @@ export function collectBankData() {
 
 /**
  * Collect the player's dungeon completion data.
- * @returns {Array<{ name: string, id: string, completions: number }>}
+ * @returns {Object} An object containing the dungeon completion data.
  */
 export function collectDungeons() {
-	const result = [];
+	const result = {};
 	_game().combat.dungeonCompletion.keys().forEach((d) => {
 		const count = _game().combat.dungeonCompletion.get(d);
 		if (count > 0) {
-			result.push({ name: d.name, id: d.localID, completions: count });
+			result[d.localID] = { name: d.name, id: d.localID, completions: count }
 		}
 	});
 	return result;
@@ -476,14 +485,14 @@ export function collectDungeons() {
  * Collect the player's stronghold completion data.
  * This function gathers information about the strongholds that the player has completed.
  * It iterates through the namespace maps of strongholds and collects the names, IDs, and completion counts.
- * @returns {Array<{ name: string, id: string, completions: number }>}
+ * @returns {Object} An object containing the stronghold completion.
  */
 export function collectStrongholds() {
-	const result = [];
+	const result = {};
 	_game().strongholds.namespaceMaps.forEach((e) => {
 		e.forEach((s) => {
 			if (s.timesCompleted > 0) {
-				result.push({ name: s.name, id: s.localID, completions: s.timesCompleted });
+				result[s.localID] = { name: s.name, id: s.localID, completions: s.timesCompleted };
 			}
 		});
 	});
@@ -554,7 +563,6 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 					skillNextLevelProgress: skill.nextLevelProgress+"%",
 					skillLevel: skill.level
 				}
-				// items.push(item);
 				items[skill.localID] = item;
 			});
 			entry.skills = items;
@@ -581,7 +589,6 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				a.acionItemQueryCache?.keys().forEach((key) => {
 					const mastery = a.actionMastery?.get(key);
 					const item = {};
-
 					// item.idSkill = a.localID;
 					// item.idMastery = key.localID;
 
@@ -589,7 +596,6 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 						item.maxteryXp = mastery.xp;
 						// item.maxteryNextLevelProgress = mastery.nextLevelProgress+"%",
 						item.masteryLevel = mastery.level;
-						// queue.push(item);
 						queue[key.localID] = item;
 					}
 				});
@@ -598,7 +604,6 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update non-combat", entry);
 			}
-			// result.push(entry);
 			result[entry.activity] = entry;
 		}
 	});
