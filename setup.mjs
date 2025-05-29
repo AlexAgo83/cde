@@ -523,6 +523,19 @@ function saveChangesToStorage(jsonData) {
 	saveToStorage(getStorage_ChangesKey(), toStore);
 }
 
+// CLOUD STORAGE
+const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
+function getCurrentMonsterData() {
+	return cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
+}
+function setCurrentMonsterData(monsterData)  {
+	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, monsterData);
+}
+function removeCurrentMonsterData() {
+	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
+}
+
+// Collector
 function collector(cfgRef, collectorFn, fallbackMsg) {
 	return isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
 }
@@ -975,8 +988,6 @@ function formatDuration(ms) {
   return parts.join(' ');
 }
 
-const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
-
 function collectCurrentActivity() {
 	const result = [];
 	const player = game.combat.player;
@@ -987,7 +998,7 @@ function collectCurrentActivity() {
 	// const lastTimestamp = getExportJSON()?.meta?.exportTimestamp;
 
 	// ETA - Mode 2
-	const currentMonsterData = cloudStorage.getItem(CS_CURRENT_MONSTER_DATA);
+	const currentMonsterData = getCurrentMonsterData
 	const now = new Date();
 
 	game.activeActions.registeredObjects.forEach((a) => {
@@ -1046,11 +1057,13 @@ function collectCurrentActivity() {
 							console.log("[CDE] Start activity trace", entry.monster);
 						}
 					}
-					cloudStorage.setItem(CS_CURRENT_MONSTER_DATA, entry.monster);
+
+					// Update the current monster data
+					setCurrentMonsterData(entry.monster);
 				}
 			} else {
 				if (currentMonsterData) {
-					cloudStorage.removeItem(CS_CURRENT_MONSTER_DATA);
+					removeCurrentMonsterData();
 					if (debugMode) {
 						console.log("[CDE] Clear activity trace", entry.monster);
 					}
