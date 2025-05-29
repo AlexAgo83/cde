@@ -1,7 +1,18 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
+// #@ts-check
 // displayStats.mjs
+
+let mods = null;
+
+/**
+ * Initialize the display stats module.
+ * @param {Object} modules - The modules object containing dependencies.
+ */
+export function init(modules) {
+  mods = modules;
+}
 
 export const StatTypes = [
   GeneralStats,
@@ -28,7 +39,7 @@ export const StatTypes = [
   TownshipStats
 ];
 
-const StatLabelMap = {
+export const StatLabelMap = {
   General: {
     3: "AccountCreationDate",
     1: "TotalItemsSold",

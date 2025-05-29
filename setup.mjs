@@ -40,353 +40,24 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.42";
-let debugMode = false;
+const MOD_VERSION = "v1.8.48";
 
 // --- Module Imports ---
-let mLZString = null;
-let mUtils = null;
-let mLocalStorage = null;
-let mCloudStorage = null;
-let mDisplayStats = null;
-let mCollector = null;
-
-// --- Settings Initialization ---
-let loadedSections = null;
-const Sections = {
-	General: "General",
-	DataOptions: "Data Options",
-	ETA: "ETA"
-}
-
-const SettingsReference = {
-	// GENERAL SETTINGS
-	MOD_ENABLED: {
-		section: Sections.General,
-		type: "switch",
-		key: "mod-enabled", 
-		label: "Enable Mod", 
-		hint: "Toggle the Character Data Exporter on or off", 
-		toggle: true
-	},
-	MOD_DEBUG: {
-		section: Sections.General,
-		type: "switch",
-		key: "mod-debug", 
-		label: "Enable Debug", 
-		hint: "Toggle Debug on or off (May need restart)", 
-		toggle: false
-	},
-	SHOW_BUTTON: {
-		section: Sections.General,
-		type: "switch",
-		key: "show-button",
-		label: "Show button",
-		hint: "Show top CDE button (May need restart)", 
-		toggle: true
-	},
-	AUTO_EXPORT_ONLOAD: {
-		section: Sections.General,
-		type: "switch",
-		key: "export-onload",
-		label: "Auto Export on Game Load",
-		hint: "Automatically generate and save export when the game loads.",
-		toggle: false
-	},
-	AUTO_EXPORT_ONWINDOW: {
-		section: Sections.General,
-		type: "switch",
-		key: "export-onwindow",
-		label: "Auto Export on CDE Window Open",
-		hint: "Automatically generate export each time the CDE window is opened.",
-		toggle: true
-	},
-	EXPORT_COMPRESS: {
-		section: Sections.General,
-		type: "switch",
-		key: "export-compress",
-		label: "Compress Export Output",
-		hint: "Export JSON in a compressed single-line format", 
-		toggle: true
-	},
-	USE_LZSTRING: {
-		section: Sections.General,
-		type: "switch",
-		key: "use-lzstring",
-		label: "Use LZString Compression",
-		hint: "Enable or disable usage of LZString for export compression",
-		toggle: true
-	},
-	SAVE_TO_STORAGE: {
-		section: Sections.General,
-		type: "switch",
-		key: "save-to-storage",
-		label: "Save export in storage",
-		hint: "Save the latest export JSON in localStorage",
-		toggle: true
-	},
-	GENERATE_DIFF: {
-		section: Sections.General,
-		type: "switch",
-		key: "generate-diff",
-		label: "Generate Changelog (Diff)",
-		hint: "Enable changelog comparison between current and previous export",
-		toggle: true
-	},
-	MAX_CHANGES_HISTORY: {
-		section: Sections.General,
-		type: "dropdown",
-		key: "max-changes-history",
-		label: "Changes History Size Limit",
-		hint: "Maximum number of change history entries to keep in localStorage (0 disables history)",
-		options: [
-			{ value: 0, display: "0 (Disable history)" },
-			{ value: 1, display: "1" },
-			{ value: 5, display: "5" },
-			{ value: 10, display: "10 (Default)" },
-			{ value: 25, display: "25" },
-			{ value: 50, display: "50" },
-			{ value: 100, display: "100" }
-		],
-		toggle: 10
-	},
-	
-	// DATA OPTIONS SETTINGS
-	EXPORT_BANK: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-bank",
-		label: "Include Bank Data",
-		hint: "Include inventory and bank items in export", 
-		toggle: true
-	},
-	EXPORT_SHOP: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-shop",
-		label: "Include Shop Data",
-		hint: "Include purchased shop items in export", 
-		toggle: true
-	},
-	EXPORT_EQUIPMENT: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-equipment",
-		label: "Include Current Equipment Data",
-		hint: "Include current equipment items in export", 
-		toggle: true
-	},
-	EXPORT_EQUIPMENT_SETS: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-equipment-sets",
-		label: "Include Equipment Sets Data",
-		hint: "Include equipment sets items in export", 
-		toggle: true
-	},
-	EXPORT_FARMING: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-farming",
-		label: "Include Farming Data",
-		hint: "Include current farming plots in export", 
-		toggle: true
-	},
-	EXPORT_GAMESTATS: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-stats",
-		label: "Include Game Stats",
-		hint: "Include general statistics from all skills and actions", 
-		toggle: true
-	},
-	EXPORT_CARTOGRAPHY: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-cartography",
-		label: "Include Cartography Data",
-		hint: "Include discovered POIs and map progress in export", 
-		toggle: true
-	},
-	EXPORT_SKILLS: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-skills",
-		label: "Include Skills Data",
-		hint: "Include skills levels and XP", 
-		toggle: true
-	},
-	EXPORT_MASTERY: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-mastery",
-		label: "Include Mastery Data",
-		hint: "Include mastery levels and XP for each skill action", 
-		toggle: true
-	},
-	EXPORT_PETS: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-pets",
-		label: "Include Pets Data",
-		hint: "Include discovered pets data", 
-		toggle: true
-	},
-	EXPORT_TOWNSHIP: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-township",
-		label: "Include Township Data",
-		hint: "Include township statistics", 
-		toggle: true
-	},
-	EXPORT_ASTROLOGY: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-astrology",
-		label: "Include Astrology Data",
-		hint: "Include astrology data", 
-		toggle: true
-	},
-	EXPORT_COMPLETION: {
-		section: Sections.DataOptions,
-		type: "switch",
-		key: "export-completion",
-		label: "Include Completion Data",
-		hint: "Include completion data", 
-		toggle: true
-	},
-
-	ETA_COMBAT: {
-		section: Sections.ETA,
-		type: "switch",
-		key: "eta-combat",
-		label: "Display Combat ETA",
-		hint: "Toggle to show the estimated time remaining to complete your current combat activity, based on recent kills and efficiency.",
-		toggle: true
-	}
-}
-
-class SettingsReferenceItem {
-	constructor(stgRef, onChange = null) {
-		this.attachedSection = null;
-		this.itemSectionRef = stgRef.section;
-		this.itemType = stgRef.type;
-		this.itemKey = stgRef.key;
-		this.itemLabel = stgRef.label;
-		this.itemHint = stgRef.hint;
-		this.itemDefault = stgRef.toggle;
-		this.itemOptions = stgRef.options;
-		this.itemMin = stgRef.min;
-		this.itemMax = stgRef.max;
-		this.itemStep = stgRef.step;
-		this.onChange = onChange;
-	}
-	
-	init(section) {
-		if (!this.attachedSection) {
-			const config = {
-				type: this.itemType,
-				name: this.itemKey,
-				label: this.itemLabel,
-				hint: this.itemHint,
-				default: this.itemDefault,
-				onChange: this.onChange
-			};
-			if ((this.itemType == "select" || this.itemType == "dropdown") 
-				&& this.itemOptions) {
-				config.options = this.itemOptions;
-			}
-			if (this.itemType == "input") {
-				config.min = this.itemMin;
-				config.max = this.itemMax;
-				config.step = this.itemStep;
-			}
-			section.add(config);
-			if (debugMode) console.log("[CDE] settings reference item added: " + this.itemKey);
-			this.attachedSection = section;
-		}
-	}
-}
-
-function createSettings(settings) {
-	loadedSections = {
-		[Sections.General]: settings.section(Sections.General),
-		[Sections.DataOptions]: settings.section(Sections.DataOptions),
-		[Sections.ETA]: settings.section(Sections.ETA)
-	}
-	
-	for (const key in SettingsReference) {
-		const reference = SettingsReference[key];
-		let onChange = null;
-		if (reference.key === SettingsReference.MOD_DEBUG.key) {
-			onChange = (value) => {
-				debugMode = value;
-				if (debugMode) {
-					console.log("[CDE] settings - Debugmode :", value);
-				}
-			};
-		}
-		if (reference.key === SettingsReference.SHOW_BUTTON.key) {
-			onChange = (value) => {
-				visibilityExportButton(value);
-				if (debugMode) {
-					console.log("[CDE] settings - showButton :", value);
-				}
-			};
-		}
-		if (reference.key === SettingsReference.MAX_CHANGES_HISTORY.key) {
-			onChange = (value) => {
-				cleanChangesHistory();
-				if (debugMode) {
-					console.log("[CDE] settings - maxChangesHistory :", value);
-				}
-			};
-		}
-		const item = new SettingsReferenceItem(reference, onChange);
-		item.init(loadedSections[reference.section]);
-	}
-}
-
-function getCfg(settingRef) {
-	if (!settingRef || !settingRef.section || !settingRef.key) {
-		console.error("[CDE] Invalid settings reference:", settingRef);
-		return null;
-	}
-	if (debugMode) {
-		console.warn("[CDE] Toggle value overridden to default:", settingRef);
-		return settingRef.toggle;
-	} else {
-		if (!loadedSections) {
-			console.error("[CDE] Sections not loaded");
-			return null;
-		}
-		const section = loadedSections[settingRef.section];
-		if (!section) {
-			console.error("[CDE] Invalid section reference:", section);
-			return null;
-		}
-		return section.get(settingRef.key) ?? settingRef.toggle;
-	}
-}
-
-function isCfg(settingRef) {
-	return getCfg(settingRef) ?? false;
-}
+let mModules = null;
 
 // --- Export Logic ---
 let exportData = {};
 function getExportJSON() {
 	if (exportData == null) {
-		if (debugMode) {
+		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] Export cache requested!")
 		}
-		exportData = mLocalStorage.getLastExportFromStorage();
+		exportData = mModules.getLocalStorage().getLastExportFromStorage();
 	}
 	return exportData;
 }
 function getExportString() {
-	return isCfg(SettingsReference.EXPORT_COMPRESS) ? 
+	return mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.EXPORT_COMPRESS) ? 
 	JSON.stringify(getExportJSON()) : 
 	JSON.stringify(getExportJSON(), null, 2);
 }
@@ -399,7 +70,7 @@ function getChangesData() {
 let changesHistory = null;
 function getChangesHistory() {
 	if (changesHistory == null) {
-		const stored = mLocalStorage.getChangesFromStorage();
+		const stored = mModules.getLocalStorage().getChangesFromStorage();
 		changesHistory = stored instanceof Map ? stored : new Map();
 	}
 	return changesHistory;
@@ -413,12 +84,12 @@ function submitChangesHistory(data) {
 	
 	cleanChangesHistory();
 	if (getMaxHistorySetting() > 0) {
-		mLocalStorage.saveChangesToStorage(items);
+		mModules.getLocalStorage().saveChangesToStorage(items);
 	}
 }
 function getMaxHistorySetting() {
 	try {
-		let val = getCfg(SettingsReference.MAX_CHANGES_HISTORY);
+		let val = mModules.getSettings().getCfg(mModules.getSettings().SettingsReference.MAX_CHANGES_HISTORY);
 		val = parseInt(val, 10);
 		if (isNaN(val)) val = 10; // fallback
 		return val;
@@ -434,7 +105,7 @@ function cleanChangesHistory() {
 	while (history.size > maxHistory) {
 		const oldestKey = history.keys().next().value;
 		history.delete(oldestKey);
-		if (debugMode) {
+		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] Remove old history entry:", oldestKey);
 		}
 	}
@@ -442,51 +113,52 @@ function cleanChangesHistory() {
 
 // Collector
 function collector(cfgRef, collectorFn, fallbackMsg) {
-	return isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
+	return mModules.getSettings().isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
 }
 
 function processCollectData() {
 	const newData = {};
 
-	newData.basics = mCollector.collectBasics();
-	newData.currentActivity = mCollector.collectCurrentActivity(onCombat, onNonCombat);
-	newData.agility = mCollector.collectAgility();
-	newData.activePotions = mCollector.collectActivePotions();
-	newData.dungeons = mCollector.collectDungeons();
-	newData.strongholds = mCollector.collectStrongholds();
-	newData.ancientRelics = mCollector.collectAncientRelics();
+	newData.basics = mModules.getCollector().collectBasics();
+	newData.currentActivity = mModules.getCollector().collectCurrentActivity(onCombat, onNonCombat);
+	newData.agility = mModules.getCollector().collectAgility();
+	newData.activePotions = mModules.getCollector().collectActivePotions();
+	newData.dungeons = mModules.getCollector().collectDungeons();
+	newData.strongholds = mModules.getCollector().collectStrongholds();
+	newData.ancientRelics = mModules.getCollector().collectAncientRelics();
 
-	newData.stats = collector(SettingsReference.EXPORT_GAMESTATS, mCollector.collectGameStats, "Stats data unavailable");
-	newData.shop = collector(SettingsReference.EXPORT_SHOP, mCollector.collectShopData, "Shop data unavailable");
-	newData.equipment = collector(SettingsReference.EXPORT_EQUIPMENT, mCollector.collectEquipments, "Equipment data unavailable");
-	newData.equipmentSets = collector(SettingsReference.EXPORT_EQUIPMENT_SETS, mCollector.collectEquipmentSets, "Equipment sets data unavailable");
-	newData.bank = collector(SettingsReference.EXPORT_BANK, mCollector.collectBankData, "Bank data unavailable");
-	newData.skills = collector(SettingsReference.EXPORT_SKILLS, mCollector.collectSkills, "Skills data unavailable");
-	newData.mastery = collector(SettingsReference.EXPORT_MASTERY, mCollector.collectMastery, "Mastery data unavailable");
-	newData.astrology = collector(SettingsReference.EXPORT_ASTROLOGY, mCollector.collectAstrology, "Astrology data unavailable");
-	newData.completion = collector(SettingsReference.EXPORT_COMPLETION, mCollector.collectCompletion, "Completion data unavailable");
-	newData.township = collector(SettingsReference.EXPORT_TOWNSHIP, mCollector.collectTownship, "Township data unavailable");
-	newData.pets = collector(SettingsReference.EXPORT_PETS, mCollector.collectPets, "Pets data unavailable");
-	newData.cartography = collector(SettingsReference.EXPORT_CARTOGRAPHY, mCollector.collectCartography, "Cartography data unavailable");
-	newData.farming = collector(SettingsReference.EXPORT_FARMING, mCollector.collectFarming, "Farming data unavailable");
+	newData.stats = collector(mModules.getSettings().SettingsReference.EXPORT_GAMESTATS, mModules.getCollector().collectGameStats, "Stats data unavailable");
+	newData.shop = collector(mModules.getSettings().SettingsReference.EXPORT_SHOP, mModules.getCollector().collectShopData, "Shop data unavailable");
+	newData.equipment = collector(mModules.getSettings().SettingsReference.EXPORT_EQUIPMENT, mModules.getCollector().collectEquipments, "Equipment data unavailable");
+	newData.equipmentSets = collector(mModules.getSettings().SettingsReference.EXPORT_EQUIPMENT_SETS, mModules.getCollector().collectEquipmentSets, "Equipment sets data unavailable");
+	newData.bank = collector(mModules.getSettings().SettingsReference.EXPORT_BANK, mModules.getCollector().collectBankData, "Bank data unavailable");
+	newData.skills = collector(mModules.getSettings().SettingsReference.EXPORT_SKILLS, mModules.getCollector().collectSkills, "Skills data unavailable");
+	newData.mastery = collector(mModules.getSettings().SettingsReference.EXPORT_MASTERY, mModules.getCollector().collectMastery, "Mastery data unavailable");
+	newData.astrology = collector(mModules.getSettings().SettingsReference.EXPORT_ASTROLOGY, mModules.getCollector().collectAstrology, "Astrology data unavailable");
+	newData.completion = collector(mModules.getSettings().SettingsReference.EXPORT_COMPLETION, mModules.getCollector().collectCompletion, "Completion data unavailable");
+	newData.township = collector(mModules.getSettings().SettingsReference.EXPORT_TOWNSHIP, mModules.getCollector().collectTownship, "Township data unavailable");
+	newData.pets = collector(mModules.getSettings().SettingsReference.EXPORT_PETS, mModules.getCollector().collectPets, "Pets data unavailable");
+	newData.cartography = collector(mModules.getSettings().SettingsReference.EXPORT_CARTOGRAPHY, mModules.getCollector().collectCartography, "Cartography data unavailable");
+	newData.farming = collector(mModules.getSettings().SettingsReference.EXPORT_FARMING, mModules.getCollector().collectFarming, "Farming data unavailable");
 
 	newData.meta = {
 		exportTimestamp: new Date().toISOString(),
+		// @ts-ignore
 		version: game.lastLoadedGameVersion,
 		modVersion: MOD_VERSION
 	};
 	
-	if (isCfg(SettingsReference.SAVE_TO_STORAGE)) {
+	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));
 		
 		// Generate Diff
-		if (isCfg(SettingsReference.GENERATE_DIFF)) {
-			const lastExport = mLocalStorage.getLastExportFromStorage();	
+		if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.GENERATE_DIFF)) {
+			const lastExport = mModules.getLocalStorage().getLastExportFromStorage();	
 			const charName = game.characterName || "Unknown";
 			const exportTime = new Date().toLocaleString();
 			const header = `🧾 Changelog for: ${charName} — ${exportTime}`;
 			if (lastExport) {
-				changesData = [header, ...mUtils.deepDiff(lastExport, copy)];
+				changesData = [header, ...mModules.getUtils().deepDiff(lastExport, copy)];
 			} else {
 				changesData = [header, "🆕 First export — no previous data to compare."];
 			}
@@ -494,12 +166,12 @@ function processCollectData() {
 		}
 		
 		// Save to storage
-		mLocalStorage.saveExportToStorage(copy);
+		mModules.getLocalStorage().saveExportToStorage(copy);
 	}
 	
 	// Finalize..
 	exportData = newData;
-	if (debugMode) {
+	if (mModules.getSettings().isDebug()) {
 		console.log("[CDE] exportData updated: ", exportData);
 	}
 	return exportData;
@@ -510,10 +182,10 @@ function processCollectData() {
  * @param {Data} entry 
  */
 function onCombat(entry) {
-	const currentMonsterData = mCloudStorage.getCurrentMonsterData();
+	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
 	const now = new Date();
 
-	if (isCfg(SettingsReference.ETA_COMBAT) && entry.monster) {
+	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.ETA_COMBAT) && entry.monster) {
 		if (currentMonsterData 
 			&& typeof currentMonsterData === 'object' 
 			&& currentMonsterData.id === entry.monster.id
@@ -526,7 +198,7 @@ function onCombat(entry) {
 			entry.monster.startTime = new Date(currentMonsterData.startTime);
 			entry.monster.diffTime = now - entry.monster.startTime;
 
-			entry.monster.diffTimeStr = mUtils.formatDuration(entry.monster.diffTime);
+			entry.monster.diffTimeStr = mModules.getUtils().formatDuration(entry.monster.diffTime);
 			if (entry.monster.diffTime > 0) {
 				entry.monster.kph = Math.round(
 					(entry.monster.diffKillcount / (entry.monster.diffTime / 3600000)) || 0
@@ -535,7 +207,7 @@ function onCombat(entry) {
 				entry.monster.kph = "NaN";
 			}
 			entry.monster.kphStr = `${entry.monster.kph} kills/h`;
-			if (debugMode) {
+			if (mModules.getSettings().isDebug()) {
 				console.log("[CDE] Matching current monster data", entry.monster);
 			}
 		} else {
@@ -546,13 +218,13 @@ function onCombat(entry) {
 			entry.monster.kphStr = "NaN kills/h";
 			entry.monster.startKillcount = entry.monster.killCount;
 			entry.monster.startTime = now;
-			if (debugMode) {
+			if (mModules.getSettings().isDebug()) {
 				console.log("[CDE] Start activity trace", entry.monster);
 			}
 		}
 
 		// Update the current monster data
-		mCloudStorage.setCurrentMonsterData(entry.monster);
+		mModules.getCloudStorage().setCurrentMonsterData(entry.monster);
 	}
 }
 
@@ -561,9 +233,9 @@ function onCombat(entry) {
  * @param {Data} entry 
  */
 function onNonCombat(entry) {
-	if (currentMonsterData) {
-		mCloudStorage.removeCurrentMonsterData();
-		if (debugMode) {
+	if (mModules.getCloudStorage().getCurrentMonsterData()) {
+		mModules.getCloudStorage().removeCurrentMonsterData();
+		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] Clear activity trace", entry.monster);
 		}
 	}
@@ -574,7 +246,7 @@ function CDEButton(template, cb) {
 	return {
 		$template: template,
 		clickedButton() {
-			document.getElementById("cde").blur();
+			document.getElementById("cde")?.blur();
 			if (typeof cb === "function") cb();
 		}
 	};
@@ -584,8 +256,8 @@ let lazyBtCde = null;
 function setupExportButtonUI(cb) {
 	ui.create(CDEButton("#cde-button-topbar", cb), document.body);
 	const cde = document.getElementById("cde");
-	const potions = document.getElementById("page-header-potions-dropdown").parentNode;
-	potions.insertAdjacentElement("beforebegin", cde);
+	const potions = document.getElementById("page-header-potions-dropdown")?.parentNode;
+	potions?.insertAdjacentElement("beforebegin", cde);
 	lazyBtCde = cde;
 }
 
@@ -598,12 +270,12 @@ function visibilityExportButton(visible) {
 }
 
 function onExportOpen() {
-	if (!isCfg(SettingsReference.MOD_ENABLED)) return;
+	if (!mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.MOD_ENABLED)) return;
 	
 	// Clean-up
 	const viewDiffButton = document.getElementById("cde-viewdiff-button");
 	if (viewDiffButton) {
-		viewDiffButton.style.display = isCfg(SettingsReference.GENERATE_DIFF) ? "visible" : "none";
+		viewDiffButton.style.display = mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.GENERATE_DIFF) ? "visible" : "none";
 	}
 }
 
@@ -715,7 +387,7 @@ async function onClickExportAllChangelogs() {
 
 async function onClickResetExport() {
 	exportData = null;
-	mLocalStorage.saveExportToStorage(null);
+	mModules.getLocalStorage().saveExportToStorage(null);
 	Swal.fire({
 		toast: true,
 		position: 'top-end',
@@ -728,7 +400,7 @@ async function onClickResetExport() {
 async function onClickResetChangelogs() {
 	changesData = [];
 	changesHistory = null;
-	mLocalStorage.saveChangesToStorage(null);
+	mModules.getLocalStorage().saveChangesToStorage(null);
 	Swal.fire({
 		toast: true,
 		position: 'top-end',
@@ -746,38 +418,38 @@ async function onClickRefreshExport() {
 function formatChangelogLine(line) {
 	// HEADER
 	if (line.startsWith("🧾")) {
-		return `<div class="cde-changelog-line cde-changelog-header">${mUtils.escapeHtml(line)}</div>`;
+		return `<div class="cde-changelog-line cde-changelog-header">${mModules.getUtils().escapeHtml(line)}</div>`;
 	}
 	
 	// ➕ ADD
 	if (line.startsWith("➕")) {
 		const m = line.match(/^➕ ADD ([^=]+) = (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span>: <span class="cde-changelog-key">${mUtils.escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${mUtils.escapeHtml(m[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span>: <span class="cde-changelog-key">${mModules.getUtils().escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${mModules.getUtils().escapeHtml(m[2].trim())}</span></div>`;
 		const m2 = line.match(/^➕ ADD \[([^\]]+)\]: (.+)$/);
 		if (m2)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span> [<span class="cde-changelog-key">${mUtils.escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${mUtils.escapeHtml(m2[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span> [<span class="cde-changelog-key">${mModules.getUtils().escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${mModules.getUtils().escapeHtml(m2[2].trim())}</span></div>`;
 	}
 	
 	// ❌ RMV
 	if (line.startsWith("❌")) {
 		const m = line.match(/^❌ RMV (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span>: <span class="cde-changelog-key">${mUtils.escapeHtml(m[1].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span>: <span class="cde-changelog-key">${mModules.getUtils().escapeHtml(m[1].trim())}</span></div>`;
 		
 		const m2 = line.match(/^❌ RMV \[([^\]]+)\]: (.+)$/);
 		if (m2)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span> [<span class="cde-changelog-key">${mUtils.escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${mUtils.escapeHtml(m2[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span> [<span class="cde-changelog-key">${mModules.getUtils().escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${mModules.getUtils().escapeHtml(m2[2].trim())}</span></div>`;
 	}
 	
 	// 🔁 UPD
 	if (line.startsWith("🔁")) {
 		const m = line.match(/^🔁 UPD ([^=]+) = ([^→]+) → (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 UPD</span>: <span class="cde-changelog-key">${mUtils.escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${mUtils.escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${mUtils.escapeHtml(m[3].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 UPD</span>: <span class="cde-changelog-key">${mModules.getUtils().escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${mModules.getUtils().escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${mModules.getUtils().escapeHtml(m[3].trim())}</span></div>`;
 	}
 	
-	return `<div class="cde-changelog-line">${mUtils.escapeHtml(line)}</div>`;
+	return `<div class="cde-changelog-line">${mModules.getUtils().escapeHtml(line)}</div>`;
 }
 
 async function onClickExportViewDiff() {
@@ -909,14 +581,14 @@ const exportFooter =
 	<button id="cde-viewdiff-button" class="btn btn-sm btn-primary">Compare Changes</button></div>`;
 
 function openExportUI(forceCollect = false) {
-	if (isCfg(SettingsReference.AUTO_EXPORT_ONWINDOW) || forceCollect) {
+	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW) || forceCollect) {
 		processCollectData();
 	}
-	if (isCfg(SettingsReference.MOD_ENABLED)) {
-		
+	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.MOD_ENABLED)) {
+
 		// --- Ajout de la checkbox ---
-		const autoExportChecked = isCfg(SettingsReference.AUTO_EXPORT_ONWINDOW);
-		const autoExportCheckbox = 
+		const autoExportChecked = mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW);
+		const autoExportCheckbox =
 		`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
 			<input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />
 			<span style="font-size:15px">Automatically generate new export when CDE window opens</span></label>`;
@@ -944,8 +616,9 @@ function openExportUI(forceCollect = false) {
 					if (checkbox) {
 						checkbox.addEventListener('change', (e) => {
 							const isChecked = e.target.checked;
-							const section = loadedSections[SettingsReference.AUTO_EXPORT_ONWINDOW.section];
-							section.set(SettingsReference.AUTO_EXPORT_ONWINDOW.key, isChecked);
+							const sections = mModules.getSettings().getLoadedSections()
+							const section = sections[mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW.section];
+							section.set(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW.key, isChecked);
 						});
 					}
 					
@@ -967,59 +640,59 @@ function openExportUI(forceCollect = false) {
 	}
 }
 
+function onSettingsChange(reference) {
+	if (reference.key === mModules.getSettings().SettingsReference.MOD_DEBUG.key) {
+		return (value) => {
+			mModules.getSettings().setDebug(value);
+			if (mModules.getSettings().isDebug()) {
+				console.log("[CDE] settings - Debugmode :", value);
+			}
+		};
+	}
+	if (reference.key === mModules.getSettings().SettingsReference.SHOW_BUTTON.key) {
+		return (value) => {
+			visibilityExportButton(value);
+			if (mModules.getSettings().isDebug()) {
+				console.log("[CDE] settings - showButton :", value);
+			}
+		};
+	}
+	if (reference.key === mModules.getSettings().SettingsReference.MAX_CHANGES_HISTORY.key) {
+		return (value) => {
+			cleanChangesHistory();
+			if (mModules.getSettings().isDebug()) {
+				console.log("[CDE] settings - maxChangesHistory :", value);
+			}
+		};
+	}
+}
+
 // --- Init ---
 export function setup({settings, api, characterStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
-	
-	// SETTINGS
-	createSettings(settings);
-	if (isCfg(SettingsReference.MOD_DEBUG)) {
-		console.log("[CDE] Warning: debug mode allowed");
-		debugMode = true;
-	}
-	
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
-		// Load LZString (Compression Tools) module
-		mLZString = await ctx.loadModule("libs/lz-string.js");
-		if (mLZString && typeof mLZString.default === 'object') {
-			mLZString = mLZString.default;
-		}
-		
-		// Load modules
-		mUtils = await ctx.loadModule("modules/utils.mjs");
-		mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
-		mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
-		mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
-
-		mCollector = await ctx.loadModule("modules/collector.mjs");
-		mCollector.setUtilsHandler(() => {return mUtils;});
-		mCollector.setGameStatsHandler(() => {return mDisplayStats;});
-
-		console.log("[CDE] Module loaded !");
+		mModules = await ctx.loadModule("modulesManager.mjs");
+		mModules.onModuleLoad(ctx);
+		console.info("[CDE] Modules loaded !");
 	});
 
 	// Setup OnCharacterLoaded
-	onCharacterLoaded(async (ctx) => {
-		mLocalStorage.init(ctx, mLZString);
-		mLocalStorage.setLZStringHandler(() => {return isCfg(SettingsReference.USE_LZSTRING)});	
-		mLocalStorage.setDebugHandler(() => {return debugMode});
-
-		mCloudStorage.init(ctx, characterStorage);
-		mCloudStorage.setDebugHandler(() => {return debugMode});
-
-		if (isCfg(SettingsReference.AUTO_EXPORT_ONLOAD)) {
+	onCharacterLoaded(async () => {
+		mModules.onDataLoad(settings, characterStorage, onSettingsChange);
+		if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONLOAD)) {
 			processCollectData();
 		}
+		console.info("[CDE] Data loaded !");
 	});
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
 		// CSS
-		mUtils.createIconCSS(ctx);
+		mModules.getUtils().createIconCSS(ctx);
 		
 		// Setup Export Button
 		setupExportButtonUI(openExportUI);
-		visibilityExportButton(isCfg(SettingsReference.SHOW_BUTTON));
+		visibilityExportButton(mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.SHOW_BUTTON));
 		
 		console.log("[CDE] Interface ready !");
 	});
@@ -1047,29 +720,14 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		toggleButtonVisibility: (toggle) => {
 			visibilityExportButton(toggle);
 		},
-		getCfgValue: (settingsReference) => {
-			return isCfg(settingsReference);
-		},
-		getLocalStorage: () => {
-			return mLocalStorage;
-		},
-		getCloudStorage: () => {
-			return mCloudStorage;
-		},
-		getDisplayStats: () => {
-			return mDisplayStats;
-		},
-		getCollector: () => {
-			return mCollector;
-		},
-		getUtils: () => {
-			return mUtils;
+		getModules: () => {
+			return mModules;
 		},
 		openExportUI: (forceCollect = false) => {
 			openExportUI(forceCollect);
 		},
 		debugMode: (toggle) => {
-			debugMode = toggle;
+			mModules.getSettings().setDebug(toggle);
 		},
 		modVersion: () => {
 			return MOD_VERSION;

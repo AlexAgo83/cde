@@ -1,35 +1,29 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
+// #@ts-check
 // localStorage.mjs
-
-let contexte = null;
-let LZString = null;
-let isLoaded = false;
-
-let onLZStringHandler = () => {
-    return true;
-}
-let onDebugHandler = () => {
-    return false;
-}
 
 const CS_LAST_EXPORT = "cde_last_export";
 const CS_LAST_CHANGES = "cde_last_changes";
 
+let mods = null;
+let isLoaded = false;
 
-export function isLZStringReady() {
-	return isLoaded && onLZStringHandler();
+/**
+ * Initialize the local storage module.
+ * @param {Object} modules - The modules object containing dependencies.
+ */
+export function init(modules) {
+    mods = modules;
+    isLoaded = !!mods.getLZString() && typeof mods.getLZString().compressToUTF16 === 'function';
+    if (!isLoaded) {
+        console.warn("[CDE] LZString is not loaded or does not have the expected methods.");
+    }
 }
 
-export function sanitizeCharacterName(name) {
-	if (!name) return "unknown";
-	return name
-	.normalize("NFD")
-	.replace(/[\u0300-\u036f]/g, "")
-	.replace(/\s+/g, "_")
-	.replace(/[^a-zA-Z0-9_\-]/g, "")
-	.substring(0, 32);
+export function isLZStringReady() {
+	return isLoaded && mods.getLZString();
 }
 
 function readFromStorage(key) {
@@ -39,14 +33,14 @@ function readFromStorage(key) {
 		
 		let json = raw;
 		if (isLZStringReady()) {
-			const decompressed = LZString.decompressFromUTF16(raw);
+			const decompressed = mods.getLZString().decompressFromUTF16(raw);
 			if (decompressed) json = decompressed;
 		} else {
             console.log("[CDE] LZString not ready, using raw data from storage.");
         }
 		
 		json = JSON.parse(json);
-		if (onDebugHandler()) {
+		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] Object read:", json);
 		}
 		return json;
@@ -59,12 +53,12 @@ function saveToStorage(key, jsonData) {
 	try {
 		let raw = JSON.stringify(jsonData);
 		if (isLZStringReady()) {
-			raw = LZString.compressToUTF16(raw);
+			raw = mods.getLZString().compressToUTF16(raw);
 		} else {
             console.log("[CDE] LZString not ready, saving raw data to storage.");
         }
 		localStorage.setItem(key, raw);
-		if (onDebugHandler()) {
+		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] Object saved:", raw);
 		}
 	} catch (err) {
@@ -73,7 +67,7 @@ function saveToStorage(key, jsonData) {
 }
 
 function getStorage_ExportKey() {
-	return CS_LAST_EXPORT+"_"+(sanitizeCharacterName(game.characterName));
+	return CS_LAST_EXPORT+"_"+(mods.getUtils().sanitizeCharacterName(game.characterName));
 }
 export function getLastExportFromStorage() {
 	return readFromStorage(getStorage_ExportKey());
@@ -86,7 +80,7 @@ export function removeExportFromStorage() {
 }
 
 function getStorage_ChangesKey() {
-	return CS_LAST_CHANGES+"_"+(sanitizeCharacterName(game.characterName));
+	return CS_LAST_CHANGES+"_"+(mods.getUtils().sanitizeCharacterName(game.characterName));
 }
 export function getChangesFromStorage() {
 	const raw = readFromStorage(getStorage_ChangesKey());
@@ -98,22 +92,4 @@ export function saveChangesToStorage(jsonData) {
 		toStore = Array.from(toStore.entries());
 	}
 	saveToStorage(getStorage_ChangesKey(), toStore);
-}
-
-export function init(
-        ctx,
-        LZStringInstance) {
-    contexte = ctx;
-    LZString = LZStringInstance;
-    isLoaded = !!LZString && typeof LZString.compressToUTF16 === 'function';
-    if (!isLoaded) {
-        console.warn("[CDE] LZString is not loaded or does not have the expected methods.");
-    }
-}
-
-export function setLZStringHandler(onLZStringCb) {
-    onLZStringHandler = onLZStringCb;
-}
-export function setDebugHandler(onDebugCb) {
-    onDebugHandler = onDebugCb;
 }

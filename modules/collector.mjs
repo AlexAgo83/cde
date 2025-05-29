@@ -1,22 +1,17 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
+// #@ts-check
 // collector.mjs
 
-let onGameStatsHandler = () => {
-	console.warn("[CDE] Game stats handler not set");
-	return null;
-}
-export function setGameStatsHandler(handler) {
-	onGameStatsHandler = handler;
-}
+let mods = null;
 
-let onUtilsHandler = () => {
-	console.warn("[CDE] Utils handler not set");
-	return null;
-}
-export function setUtilsHandler(handler) {
-	onUtilsHandler = handler;
+/**
+ * Initialize the collector module.
+ * @param {Object} modules - The modules object containing dependencies.
+ */
+export function init(modules) {
+	mods = modules;
 }
 
 export function collectBasics() {
@@ -251,14 +246,10 @@ export function collectFarming() {
 
 export function collectGameStats() {
 	const result = {};
-	if (!onGameStatsHandler() || !onGameStatsHandler().StatTypes || typeof onGameStatsHandler().displayStatsAsObject !== "function") {
-		console.warn("[CDE] displayStats module not ready");
-		return { error: "Stats module unavailable" };
-	}
-	onGameStatsHandler().StatTypes.forEach((type) => {
-		const section = onGameStatsHandler().displayStatsAsObject(game.stats, type);
+	mods.getDisplayStats().StatTypes.forEach((type) => {
+		const section = mods.getDisplayStats().displayStatsAsObject(game.stats, type);
 		if (section) {
-			const statName = onGameStatsHandler().StatNameMap.get(type);
+			const statName = mods.getDisplayStats().StatNameMap.get(type);
 			result[statName] = section;
 		}
 	});
@@ -384,7 +375,7 @@ export function collectCompletion() {
 	const itemMax = game.completion.itemProgress.maximumCount.data;
 	const monCur = game.completion.monsterProgress.currentCount.data;
 	const monMax = game.completion.monsterProgress.maximumCount.data;
-	onUtilsHandler().NameSpaces.forEach((n) => {
+	mods.getUtils().NameSpaces.forEach((n) => {
 		const itemCount = itemCur.get(n) || 0;
 		const itemMaxCount = itemMax.get(n);
 		const itemPct = Math.round((itemCount / itemMaxCount) * 100);

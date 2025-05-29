@@ -1,9 +1,19 @@
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
+// @ts-check
 // utils.mjs
 
 export const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
+
+let mods = null;
+/**
+ * Initialize the collector module.
+ * @param {Object} modules - The modules object containing dependencies.
+ */
+export function init(modules) {
+  mods = modules;
+}
 
 export function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -129,4 +139,14 @@ export function diffArraysSmart(prevArr, currArr, path = "") {
 		}
 	}
 	return changes;
+}
+
+export function sanitizeCharacterName(name) {
+	if (!name) return "unknown";
+	return name
+	.normalize("NFD")
+	.replace(/[\u0300-\u036f]/g, "")
+	.replace(/\s+/g, "_")
+	.replace(/[^a-zA-Z0-9_\-]/g, "")
+	.substring(0, 32);
 }

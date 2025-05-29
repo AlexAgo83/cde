@@ -3,7 +3,9 @@
   "icon": "assets/cde-icon-dark.png",
   "setup": "setup.mjs",
   "module": [
+    "modulesManager.mjs",
     "libs/lz-string.js",
+    "modules/settings.mjs",
     "modules/localStorage.mjs",
     "modules/cloudStorage.mjs",
     "modules/displayStats.mjs",
