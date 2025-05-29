@@ -524,7 +524,7 @@ export function collectCompletion() {
  * @returns {Object} An object containing the current activities.
  */
 export function collectCurrentActivity(onCombat, onNonCombat) {
-	const result = [];
+	const result = {};
 	const player = _game().combat.player;
 	const stats = _game().stats;
 
@@ -598,7 +598,8 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update non-combat", entry);
 			}
-			result.push(entry);
+			// result.push(entry);
+			result[entry.activity] = entry;
 		}
 	});
 	return result;
