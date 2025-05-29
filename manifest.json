@@ -6,7 +6,8 @@
     "libs/lz-string.js",
     "modules/localStorage.mjs",
     "modules/cloudStorage.mjs",
-    "modules/displayStats.mjs"
+    "modules/displayStats.mjs",
+    "modules/collector.mjs"
   ],
   "load": [
     "assets/templates.html",

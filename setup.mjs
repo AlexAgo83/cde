@@ -448,29 +448,29 @@ function collector(cfgRef, collectorFn, fallbackMsg) {
 
 function processCollectData() {
 	const newData = {};
-	newData.basics = collectBasics();
-	
-	newData.currentActivity = collectCurrentActivity();
-	newData.agility = collectAgility();
-	newData.activePotions = collectActivePotions();
-	newData.dungeons = collectDungeons();
-	newData.strongholds = collectStrongholds();
-	newData.ancientRelics = collectAncientRelics();
-	
-	newData.stats = collector(SettingsReference.EXPORT_GAMESTATS, collectGameStats, "Stats data unavailable");
-	newData.shop = collector(SettingsReference.EXPORT_SHOP, collectShopData, "Shop data unavailable");
-	newData.equipment = collector(SettingsReference.EXPORT_EQUIPMENT, collectEquipments, "Equipment data unavailable");
-	newData.equipmentSets = collector(SettingsReference.EXPORT_EQUIPMENT_SETS, collectEquipmentSets, "Equipment sets data unavailable");
-	newData.bank = collector(SettingsReference.EXPORT_BANK, collectBankData, "Bank data unavailable");
-	newData.skills = collector(SettingsReference.EXPORT_SKILLS, collectSkills, "Skills data unavailable");
-	newData.mastery = collector(SettingsReference.EXPORT_MASTERY, collectMastery, "Mastery data unavailable");
-	newData.astrology = collector(SettingsReference.EXPORT_ASTROLOGY, collectAstrology, "Astrology data unavailable");
-	newData.completion = collector(SettingsReference.EXPORT_COMPLETION, collectCompletion, "Completion data unavailable");
-	newData.township = collector(SettingsReference.EXPORT_TOWNSHIP, collectTownship, "Township data unavailable");
-	newData.pets = collector(SettingsReference.EXPORT_PETS, collectPets, "Pets data unavailable");
-	newData.cartography = collector(SettingsReference.EXPORT_CARTOGRAPHY, collectCartography, "Cartography data unavailable");
-	newData.farming = collector(SettingsReference.EXPORT_FARMING, collectFarming, "Farming data unavailable");
-	
+
+	newData.basics = mCollector.collectBasics();
+	newData.currentActivity = mCollector.collectCurrentActivity(onCombat, onNonCombat);
+	newData.agility = mCollector.collectAgility();
+	newData.activePotions = mCollector.collectActivePotions();
+	newData.dungeons = mCollector.collectDungeons();
+	newData.strongholds = mCollector.collectStrongholds();
+	newData.ancientRelics = mCollector.collectAncientRelics();
+
+	newData.stats = collector(SettingsReference.EXPORT_GAMESTATS, mCollector.collectGameStats, "Stats data unavailable");
+	newData.shop = collector(SettingsReference.EXPORT_SHOP, mCollector.collectShopData, "Shop data unavailable");
+	newData.equipment = collector(SettingsReference.EXPORT_EQUIPMENT, mCollector.collectEquipments, "Equipment data unavailable");
+	newData.equipmentSets = collector(SettingsReference.EXPORT_EQUIPMENT_SETS, mCollector.collectEquipmentSets, "Equipment sets data unavailable");
+	newData.bank = collector(SettingsReference.EXPORT_BANK, mCollector.collectBankData, "Bank data unavailable");
+	newData.skills = collector(SettingsReference.EXPORT_SKILLS, mCollector.collectSkills, "Skills data unavailable");
+	newData.mastery = collector(SettingsReference.EXPORT_MASTERY, mCollector.collectMastery, "Mastery data unavailable");
+	newData.astrology = collector(SettingsReference.EXPORT_ASTROLOGY, mCollector.collectAstrology, "Astrology data unavailable");
+	newData.completion = collector(SettingsReference.EXPORT_COMPLETION, mCollector.collectCompletion, "Completion data unavailable");
+	newData.township = collector(SettingsReference.EXPORT_TOWNSHIP, mCollector.collectTownship, "Township data unavailable");
+	newData.pets = collector(SettingsReference.EXPORT_PETS, mCollector.collectPets, "Pets data unavailable");
+	newData.cartography = collector(SettingsReference.EXPORT_CARTOGRAPHY, mCollector.collectCartography, "Cartography data unavailable");
+	newData.farming = collector(SettingsReference.EXPORT_FARMING, mCollector.collectFarming, "Farming data unavailable");
+
 	newData.meta = {
 		exportTimestamp: new Date().toISOString(),
 		version: game.lastLoadedGameVersion,
@@ -507,345 +507,6 @@ function processCollectData() {
 }
 
 // --- Collectors ---
-
-function collectBasics() {
-	const player = game.combat.player;
-	const stats = game.stats;
-	const now = new Date();
-	const rawCreation = stats.General.stats.get(3);
-	const creation = rawCreation ? new Date(rawCreation) : new Date(0);
-	const daysPlayed = Math.floor((now - creation) / (1000 * 60 * 60 * 24));
-	return {
-		general: {
-			currentTime: now.toLocaleString(),
-			daysPlayed,
-			creationDate: creation.toLocaleString(),
-			character: game.characterName,
-			gameMode: game.currentGamemode.localID,
-			version: game.lastLoadedGameVersion
-		},
-		currency: {
-			gp: game.currencies.getObject('melvorD', 'GP').amount,
-			slayerCoins: game.currencies.getObject('melvorD', 'SlayerCoins').amount,
-			prayerPoints: player.prayerPoints
-		},
-		configuration: {
-			lootStacking: player.modifiers.allowLootContainerStacking,
-			merchantsPermit: game.merchantsPermitRead,
-			autoSlayer: player.modifiers.autoSlayerUnlocked,
-			autoSwapFood: player.modifiers.autoSwapFoodUnlocked,
-			autoBurying: player.modifiers.autoBurying,
-			autoEatLimit: game.modifiers.autoEatHPLimit,
-			autoLooting: game.modifiers.autoLooting
-		},
-		modifiers: {
-			thievingStealth: game.modifiers.thievingStealth
-		}
-	};
-}
-
-function collectSkills() {
-	const result = {};
-	game.skills.forEach((skill) => {
-		result[skill.id] = {
-			name: skill.name,
-			level: skill.level,
-			xp: skill.xp
-		};
-	});
-	return result;
-}
-
-function collectMastery() {
-	const result = {};
-	
-	game.skills.registeredObjects.forEach((skill) => {
-		const masteryMap = skill.actionMastery;
-		if (!masteryMap || masteryMap.size === 0) return;
-		
-		const entries = {};
-		masteryMap.forEach((progress, entry) => {
-			entries[entry.name] = {
-				id: entry.localID,
-				level: progress.level,
-				xp: progress.xp
-			};
-		});
-		
-		if (Object.keys(entries).length > 0) {
-			result[skill.name] = entries;
-		}
-	});
-	
-	return result;
-}
-
-function collectAgility() {
-	const result = [];
-	
-	game.agility.courses.forEach((course, realm) => {
-		const courseData = {
-			realm: realm?.name || realm,
-			obstacles: [],
-		};
-		
-		course.builtObstacles?.forEach((obstacle, position) => {
-			courseData.obstacles.push({
-				position,
-				id: obstacle.localID,
-				name: obstacle.name
-			});
-		});
-		
-		result.push(courseData);
-	});
-	
-	return result;
-}
-
-function collectActivePotions() {
-	const result = [];
-	game.potions.activePotions?.forEach((currPotion, activity) => {
-		result.push({
-			activity: activity.localID,
-			potion: currPotion.item.localID,
-			charges: currPotion.charges
-		});
-	});
-	return result;
-}
-
-function collectTownship() {
-	const ts = game.township;
-	const data = ts.townData;
-	const tasks = ts.tasks;
-	
-	return {
-		level: ts.level,
-		population: data?.population ?? null,
-		happiness: data?.happiness ?? null,
-		education: data?.education ?? null,
-		health: data?.health ?? null,
-		storageUsed: data?.buildingStorage ?? null,
-		souls: data?.souls ?? null,
-		worship: data?.worship?.name || null,
-		worshipCount: data?.worshipCount ?? null,
-		worshipTier: ts?.worshipTier ?? null,
-		worshipPercent: ts?.worshipPercent ?? null,
-		taxRate: ts?.taxRate ?? null,
-		tasksCompleted: tasks?.tasksCompleted ?? null,
-		isAnyTaskReady: tasks?.isAnyTaskReady
-	};
-}
-
-function collectPets() {
-	const result = [];
-	
-	if (game.petManager?.unlocked instanceof Set) {
-		game.petManager.unlocked.forEach((pet) => {
-			result.push({
-				name: pet.name,
-				id: pet.localID,
-				unlockCount: pet.unlockCount
-			});
-		});
-	}
-	
-	return result;
-}
-
-function collectAncientRelics() {
-	const result = [];
-	
-	game.skills.registeredObjects.forEach((skill) => {
-		if (!skill.ancientRelicSets || skill.ancientRelicSets.size === 0) return;
-		
-		const relics = [];
-		
-		skill.ancientRelicSets.forEach((set) => {
-			if (!set.foundRelics || set.foundRelics.size === 0) return;
-			
-			set.foundRelics.forEach((_, relic) => {
-				relics.push({
-					name: relic.name,
-					id: relic.localID
-				});
-			});
-		});
-		
-		if (relics.length > 0) {
-			result.push({
-				skill: skill.name,
-				skillID: skill.localID,
-				relics
-			});
-		}
-	});
-	
-	return result;
-}
-
-
-function collectCartography() {
-	const maps = game.cartography.worldMaps?.registeredObjects;
-	const result = [];
-	
-	if (!maps || !(maps instanceof Map)) {
-		console.warn("[CDE] Cartography maps not found");
-		return { level: game.cartography?.level ?? null, maps: result };
-	}
-	
-	maps.forEach((mapObj, mapKey) => {
-		const pois = [];
-		
-		// Certains POIs sont dans discoveredPOIs, d'autres dans .pointsOfInterest.registeredObjects
-		if (Array.isArray(mapObj.discoveredPOIs)) {
-			mapObj.discoveredPOIs.forEach((poi) => {
-				pois.push({
-					name: poi.name,
-					id: poi.localID,
-					type: poi.constructor.name
-				});
-			});
-		}
-		
-		result.push({
-			name: mapObj.name,
-			id: mapObj.localID,
-			discoveredPOIs: pois,
-			totalPOIs: mapObj.pointsOfInterest?.registeredObjects instanceof Map
-			? mapObj.pointsOfInterest.registeredObjects.size
-			: 0,
-			masteredHexes: mapObj.masteredHexes,
-			fullySurveyedHexes: mapObj.fullySurveyedHexes,
-			unlockedBonuses: mapObj.unlockedMasteryBonuses
-		});
-	});
-	
-	return {
-		level: game.cartography.level,
-		maps: result
-	};
-}
-
-
-function collectFarming() {
-	const result = [];
-	game.farming.plots.forEach((plot) => {
-		const planted = plot.plantedRecipe;
-		if (planted) {
-			result.push({ category: plot.category.localID, plotID: plot.localID, crop: planted.name, cropID: planted.localID });
-		}
-	});
-	return { level: game.farming.level, plots: result };
-}
-
-function collectGameStats() {
-	const result = {};
-	if (!mDisplayStats || !mDisplayStats.StatTypes || typeof mDisplayStats.displayStatsAsObject !== "function") {
-		console.warn("[CDE] displayStats module not ready");
-		return { error: "Stats module unavailable" };
-	}
-	mDisplayStats.StatTypes.forEach((type) => {
-		const section = mDisplayStats.displayStatsAsObject(game.stats, type);
-		if (section) {
-			const statName = mDisplayStats.StatNameMap.get(type);
-			result[statName] = section;
-		}
-	});
-	return result;
-}
-
-function collectAstrology() {
-	const result = [];
-	
-	if (!game?.astrology?.masteryXPConstellations) {
-		console.warn("[CDE] astrology.masteryXPConstellations is missing");
-		return result;
-	}
-	
-	game.astrology.masteryXPConstellations.forEach((entry) => {
-		result.push({
-			name: entry.name,
-			standard: entry.standardModifiers.map((mod) => ({
-				bought: mod.timesBought,
-				max: mod.maxCount
-			})),
-			unique: entry.uniqueModifiers.map((mod) => ({
-				bought: mod.timesBought,
-				max: mod.maxCount
-			}))
-		});
-	});
-	return result;
-}
-
-function collectShopData() {
-	const purchases = [];
-	
-	const purchased = game.shop.upgradesPurchased;
-	if (purchased && purchased.size > 0) {
-		purchased.forEach((qty, item) => {
-			purchases.push({
-				name: item.name,
-				id: item.localID,
-				quantity: qty
-			});
-		});
-	}
-	
-	return { purchases };
-}
-
-function collectEquipments() {
-	const equipped = {};
-	game.combat.player.equipment.equippedArray.forEach((slotItem) => {
-		if (slotItem.quantity > 0) {
-			equipped[slotItem.slot.localID] = {
-				name: slotItem.item.name,
-				id: slotItem.item.localID,
-				quantity: slotItem.quantity
-			};
-		}
-	});
-	return equipped;
-}
-
-function collectEquipmentSets() {
-	const sets = [];
-	game.combat.player.equipmentSets.forEach((set) => {
-		const gear = {};
-		set.equipment.equippedArray.forEach((item) => {
-			if (item.quantity > 0) {
-				gear[item.slot.localID] = {
-					name: item.item.name,
-					id: item.item.localID,
-					quantity: item.quantity
-				};
-			}
-		});
-		sets.push(gear);
-	});
-	return sets;
-}
-
-function collectBankData() {
-	const bank = [];
-	game.bank.items.forEach((entry) => {
-		bank.push({
-			name: entry.item.name,
-			id: entry.item.localID,
-			quantity: entry.quantity
-		});
-	});
-	
-	return {
-		size: game.bank.items.size,
-		capacity: (game.combat.player.modifiers.bankSpace ?? 0) + game.bank.baseSlots,
-		items: bank
-	};
-}
-
 function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
@@ -860,131 +521,68 @@ function formatDuration(ms) {
   return parts.join(' ');
 }
 
-function collectCurrentActivity() {
-	const result = [];
-	const player = game.combat.player;
-	const stats = game.stats;
-
-	// ETA - Mode 2
-	const currentMonsterData = mCloudStorage.getCurrentMonsterData()
+/**
+ * Callback for combat start event.
+ * @param {Data} entry 
+ */
+function onCombat(entry) {
+	const currentMonsterData = mCloudStorage.getCurrentMonsterData();
 	const now = new Date();
 
-	game.activeActions.registeredObjects.forEach((a) => {
-		if (a.isActive) {
-			const entry = {
-				activity: a.localID,
-				level: a.level || null,
-				recipe: a.selectedRecipe?.product?.name || null
-			};
-			if (a.localID === "Combat") {
-				entry.attackType = player.attackType;
-				entry.area = { name: a.selectedArea?.name, id: a.selectedArea?.localID };
-				if (a.selectedMonster) {
-					entry.monster = {
-						name: a.selectedMonster.name,
-						id: a.selectedMonster.localID,
-						killCount: stats.monsterKillCount(a.selectedMonster)
-					};
-				}
+	if (isCfg(SettingsReference.ETA_COMBAT) && entry.monster) {
+		if (currentMonsterData 
+			&& typeof currentMonsterData === 'object' 
+			&& currentMonsterData.id === entry.monster.id
+			&& currentMonsterData.startKillcount
+			&& currentMonsterData.startTime
+		) {
+			entry.monster.startKillcount = currentMonsterData.startKillcount;
+			entry.monster.diffKillcount = entry.monster.killCount - entry.monster.startKillcount;
 
-				// ETA - Mode 2
-				if (isCfg(SettingsReference.ETA_COMBAT) && entry.monster) {
-					if (currentMonsterData 
-						&& typeof currentMonsterData === 'object' 
-						&& currentMonsterData.id === entry.monster.id
-						&& currentMonsterData.startKillcount
-						&& currentMonsterData.startTime
-					) {
-						entry.monster.startKillcount = currentMonsterData.startKillcount;
-						entry.monster.diffKillcount = entry.monster.killCount - entry.monster.startKillcount;
+			entry.monster.startTime = new Date(currentMonsterData.startTime);
+			entry.monster.diffTime = now - entry.monster.startTime;
 
-						entry.monster.startTime = new Date(currentMonsterData.startTime);
-						entry.monster.diffTime = now - entry.monster.startTime;
-
-						entry.monster.diffTimeStr = formatDuration(entry.monster.diffTime);
-						if (entry.monster.diffTime > 0) {
-							entry.monster.kph = Math.round(
-								(entry.monster.diffKillcount / (entry.monster.diffTime / 3600000)) || 0
-							);
-						} else {
-							entry.monster.kph = "NaN";
-						}
-						entry.monster.kphStr = `${entry.monster.kph} kills/h`;
-						if (debugMode) {
-							console.log("[CDE] Matching current monster data", entry.monster);
-						}
-					} else {
-						entry.monster.diffKillcount = 0;
-						entry.monster.diffTime = 0;
-						entry.monster.diffTimeStr = "NaN";
-						entry.monster.kph = 0;
-						entry.monster.kphStr = "NaN kills/h";
-						entry.monster.startKillcount = entry.monster.killCount;
-						entry.monster.startTime = now;
-						if (debugMode) {
-							console.log("[CDE] Start activity trace", entry.monster);
-						}
-					}
-
-					// Update the current monster data
-					mCloudStorage.setCurrentMonsterData(entry.monster);
-				}
+			entry.monster.diffTimeStr = formatDuration(entry.monster.diffTime);
+			if (entry.monster.diffTime > 0) {
+				entry.monster.kph = Math.round(
+					(entry.monster.diffKillcount / (entry.monster.diffTime / 3600000)) || 0
+				);
 			} else {
-				if (currentMonsterData) {
-					mCloudStorage.removeCurrentMonsterData();
-					if (debugMode) {
-						console.log("[CDE] Clear activity trace", entry.monster);
-					}
-				}
+				entry.monster.kph = "NaN";
 			}
-			result.push(entry);
-		}
-	});
-	return result;
-}
-
-function collectDungeons() {
-	const result = [];
-	game.combat.dungeonCompletion.keys().forEach((d) => {
-		const count = game.combat.dungeonCompletion.get(d);
-		if (count > 0) {
-			result.push({ name: d.name, id: d.localID, completions: count });
-		}
-	});
-	return result;
-}
-
-function collectStrongholds() {
-	const result = [];
-	game.strongholds.namespaceMaps.forEach((e) => {
-		e.forEach((s) => {
-			if (s.timesCompleted > 0) {
-				result.push({ name: s.name, id: s.localID, completions: s.timesCompleted });
+			entry.monster.kphStr = `${entry.monster.kph} kills/h`;
+			if (debugMode) {
+				console.log("[CDE] Matching current monster data", entry.monster);
 			}
-		});
-	});
-	return result;
+		} else {
+			entry.monster.diffKillcount = 0;
+			entry.monster.diffTime = 0;
+			entry.monster.diffTimeStr = "NaN";
+			entry.monster.kph = 0;
+			entry.monster.kphStr = "NaN kills/h";
+			entry.monster.startKillcount = entry.monster.killCount;
+			entry.monster.startTime = now;
+			if (debugMode) {
+				console.log("[CDE] Start activity trace", entry.monster);
+			}
+		}
+
+		// Update the current monster data
+		mCloudStorage.setCurrentMonsterData(entry.monster);
+	}
 }
 
-function collectCompletion() {
-	const result = {};
-	const itemCur = game.completion.itemProgress.currentCount.data;
-	const itemMax = game.completion.itemProgress.maximumCount.data;
-	const monCur = game.completion.monsterProgress.currentCount.data;
-	const monMax = game.completion.monsterProgress.maximumCount.data;
-	NameSpaces.forEach((n) => {
-		const itemCount = itemCur.get(n) || 0;
-		const itemMaxCount = itemMax.get(n);
-		const itemPct = Math.round((itemCount / itemMaxCount) * 100);
-		const monsterCount = monCur.get(n) || 0;
-		const monsterMax = monMax.get(n);
-		const monsterPct = Math.round((monsterCount / monsterMax) * 100);
-		result[n] = {
-			items: { count: itemCount, max: itemMaxCount, percent: itemPct },
-			monsters: { count: monsterCount, max: monsterMax, percent: monsterPct }
-		};
-	});
-	return result;
+/**
+ * Callback for non-combat activity events.
+ * @param {Data} entry 
+ */
+function onNonCombat(entry) {
+	if (currentMonsterData) {
+		mCloudStorage.removeCurrentMonsterData();
+		if (debugMode) {
+			console.log("[CDE] Clear activity trace", entry.monster);
+		}
+	}
 }
 
 function getPercentDiff(oldVal, newVal) {
@@ -1577,9 +1175,6 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		generate: () => {
 			return processCollectData();
 		},
-		collectCurrentActivity: () => {
-			return collectCurrentActivity();
-		},
 		exportJson: () => {
 			return getExportJSON();
 		},
@@ -1606,6 +1201,15 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		},
 		getCloudStorage: () => {
 			return mCloudStorage;
+		},
+		getDisplayStats: () => {
+			return mDisplayStats;
+		},
+		getCollector: () => {
+			return mCollector;
+		},
+		openExportUI: (forceCollect = false) => {
+			openExportUI(forceCollect);
 		},
 		debugMode: (toggle) => {
 			debugMode = toggle;
