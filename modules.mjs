@@ -11,6 +11,7 @@ let mLocalStorage = null;
 let mCloudStorage = null;
 let mDisplayStats = null;
 let mCollector = null;
+let mExport = null;
 
 export function getSettings() {
     return mSettings;
@@ -34,6 +35,10 @@ export function getDisplayStats() {
 
 export function getCollector() {
     return mCollector;
+}
+
+export function getExport() {
+    return mExport;
 }
 
 export function getLZString() {
@@ -75,6 +80,7 @@ export async function onModuleLoad(ctx) {
     mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
     mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
     mCollector = await ctx.loadModule("modules/collector.mjs");
+    mExport = await ctx.loadModule("modules/export.mjs");
 }
 
 /**
@@ -101,4 +107,5 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     // Game data modules initialization
     mDisplayStats.init(this);
     mCollector.init(this);
+    mExport.init(this);
 }

@@ -35,7 +35,7 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
-export function MonsterData() {
+export function getCurrentMonsterData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
 		return typeof raw === "string" ? JSON.parse(raw) : raw;
