@@ -40,9 +40,7 @@
 
 
 // --- Configuration ---
-const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.38";
-
+const MOD_VERSION = "v1.8.39";
 let debugMode = false;
 
 // --- Module Imports ---

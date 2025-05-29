@@ -3,6 +3,8 @@
 
 // collector.mjs
 
+const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
+
 let onGameStatsHandler = () => {
 	console.warn("[CDE] Game stats handler not set");
 	return null;
