@@ -50,6 +50,7 @@ let mLZString = null;
 let mLocalStorage = null;
 let mCloudStorage = null;
 let mDisplayStats = null;
+let mCollector = null;
 
 // --- Settings Initialization ---
 let loadedSections = null;
@@ -845,40 +846,6 @@ function collectBankData() {
 	};
 }
 
-function getDiffMs(start, end) {
-	return Math.abs(new Date(end) - new Date(start));
-}
-
-function formatDiffToHHMMSS(diffMs) {
-	const hours = Math.floor(diffMs / (1000 * 60 * 60));
-	const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-	const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-	
-	return [
-		hours.toString().padStart(2, '0'),
-		minutes.toString().padStart(2, '0'),
-		seconds.toString().padStart(2, '0'),
-	].join(':');
-}
-
-function calculateKillsPerHour(elapsedMs, killCount) {
-	if (elapsedMs <= 0 || killCount < 0 || !Number.isFinite(elapsedMs) || !Number.isFinite(killCount)) {
-		return 0;
-	}
-	
-	const hours = elapsedMs / (1000 * 60 * 60); // Convert ms to hours
-	
-	if (hours < 1e-9) {
-		return 0;
-	}
-	
-	const kph = killCount / hours;
-	if (!Number.isFinite(kph) || kph > 1e6) {
-		return 0;
-	}
-	return Math.round(kph);
-}
-
 function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
@@ -897,10 +864,6 @@ function collectCurrentActivity() {
 	const result = [];
 	const player = game.combat.player;
 	const stats = game.stats;
-	
-	// ETA - Mode 1
-	// const lastActivities = getExportJSON()?.currentActivity;
-	// const lastTimestamp = getExportJSON()?.meta?.exportTimestamp;
 
 	// ETA - Mode 2
 	const currentMonsterData = mCloudStorage.getCurrentMonsterData()
@@ -1580,6 +1543,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
 		mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
 		mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
+		mCollector = await ctx.loadModule("modules/collector.mjs");
 
 		console.log("[CDE] Module loaded !");
 	});
