@@ -560,7 +560,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				const item = {
 					// idSkill: skill.localID,
 					skillXp: skill.xp,
-					skillNextLevelProgress: skill.nextLevelProgress+"%",
+					skillNextLevelProgress: skill.nextLevelProgress+" %",
 					skillLevel: skill.level
 				}
 				items[skill.localID] = item;
