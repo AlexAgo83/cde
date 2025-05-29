@@ -36,6 +36,10 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+/**
+ * Collect basic game information.
+ * @returns {Object} The basics object.
+ */
 export function collectBasics() {
 	const player = _game().combat.player;
 	const stats = _game().stats;
@@ -72,6 +76,10 @@ export function collectBasics() {
 	};
 }
 
+/**
+ * Collect the player's skills and their levels.
+ * @returns {Object} An object containing the skills and their levels.
+ */
 export function collectSkills() {
 	const result = {};
 	_game().skills.forEach((skill) => {
@@ -84,6 +92,10 @@ export function collectSkills() {
 	return result;
 }
 
+/**
+ * Collect the player's mastery progress.
+ * @returns {Object} An object containing the mastery progress for each skill.
+ */
 export function collectMastery() {
 	const result = {};
 
@@ -108,6 +120,10 @@ export function collectMastery() {
 	return result;
 }
 
+/**
+ * Collect the player's agility course data.
+ * @returns {Object} An object containing the player's agility course data.
+ */
 export function collectAgility() {
 	const result = [];
 
@@ -133,6 +149,10 @@ export function collectAgility() {
 	return result;
 }
 
+/**
+ * Collect the active potions in the game.
+ * @returns {Array<{ activity: string, potion: string, charges: number }>}
+ */
 export function collectActivePotions() {
 	const result = [];
 	_game().potions.activePotions?.forEach((currPotion, activity) => {
@@ -145,6 +165,12 @@ export function collectActivePotions() {
 	return result;
 }
 
+/**
+ * 	Collect the player's township data.
+ * This function gathers various statistics about the player's township, including level, population,
+ * happiness, education, health, storage used, souls, worship details, tax rate, and task completion status.
+ * @returns {Object} An object containing the player's township data.
+ */
 export function collectTownship() {
 	const ts = _game().township;
 	const data = ts.townData;
@@ -168,6 +194,12 @@ export function collectTownship() {
 	};
 }
 
+/**
+ * Collect the player's pets.
+ * This function gathers information about the pets the player has unlocked, including their names,
+ * IDs, and the number of times they have been unlocked.
+ * @returns {Array<{ name: string, id: string, unlockCount: number }>}
+ */
 export function collectPets() {
 	const result = [];
 
@@ -184,6 +216,13 @@ export function collectPets() {
 	return result;
 }
 
+/**
+ * Collect ancient relics from the game.
+ * This function iterates through all registered skills in the game and collects information about
+ * ancient relic sets and the relics found within those sets. It returns an array of objects,
+ * where each object contains the skill name, skill ID, and an array of relics with their names and IDs.
+ * @returns {Array<{ skill: string, skillID: string, relics: Array<{ name: string, id: string }> }>}	
+ */
 export function collectAncientRelics() {
 	const result = [];
 	
@@ -215,6 +254,13 @@ export function collectAncientRelics() {
 	return result;
 }
 
+/**
+ * Collect the player's cartography data.
+ * This function gathers information about the player's cartography progress, including the level of cartography,
+ * the registered world maps, and the points of interest (POIs) discovered on each map. It returns an object
+ * containing the cartography level and an array of maps with their details such as name, ID, discovered POIs,	
+ * @returns {Object} An object containing the player's cartography data.
+ */
 export function collectCartography() {
 	const maps = _game().cartography.worldMaps?.registeredObjects;
 	const result = [];
@@ -257,6 +303,10 @@ export function collectCartography() {
 	};
 }
 
+/**
+ * Collect the player's farming data.
+ * @returns {Object} An object containing the farming plots and their planted crops.
+ */
 export function collectFarming() {
 	const result = [];
 	_game().farming.plots.forEach((plot) => {
@@ -268,6 +318,13 @@ export function collectFarming() {
 	return { level: _game().farming.level, plots: result };
 }
 
+/**
+ * Collect the player's game statistics.
+ * This function retrieves the player's game statistics by iterating through the registered StatTypes
+ * and collecting the relevant data. It formats the statistics into an object where each key is the
+ * name of the statistic and the value is an object containing the statistic's details.
+ * @returns {Object} An object containing the player's game statistics.
+ */
 export function collectGameStats() {
 	const result = {};
 	mods.getDisplayStats().StatTypes.forEach((type) => {
@@ -280,6 +337,13 @@ export function collectGameStats() {
 	return result;
 }
 
+/**
+ * Collect the player's astrology data.
+ * This function gathers information about the player's astrology mastery, including constellations,
+ * standard modifiers, and unique modifiers. It returns an array of objects, each representing a constellation
+ * with its name, standard modifiers (bought and max counts), and unique modifiers (bought and max counts).
+ * @returns {Object} An object containing the player's astrology mastery data.
+ */
 export function collectAstrology() {
 	const result = [];
 	
@@ -304,6 +368,13 @@ export function collectAstrology() {
 	return result;
 }
 
+/**
+ * Collect the player's shop data.
+ * This function gathers information about the player's shop purchases, including the names, IDs,
+ * and quantities of items purchased. It returns an object containing an array of purchases.
+ * The purchases are represented as objects with properties for the item's name, ID, and quantity.
+ * @returns {Object} An object containing the player's shop purchases.
+ */
 export function collectShopData() {
 	const purchases = [];
 
@@ -321,6 +392,10 @@ export function collectShopData() {
 	return { purchases };
 }
 
+/**
+ * Collect the player's equipment data.
+ * @returns {Object} An object containing the player's equipped items, equipment sets, bank data, dungeons, strongholds, and completion progress.
+ */
 export function collectEquipments() {
 	const equipped = {};
 	_game().combat.player.equipment.equippedArray.forEach((slotItem) => {
@@ -335,6 +410,12 @@ export function collectEquipments() {
 	return equipped;
 }
 
+/**
+ * Collect the player's equipment sets.
+ * This function gathers all the equipment sets that the player has created.
+ * It iterates through the player's equipment sets and collects the equipped items for each set.	
+ * @returns {Array<Object>} An array of equipment sets, each containing the equipped items.
+ */
 export function collectEquipmentSets() {
 	const sets = [];
 	_game().combat.player.equipmentSets.forEach((set) => {
@@ -353,6 +434,12 @@ export function collectEquipmentSets() {
 	return sets;
 }
 
+/**
+ * Collect the player's bank data.
+ * This function gathers information about the player's bank, including its size, capacity, and items.	
+ * @returns {Object} An object containing the player's bank data, including size, capacity, and items.
+ * The items are represented as an array of objects, each containing the item's name, ID, and quantity.
+ */
 export function collectBankData() {
 	const bank = [];
 	_game().bank.items.forEach((entry) => {
@@ -370,6 +457,10 @@ export function collectBankData() {
 	};
 }
 
+/**
+ * Collect the player's dungeon completion data.
+ * @returns {Array<{ name: string, id: string, completions: number }>}
+ */
 export function collectDungeons() {
 	const result = [];
 	_game().combat.dungeonCompletion.keys().forEach((d) => {
@@ -381,6 +472,12 @@ export function collectDungeons() {
 	return result;
 }
 
+/**
+ * Collect the player's stronghold completion data.
+ * This function gathers information about the strongholds that the player has completed.
+ * It iterates through the namespace maps of strongholds and collects the names, IDs, and completion counts.
+ * @returns {Array<{ name: string, id: string, completions: number }>}
+ */
 export function collectStrongholds() {
 	const result = [];
 	_game().strongholds.namespaceMaps.forEach((e) => {
@@ -393,6 +490,12 @@ export function collectStrongholds() {
 	return result;
 }
 
+/**
+ * Collect the player's completion progress.
+ * This function gathers the completion progress for items and monsters across different namespaces.
+ * It returns an object where each key is a namespace, and the value contains the count, max, and percent for items and monsters.
+ * @returns {Object} An object containing the completion progress for items and monsters.
+ */
 export function collectCompletion() {
 	const result = {};
 	const itemCur = _game().completion.itemProgress.currentCount.data;
@@ -414,6 +517,12 @@ export function collectCompletion() {
 	return result;
 }
 
+/**
+ * Collect the player's current activity.
+ * @param {*} onCombat 
+ * @param {*} onNonCombat 
+ * @returns 
+ */
 export function collectCurrentActivity(onCombat, onNonCombat) {
 	const result = [];
 	const player = _game().combat.player;
