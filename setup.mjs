@@ -40,7 +40,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.53";
+const MOD_VERSION = "v1.8.56";
 
 // --- Module Imports ---
 let mModules = null;
@@ -49,21 +49,21 @@ let mModules = null;
  * Proxy/Mock reference to modApi:game
  * @returns {object} Game object
  */
-function _game() { // @ts-ignore Handle DEVMODE
+function _game() { /* @ts-ignore Handle DEVMODE */
 	return game; 
 }
 /**
  * Proxy/Mock reference to modApi:ui
  * @returns {object} ui object
  */
-function _ui() { // @ts-ignore Handle DEVMODE
+function _ui() { /* @ts-ignore Handle DEVMODE */
 	return ui; 
 }
 /**
  * Proxy/Mock reference to modApi:Swal
  * @returns {object} Swal object
  */
-function _Swal() { // @ts-ignore Handle DEVMODE
+function _Swal() { /* @ts-ignore Handle DEVMODE */
 	return Swal; 
 }
 
@@ -108,9 +108,10 @@ function implProcessCollectData() {
  * time difference, and calculating Kills per Hour (KpH).
  * It also sets the start kill count and start time for the current monster.
  * If the current monster data matches the entry, it updates the statistics accordingly.
+ * @param {object} activity 
  * @param {object} entry 
  */
-function onCombat(entry) {
+function onCombat(activity, entry) {
 	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
 	const now = new Date();
 
@@ -121,6 +122,7 @@ function onCombat(entry) {
 			&& currentMonsterData.startKillcount
 			&& currentMonsterData.startTime
 		) {
+			/* Matching current monster */
 			entry.monster.startKillcount = currentMonsterData.startKillcount;
 			entry.monster.diffKillcount = entry.monster.killCount - entry.monster.startKillcount;
 
@@ -140,6 +142,7 @@ function onCombat(entry) {
 				console.log("[CDE] Matching current monster data", entry.monster);
 			}
 		} else {
+			/* New current monster */
 			entry.monster.diffKillcount = 0;
 			entry.monster.diffTime = 0;
 			entry.monster.diffTimeStr = "NaN";
@@ -152,7 +155,7 @@ function onCombat(entry) {
 			}
 		}
 
-		// Update the current monster data
+		/* Update the current monster data */
 		mModules.getCloudStorage().setCurrentMonsterData(entry.monster);
 	}
 }
@@ -161,15 +164,19 @@ function onCombat(entry) {
  * ETA - Callback for non-combat event.
  * This function clears the current monster data when a non-combat event occurs,
  * effectively resetting the activity trace for the current monster.
- * @param {object} entry
+ * @param {object} activity 
+ * @param {object} entry 
  */
-function onNonCombat(entry) {
+function onNonCombat(activity, entry) {
+	/* Reset current monster data memory */
 	if (mModules.getCloudStorage().getCurrentMonsterData()) {
 		mModules.getCloudStorage().removeCurrentMonsterData();
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] Clear activity trace", entry.monster);
 		}
 	}
+
+
 }
 
 // --- UI Setup ---

@@ -29,7 +29,7 @@ function Stg() {
 let getDebug = () => {
     return _debugMode;
 }
-let setDebug = (value) => {
+export let setDebug = (value) => {
     _debugMode = value;
 }
 export function isDebug() {

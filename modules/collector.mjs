@@ -521,7 +521,7 @@ export function collectCompletion() {
  * Collect the player's current activity.
  * @param {*} onCombat 
  * @param {*} onNonCombat 
- * @returns 
+ * @returns {Object} An object containing the current activities.
  */
 export function collectCurrentActivity(onCombat, onNonCombat) {
 	const result = [];
@@ -529,14 +529,19 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 	const stats = _game().stats;
 
 	// ETA - Mode 2
+	// _game().activeAction?.activeSkills?.forEach((a) => {
 	_game().activeActions.registeredObjects.forEach((a) => {
 		if (a.isActive) {
 			const entry = {
 				activity: a.localID,
 				level: a.level || null,
-				recipe: a.selectedRecipe?.product?.name || null
+				xp: a.xp,
+				nextLevelProgress: a.nextLevelProgress
 			};
-			if (a.localID === "Combat") {
+			if (a.selectedRecipe?.product?.name || null) {
+				entry.recipre = a.selectedRecipe?.product?.name;
+			}
+			if (a.localID === "Combat") { /** COMBAT SKILLS */
 				entry.attackType = player.attackType;
 				entry.area = { name: a.selectedArea?.name, id: a.selectedArea?.localID };
 				if (a.selectedMonster) {
@@ -546,9 +551,29 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 						killCount: stats.monsterKillCount(a.selectedMonster)
 					};
 				}
-				onCombat(entry);
-			} else {
-				onNonCombat(entry);
+				onCombat(a, entry);
+				if (mods.getSettings().isDebug())
+					console.log("[CDE] Update combat", entry);
+			} else { /** NON COMBAT SKILLS */
+				const queue = [];
+				a.acionItemQueryCache?.keys().forEach((key) => {
+					const mastery = a.actionMastery?.get(key);
+					const item = {};
+
+					item.idSkill = a.localID;
+					item.idMastery = key.localID;
+					item.idQuery = a.localID + " - " + key.localID;
+
+					if (mastery) {
+						item.maxteryXp = mastery.xp;
+						item.masteryLevel = mastery.level;
+					}
+					queue.push(item);
+				});
+				entry.recipeQueue = queue;
+				onNonCombat(a, entry);
+				if (mods.getSettings().isDebug())
+					console.log("[CDE] Update non-combat", entry);
 			}
 			result.push(entry);
 		}
