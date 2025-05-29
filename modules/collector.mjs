@@ -555,7 +555,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 					skillLevel: skill.level
 				}
 				// items.push(item);
-				items[item.idSkill] = item;
+				items[skill.localID] = item;
 			});
 			entry.skills = items;
 
