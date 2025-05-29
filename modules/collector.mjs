@@ -589,12 +589,9 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 				a.acionItemQueryCache?.keys().forEach((key) => {
 					const mastery = a.actionMastery?.get(key);
 					const item = {};
-					// item.idSkill = a.localID;
-					// item.idMastery = key.localID;
-
 					if (mastery) {
 						item.maxteryXp = mastery.xp;
-						// item.maxteryNextLevelProgress = mastery.nextLevelProgress+"%",
+						item.maxteryNextLevelProgress = mods.getUtils().getMasteryProgressPercent(mastery.nextLevelProgress)+" %",
 						item.masteryLevel = mastery.level;
 						queue[key.localID] = item;
 					}
