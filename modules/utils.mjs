@@ -17,6 +17,14 @@ export function init(modules) {
 }
 
 /**
+ * Get the boolean value for a settings reference.
+ * @returns {boolean} True if the reference is allowed, false otherwise.
+ */
+function isCfg(reference) {
+	return mods.getSettings()?.isCfg(reference);
+}
+
+/**
  * Get the settings reference object.
  * @returns {Object} The settings reference object.
  */

@@ -22,11 +22,19 @@ function _game() {
 }
 
 /**
- * Get the settings reference object.
+ * Get the proxy-settings reference object.
  * @returns {Object} The settings reference object.
  */
 function Stg() {
 	return mods.getSettings()?.SettingsReference;
+}
+
+/**
+ * Get the boolean value for a settings reference.
+ * @returns {boolean} True if the reference is allowed, false otherwise.
+ */
+function isCfg(reference) {
+	return mods.getSettings()?.isCfg(reference);
 }
 
 // --- Export Logic ---
@@ -40,7 +48,7 @@ export function getExportJSON() {
 	return exportData;
 }
 export function getExportString() {
-	return mods.getSettings().isCfg(Stg().EXPORT_COMPRESS) ? 
+	return isCfg(Stg().EXPORT_COMPRESS) ? 
 	JSON.stringify(getExportJSON()) : 
 	JSON.stringify(getExportJSON(), null, 2);
 }
@@ -94,7 +102,7 @@ export function cleanChangesHistory() {
 
 // Collector
 export function collector(cfgRef, collectorFn, fallbackMsg) {
-	return mods.getSettings().isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
+	return isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
 }
 
 export function processCollectData(onCombat, onNonCombat, onMeta) {
@@ -131,11 +139,11 @@ export function processCollectData(onCombat, onNonCombat, onMeta) {
 	};
     onMeta(newData.meta);
 
-	if (mods.getSettings().isCfg(Stg().SAVE_TO_STORAGE)) {
+	if (isCfg(Stg().SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));
 		
 		// Generate Diff
-		if (mods.getSettings().isCfg(Stg().GENERATE_DIFF)) {
+		if (isCfg(Stg().GENERATE_DIFF)) {
 			const lastExport = mods.getLocalStorage().getLastExportFromStorage();	
 			const charName = _game().characterName || "Unknown";
 			const exportTime = new Date().toLocaleString();

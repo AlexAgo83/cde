@@ -27,6 +27,14 @@ function Stg() {
 	return mods.getSettings()?.SettingsReference;
 }
 
+/**
+ * Get the boolean value for a settings reference.
+ * @returns {boolean} True if the reference is allowed, false otherwise.
+ */
+function isCfg(reference) {
+	return mods.getSettings()?.isCfg(reference);
+}
+
 export function getCurrentMonsterData() {
 	return cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
 }

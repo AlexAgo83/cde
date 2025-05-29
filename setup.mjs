@@ -40,7 +40,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.50";
+const MOD_VERSION = "v1.8.51";
 
 // --- Module Imports ---
 let mModules = null;
@@ -57,11 +57,18 @@ function _Swal() { // @ts-ignore Handle DEVMODE
 }
 
 /**
- * Get the settings reference object.
+ * Get the proxy-settings reference object.
  * @returns {Object} The settings reference object.
  */
 function Stg() {
 	return mModules.getSettings()?.SettingsReference;
+}
+/**
+ * Get the proxy-boolean value for a settings reference.
+ * @returns {boolean} True if the reference is allowed, false otherwise.
+ */
+function isCfg(reference) {
+	return mModules.getSettings()?.isCfg(reference);
 }
 
 /**
@@ -96,7 +103,7 @@ function onCombat(entry) {
 	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
 	const now = new Date();
 
-	if (mModules.getSettings().isCfg(Stg().ETA_COMBAT) && entry.monster) {
+	if (isCfg(Stg().ETA_COMBAT) && entry.monster) {
 		if (currentMonsterData 
 			&& typeof currentMonsterData === 'object' 
 			&& currentMonsterData.id === entry.monster.id
@@ -185,12 +192,12 @@ function visibilityExportButton(visible) {
 }
 
 function onExportOpen() {
-	if (!mModules.getSettings().isCfg(Stg().MOD_ENABLED)) return;
+	if (!isCfg(Stg().MOD_ENABLED)) return;
 
 	// Clean-up
 	const viewDiffButton = document.getElementById("cde-viewdiff-button");
 	if (viewDiffButton) {
-		viewDiffButton.style.display = mModules.getSettings().isCfg(Stg().GENERATE_DIFF) ? "visible" : "none";
+		viewDiffButton.style.display = isCfg(Stg().GENERATE_DIFF) ? "visible" : "none";
 	}
 }
 
@@ -514,13 +521,13 @@ const exportFooter =
  * @param {*} forceCollect 
  */
 function openExportUI(forceCollect = false) {
-	if (mModules.getSettings().isCfg(Stg().AUTO_EXPORT_ONWINDOW) || forceCollect) {
+	if (isCfg(Stg().AUTO_EXPORT_ONWINDOW) || forceCollect) {
 		implProcessCollectData();
 	}
-	if (mModules.getSettings().isCfg(Stg().MOD_ENABLED)) {
+	if (isCfg(Stg().MOD_ENABLED)) {
 
 		// --- Ajout de la checkbox ---
-		const autoExportChecked = mModules.getSettings().isCfg(Stg().AUTO_EXPORT_ONWINDOW);
+		const autoExportChecked = isCfg(Stg().AUTO_EXPORT_ONWINDOW);
 		const autoExportCheckbox =
 		`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
 			<input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />
@@ -616,7 +623,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async () => {
 		mModules.onDataLoad(settings, characterStorage, onSettingsChange);
-		if (mModules.getSettings().isCfg(Stg().AUTO_EXPORT_ONLOAD)) {
+		if (isCfg(Stg().AUTO_EXPORT_ONLOAD)) {
 			implProcessCollectData();
 		}
 		console.info("[CDE] Data loaded !");
@@ -629,7 +636,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		
 		// Setup Export Button
 		setupExportButtonUI(openExportUI);
-		visibilityExportButton(mModules.getSettings().isCfg(Stg().SHOW_BUTTON));
+		visibilityExportButton(isCfg(Stg().SHOW_BUTTON));
 		
 		console.log("[CDE] Interface ready !");
 	});
