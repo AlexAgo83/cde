@@ -1577,9 +1577,9 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		}
 		
 		// Load stats module
-		mLocalStorage = await ctx.loadModule("localStorage.mjs");
-		mCloudStorage = await ctx.loadModule("cloudStorage.mjs");
-		mDisplayStats = await ctx.loadModule("displayStats.mjs");
+		mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
+		mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
+		mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
 
 		console.log("[CDE] Module loaded !");
 	});

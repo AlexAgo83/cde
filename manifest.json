@@ -4,9 +4,9 @@
   "setup": "setup.mjs",
   "module": [
     "libs/lz-string.js",
-    "localStorage.mjs",
-    "cloudStorage.mjs",
-    "displayStats.mjs"
+    "modules/localStorage.mjs",
+    "modules/cloudStorage.mjs",
+    "modules/displayStats.mjs"
   ],
   "load": [
     "assets/templates.html",
