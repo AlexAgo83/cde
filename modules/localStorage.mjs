@@ -114,3 +114,11 @@ export function saveChangesToStorage(jsonData) {
 	}
 	saveToStorage(getStorage_ChangesKey(), toStore);
 }
+
+export function clearStorage() {
+	localStorage.removeItem(getStorage_ExportKey());
+	localStorage.removeItem(getStorage_ChangesKey());
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] localStorage cleared!")
+	}
+}

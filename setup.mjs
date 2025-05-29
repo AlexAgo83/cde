@@ -40,7 +40,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.67";
+const MOD_VERSION = "v1.8.68";
 
 // --- Module Imports ---
 let mModules = null;
@@ -603,7 +603,10 @@ function openExportUI(forceCollect = false) {
  * @param {*} reference 
  */
 function onSettingsChange(reference) {
-	if (reference.key === Stg().key) {
+	if (mModules.getSettings().isDebug()) {
+		console.log("[CDE] settings - reference triggered:", reference);
+	}
+	if (reference.key === Stg().MOD_DEBUG.key) {
 		return (value) => {
 			mModules.getSettings().setDebug(value);
 			if (mModules.getSettings().isDebug()) {
@@ -625,6 +628,13 @@ function onSettingsChange(reference) {
 			if (mModules.getSettings().isDebug()) {
 				console.log("[CDE] settings - maxChangesHistory :", value);
 			}
+		};
+	}
+	if (reference.key === Stg().CLEAR_STORAGE.key) {
+		return () => {
+			mModules.getLocalStorage().clearStorage();
+			mModules.getCloudStorage().clearStorage();
+			console.log("[CDE] Storage cleared!");
 		};
 	}
 }

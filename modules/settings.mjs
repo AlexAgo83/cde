@@ -48,34 +48,12 @@ export function getLoadedSections() {
 export const Sections = {
 	General: "General",
 	DataOptions: "Data Options",
-	ETA: "ETA"
+	ETA: "ETA",
+	Advance: "Advance"
 };
 export const SettingsReference = {
 	// GENERAL SETTINGS
-	MOD_ENABLED: {
-		section: Sections.General,
-		type: "switch",
-		key: "mod-enabled", 
-		label: "Enable Mod", 
-		hint: "Toggle the Character Data Exporter on or off", 
-		toggle: true
-	},
-	MOD_DEBUG: {
-		section: Sections.General,
-		type: "switch",
-		key: "mod-debug", 
-		label: "Enable Debug", 
-		hint: "Toggle Debug on or off (May need restart)", 
-		toggle: false
-	},
-	SHOW_BUTTON: {
-		section: Sections.General,
-		type: "switch",
-		key: "show-button",
-		label: "Show button",
-		hint: "Show top CDE button (May need restart)", 
-		toggle: true
-	},
+	
 	AUTO_EXPORT_ONLOAD: {
 		section: Sections.General,
 		type: "switch",
@@ -90,38 +68,6 @@ export const SettingsReference = {
 		key: "export-onwindow",
 		label: "Auto Export on CDE Window Open",
 		hint: "Automatically generate export each time the CDE window is opened.",
-		toggle: true
-	},
-	EXPORT_COMPRESS: {
-		section: Sections.General,
-		type: "switch",
-		key: "export-compress",
-		label: "Compress Export Output",
-		hint: "Export JSON in a compressed single-line format", 
-		toggle: true
-	},
-	USE_LZSTRING: {
-		section: Sections.General,
-		type: "switch",
-		key: "use-lzstring",
-		label: "Use LZString Compression",
-		hint: "Enable or disable usage of LZString for export compression",
-		toggle: true
-	},
-	SAVE_TO_STORAGE: {
-		section: Sections.General,
-		type: "switch",
-		key: "save-to-storage",
-		label: "Save export in storage",
-		hint: "Save the latest export JSON in localStorage",
-		toggle: true
-	},
-	GENERATE_DIFF: {
-		section: Sections.General,
-		type: "switch",
-		key: "generate-diff",
-		label: "Generate Changelog (Diff)",
-		hint: "Enable changelog comparison between current and previous export",
 		toggle: true
 	},
 	MAX_CHANGES_HISTORY: {
@@ -248,6 +194,7 @@ export const SettingsReference = {
 		toggle: true
 	},
 
+	// ETA
 	ETA_COMBAT: {
 		section: Sections.ETA,
 		type: "switch",
@@ -255,6 +202,71 @@ export const SettingsReference = {
 		label: "Display Combat ETA",
 		hint: "Toggle to show the estimated time remaining to complete your current combat activity, based on recent kills and efficiency.",
 		toggle: true
+	},
+
+	// ADVANCE
+	MOD_ENABLED: {
+		section: Sections.Advance,
+		type: "switch",
+		key: "mod-enabled", 
+		label: "Enable Mod", 
+		hint: "Toggle the Character Data Exporter on or off", 
+		toggle: true
+	},
+	SHOW_BUTTON: {
+		section: Sections.Advance,
+		type: "switch",
+		key: "show-button",
+		label: "Show button",
+		hint: "Show top CDE button (May need restart)", 
+		toggle: true
+	},
+	EXPORT_COMPRESS: {
+		section: Sections.Advance,
+		type: "switch",
+		key: "export-compress",
+		label: "Compress Export Output",
+		hint: "Export JSON in a compressed single-line format", 
+		toggle: true
+	},
+	USE_LZSTRING: {
+		section: Sections.Advance,
+		type: "switch",
+		key: "use-lzstring",
+		label: "Use LZString Compression",
+		hint: "Enable or disable usage of LZString for export compression",
+		toggle: true
+	},
+	SAVE_TO_STORAGE: {
+		section: Sections.Advance,
+		type: "switch",
+		key: "save-to-storage",
+		label: "Save export in storage",
+		hint: "Save the latest export JSON in localStorage",
+		toggle: true
+	},
+	CLEAR_STORAGE: {
+		section: Sections.Advance,
+		type: "button",
+		key: "clear-storage",
+		label: "Clear storage",
+		hint: "Clear the localStorage & cloudStorage"
+	},
+	GENERATE_DIFF: {
+		section: Sections.Advance,
+		type: "switch",
+		key: "generate-diff",
+		label: "Generate Changelog (Diff)",
+		hint: "Enable changelog comparison between current and previous export",
+		toggle: true
+	},
+	MOD_DEBUG: {
+		section: Sections.Advance,
+		type: "switch",
+		key: "mod-debug", 
+		label: "Enable Debug", 
+		hint: "Toggle Debug on or off (At your own risk)", 
+		toggle: false
 	}
 }
 
@@ -288,6 +300,10 @@ export class SettingsReferenceItem {
 				default: this.itemDefault,
 				onChange: this.itemOnChange
 			};
+			if (this.itemType == 'button') {
+				config.display = this.itemLabel;
+  				config.onClick = this.itemOnChange;
+			}
 			if ((this.itemType == "select" || this.itemType == "dropdown") 
 				&& this.itemOptions) {
 				config.options = this.itemOptions;
@@ -317,7 +333,8 @@ export function createSettings() {
 	loadedSections = {
 		[Sections.General]: settings.section(Sections.General),
 		[Sections.DataOptions]: settings.section(Sections.DataOptions),
-		[Sections.ETA]: settings.section(Sections.ETA)
+		[Sections.ETA]: settings.section(Sections.ETA),
+		[Sections.ADVANCE]: settings.section(Sections.ADVANCE)
 	}
 
 	for (const key in SettingsReference) {

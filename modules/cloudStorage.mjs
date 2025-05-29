@@ -50,3 +50,10 @@ export function setCurrentMonsterData(monsterData)  {
 export function removeCurrentMonsterData() {
 	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
 }
+
+export function clearStorage() {
+	cloudStorage.clear()
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] cloudStorage cleared!")
+	}
+}
