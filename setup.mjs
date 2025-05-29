@@ -40,7 +40,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.68";
+const MOD_VERSION = "v1.8.73";
 
 // --- Module Imports ---
 let mModules = null;
@@ -606,36 +606,42 @@ function onSettingsChange(reference) {
 	if (mModules.getSettings().isDebug()) {
 		console.log("[CDE] settings - reference triggered:", reference);
 	}
-	if (reference.key === Stg().MOD_DEBUG.key) {
-		return (value) => {
-			mModules.getSettings().setDebug(value);
-			if (mModules.getSettings().isDebug()) {
-				console.log("[CDE] settings - Debugmode :", value);
-			}
-		};
+	
+	let key = reference?.ref?.key;
+	let value = reference?.value;
+
+	// MODE DEBUG
+	if (key === Stg().MOD_DEBUG.key) {
+		mModules.getSettings().setDebug(value);
+		if (mModules.getSettings().isDebug()) {
+			console.log("[CDE] settings - Debugmode :", value);
+		}
+		return () => { return value};
 	}
-	if (reference.key === Stg().SHOW_BUTTON.key) {
-		return (value) => {
-			visibilityExportButton(value);
-			if (mModules.getSettings().isDebug()) {
-				console.log("[CDE] settings - showButton :", value);
-			}
-		};
+
+	// SHOW BUTTON
+	if (key === Stg().SHOW_BUTTON.key) {
+		visibilityExportButton(value);
+		if (mModules.getSettings().isDebug()) {
+			console.log("[CDE] settings - showButton :", value);
+		}
+		return () => { return value};
 	}
-	if (reference.key === Stg().MAX_CHANGES_HISTORY.key) {
-		return (value) => {
-			mModules.getExport().cleanChangesHistory();
-			if (mModules.getSettings().isDebug()) {
-				console.log("[CDE] settings - maxChangesHistory :", value);
-			}
-		};
+
+	// MAX CHANGES HISTORY
+	if (key === Stg().MAX_CHANGES_HISTORY.key) {
+		mModules.getExport().cleanChangesHistory();
+		if (mModules.getSettings().isDebug()) {
+			console.log("[CDE] settings - maxChangesHistory :", value);
+		}
+		return () => { return value};
 	}
-	if (reference.key === Stg().CLEAR_STORAGE.key) {
-		return () => {
-			mModules.getLocalStorage().clearStorage();
-			mModules.getCloudStorage().clearStorage();
-			console.log("[CDE] Storage cleared!");
-		};
+
+	// CLEAR STORAGE
+	if (key === Stg().CLEAR_STORAGE.key) {
+		mModules.getLocalStorage().clearStorage();
+		mModules.getCloudStorage().clearStorage();
+		console.log("[CDE] Storage cleared!");
 	}
 }
 

@@ -273,9 +273,10 @@ export const SettingsReference = {
 export class SettingsReferenceItem {
 	/**
 	 * @param {any} stgRef
-	 * @param {((any) => void)} onChange
+	 * @param {((any))} onChangeCb
 	 */
-	constructor(stgRef, onChange = () => {}) {
+	constructor(stgRef, onChangeCb) {
+		this.reference = stgRef;
 		this.attachedSection = null;
 		this.itemSectionRef = stgRef.section;
 		this.itemType = stgRef.type;
@@ -287,27 +288,44 @@ export class SettingsReferenceItem {
 		this.itemMin = stgRef.min;
 		this.itemMax = stgRef.max;
 		this.itemStep = stgRef.step;
-		this.itemOnChange = onChange;
+		this.itemOnChange = onChangeCb;
+	}
+
+	getReference() {
+		return this.reference;
 	}
 	
 	init(section) {
 		if (!this.attachedSection) {
+			const implOnChange = (value) => {
+				if (this.itemOnChange) return this.itemOnChange({ref: this.getReference(), value: value});
+			}
+
+			// DEFAULT (Switch)
 			const config = {
 				type: this.itemType,
 				name: this.itemKey,
 				label: this.itemLabel,
 				hint: this.itemHint,
 				default: this.itemDefault,
-				onChange: this.itemOnChange
 			};
+
+			// BUTTON
 			if (this.itemType == 'button') {
 				config.display = this.itemLabel;
-  				config.onClick = this.itemOnChange;
+				config.onClick = implOnChange;
+
+			// OTHERS
+			} else {
+				config.onChange = implOnChange;
 			}
+			
+			// > DROPDOWN
 			if ((this.itemType == "select" || this.itemType == "dropdown") 
 				&& this.itemOptions) {
 				config.options = this.itemOptions;
 			}
+			// > INPUT
 			if (this.itemType == "input") {
 				config.min = this.itemMin;
 				config.max = this.itemMax;
@@ -334,7 +352,7 @@ export function createSettings() {
 		[Sections.General]: settings.section(Sections.General),
 		[Sections.DataOptions]: settings.section(Sections.DataOptions),
 		[Sections.ETA]: settings.section(Sections.ETA),
-		[Sections.ADVANCE]: settings.section(Sections.ADVANCE)
+		[Sections.Advance]: settings.section(Sections.Advance)
 	}
 
 	for (const key in SettingsReference) {
