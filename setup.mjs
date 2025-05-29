@@ -45,13 +45,24 @@ const MOD_VERSION = "v1.8.53";
 // --- Module Imports ---
 let mModules = null;
 
-// --- MOCK ---
+/**
+ * Proxy/Mock reference to modApi:game
+ * @returns {object} Game object
+ */
 function _game() { // @ts-ignore Handle DEVMODE
 	return game; 
 }
+/**
+ * Proxy/Mock reference to modApi:ui
+ * @returns {object} ui object
+ */
 function _ui() { // @ts-ignore Handle DEVMODE
 	return ui; 
 }
+/**
+ * Proxy/Mock reference to modApi:Swal
+ * @returns {object} Swal object
+ */
 function _Swal() { // @ts-ignore Handle DEVMODE
 	return Swal; 
 }
