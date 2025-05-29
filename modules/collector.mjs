@@ -3,14 +3,20 @@
 
 // collector.mjs
 
-const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-
 let onGameStatsHandler = () => {
 	console.warn("[CDE] Game stats handler not set");
 	return null;
 }
-export function setOnGameStatsHandler(handler) {
+export function setGameStatsHandler(handler) {
 	onGameStatsHandler = handler;
+}
+
+let onUtilsHandler = () => {
+	console.warn("[CDE] Utils handler not set");
+	return null;
+}
+export function setUtilsHandler(handler) {
+	onUtilsHandler = handler;
 }
 
 export function collectBasics() {
@@ -378,7 +384,7 @@ export function collectCompletion() {
 	const itemMax = game.completion.itemProgress.maximumCount.data;
 	const monCur = game.completion.monsterProgress.currentCount.data;
 	const monMax = game.completion.monsterProgress.maximumCount.data;
-	NameSpaces.forEach((n) => {
+	onUtilsHandler().NameSpaces.forEach((n) => {
 		const itemCount = itemCur.get(n) || 0;
 		const itemMaxCount = itemMax.get(n);
 		const itemPct = Math.round((itemCount / itemMaxCount) * 100);

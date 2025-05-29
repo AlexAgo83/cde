@@ -45,6 +45,7 @@ let debugMode = false;
 
 // --- Module Imports ---
 let mLZString = null;
+let mUtils = null;
 let mLocalStorage = null;
 let mCloudStorage = null;
 let mDisplayStats = null;
@@ -485,7 +486,7 @@ function processCollectData() {
 			const exportTime = new Date().toLocaleString();
 			const header = `🧾 Changelog for: ${charName} — ${exportTime}`;
 			if (lastExport) {
-				changesData = [header, ...deepDiff(lastExport, copy)];
+				changesData = [header, ...mUtils.deepDiff(lastExport, copy)];
 			} else {
 				changesData = [header, "🆕 First export — no previous data to compare."];
 			}
@@ -504,23 +505,8 @@ function processCollectData() {
 	return exportData;
 }
 
-// --- Collectors ---
-function formatDuration(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  const parts = [];
-  if (hours > 0) parts.push(`${hours}h`);
-  if (minutes > 0) parts.push(`${minutes}min`);
-  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
-
-  return parts.join(' ');
-}
-
 /**
- * Callback for combat start event.
+ * ETA - Callback for combat start event.
  * @param {Data} entry 
  */
 function onCombat(entry) {
@@ -540,7 +526,7 @@ function onCombat(entry) {
 			entry.monster.startTime = new Date(currentMonsterData.startTime);
 			entry.monster.diffTime = now - entry.monster.startTime;
 
-			entry.monster.diffTimeStr = formatDuration(entry.monster.diffTime);
+			entry.monster.diffTimeStr = mUtils.formatDuration(entry.monster.diffTime);
 			if (entry.monster.diffTime > 0) {
 				entry.monster.kph = Math.round(
 					(entry.monster.diffKillcount / (entry.monster.diffTime / 3600000)) || 0
@@ -571,7 +557,7 @@ function onCombat(entry) {
 }
 
 /**
- * Callback for non-combat activity events.
+ * ETA - Callback for non-combat activity events.
  * @param {Data} entry 
  */
 function onNonCombat(entry) {
@@ -583,120 +569,7 @@ function onNonCombat(entry) {
 	}
 }
 
-function getPercentDiff(oldVal, newVal) {
-	if (typeof oldVal === "number" && typeof newVal === "number" && oldVal !== 0) {
-		const pct = ((newVal - oldVal) / Math.abs(oldVal)) * 100;
-		if (Math.abs(pct) <= 1000) {
-			const sign = pct > 0 ? "+" : "";
-			return ` (${sign}${pct.toFixed(2)}%)`;
-		}
-	}
-	return "";
-}
-
-function deepDiff(prev, curr, path = "") {
-	const changes = [];
-	
-	// Arrays: diff
-	if (Array.isArray(prev) && Array.isArray(curr)) {
-		changes.push(...diffArraysSmart(prev, curr, path));
-		return changes;
-	}
-	
-	// Objects
-	if (isObject(prev) && isObject(curr)) {
-		for (const key in prev) {
-			if (!(key in curr)) {
-				changes.push(`❌ RMV ${path + key}`);
-			}
-		}
-		for (const key in curr) {
-			const fullPath = path + key;
-			if (!(key in prev)) {
-				changes.push(`➕ ADD ${fullPath} = ${JSON.stringify(curr[key])}`);
-			} else {
-				const val1 = prev[key];
-				const val2 = curr[key];
-				if (isObject(val1) && isObject(val2) || Array.isArray(val1) && Array.isArray(val2)) {
-					changes.push(...deepDiff(val1, val2, fullPath + "."));
-				} 
-				else if (val1 !== val2) {
-					changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}${getPercentDiff(val1, val2)}`);
-				}
-				
-			}
-		}
-		return changes;
-	}
-	else if (prev !== curr) {
-		changes.push(`🔁 UPD ${path} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}${getPercentDiff(prev, curr)}`);
-	}
-	
-	return changes;
-}
-
-function diffArraysSmart(prevArr, currArr, path = "") {
-	const changes = [];
-	if (!Array.isArray(prevArr) || !Array.isArray(currArr)) {
-		changes.push(`❓ Not arrays at ${path}`);
-		return changes;
-	}
-	
-	// Try 'id' OR 'localID' OR 'name' as Key, else index
-	function getKey(obj) {
-		return obj?.id ?? obj?.localID ?? obj?.name ?? null;
-	}
-	
-	// Smart Diff
-	const prevMap = Object.create(null);
-	prevArr.forEach((obj, i) => {
-		const key = getKey(obj) ?? `idx_${i}`;
-		prevMap[key] = obj;
-	});
-	const currMap = Object.create(null);
-	currArr.forEach((obj, i) => {
-		const key = getKey(obj) ?? `idx_${i}`;
-		currMap[key] = obj;
-	});
-	
-	// Record add & update
-	for (const key in currMap) {
-		if (!(key in prevMap)) {
-			changes.push(`➕ ADD [${path}${key}]: ${JSON.stringify(currMap[key])}`);
-		} else {
-			
-			const subChanges = deepDiff(prevMap[key], currMap[key], path + key + ".");
-			if (subChanges.length > 0) {
-				changes.push(...subChanges);
-			}
-		}
-	}
-	
-	// Record Sup
-	for (const key in prevMap) {
-		if (!(key in currMap)) {
-			changes.push(`❌ RMV [${path}${key}]: ${JSON.stringify(prevMap[key])}`);
-		}
-	}
-	return changes;
-}
-
-
-function escapeHtml(str) {
-	return str.replace(/[&<>"']/g, m => ({
-		'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-	}[m]));
-}
-
-function isObject(value) {
-	return value && typeof value === "object" && !Array.isArray(value);
-}
-
 // --- UI Setup ---
-function createIconCSS(ctx) {
-	document.head.insertAdjacentHTML("beforeend", `<style>:root {--icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");}.darkMode {--icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");}</style>`);
-}
-
 function CDEButton(template, cb) {
 	return {
 		$template: template,
@@ -733,7 +606,6 @@ function onExportOpen() {
 		viewDiffButton.style.display = isCfg(SettingsReference.GENERATE_DIFF) ? "visible" : "none";
 	}
 }
-
 
 const HASTE_ENDPOINT = "https://haste.zneix.eu";
 async function uploadToHastebin(text) {
@@ -874,38 +746,38 @@ async function onClickRefreshExport() {
 function formatChangelogLine(line) {
 	// HEADER
 	if (line.startsWith("🧾")) {
-		return `<div class="cde-changelog-line cde-changelog-header">${escapeHtml(line)}</div>`;
+		return `<div class="cde-changelog-line cde-changelog-header">${mUtils.escapeHtml(line)}</div>`;
 	}
 	
 	// ➕ ADD
 	if (line.startsWith("➕")) {
 		const m = line.match(/^➕ ADD ([^=]+) = (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${escapeHtml(m[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span>: <span class="cde-changelog-key">${mUtils.escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-new">${mUtils.escapeHtml(m[2].trim())}</span></div>`;
 		const m2 = line.match(/^➕ ADD \[([^\]]+)\]: (.+)$/);
 		if (m2)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${escapeHtml(m2[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-added">➕ ADD</span> [<span class="cde-changelog-key">${mUtils.escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-new">${mUtils.escapeHtml(m2[2].trim())}</span></div>`;
 	}
 	
 	// ❌ RMV
 	if (line.startsWith("❌")) {
 		const m = line.match(/^❌ RMV (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span>: <span class="cde-changelog-key">${mUtils.escapeHtml(m[1].trim())}</span></div>`;
 		
 		const m2 = line.match(/^❌ RMV \[([^\]]+)\]: (.+)$/);
 		if (m2)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span> [<span class="cde-changelog-key">${escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${escapeHtml(m2[2].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-removed">❌ RMV</span> [<span class="cde-changelog-key">${mUtils.escapeHtml(m2[1].trim())}</span>]: <span class="cde-changelog-old">${mUtils.escapeHtml(m2[2].trim())}</span></div>`;
 	}
 	
 	// 🔁 UPD
 	if (line.startsWith("🔁")) {
 		const m = line.match(/^🔁 UPD ([^=]+) = ([^→]+) → (.+)$/);
 		if (m)
-			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 UPD</span>: <span class="cde-changelog-key">${escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${escapeHtml(m[3].trim())}</span></div>`;
+			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 UPD</span>: <span class="cde-changelog-key">${mUtils.escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${mUtils.escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${mUtils.escapeHtml(m[3].trim())}</span></div>`;
 	}
 	
-	return `<div class="cde-changelog-line">${escapeHtml(line)}</div>`;
+	return `<div class="cde-changelog-line">${mUtils.escapeHtml(line)}</div>`;
 }
 
 async function onClickExportViewDiff() {
@@ -1027,28 +899,6 @@ function renderCollapsibleJSON(obj, key = null, path = '') {
 	return html;
 }
 
-function renderPrettyJSON(obj) {
-	function syntaxHighlight(json) {
-		if (typeof json !== 'string') {
-			json = JSON.stringify(json, null, 2);
-		}
-		json = escapeHtml(json);
-		return json.replace(
-			/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(true|false|null)\b|-?\d+(\.\d*)?([eE][+\-]?\d+)?)/g,
-			function (match) {
-				let cls = 'json-number';
-				if (/^"/.test(match)) {
-					if (/:$/.test(match)) cls = 'json-key';
-					else cls = 'json-string';
-				} else if (/true|false/.test(match)) cls = 'json-boolean';
-				else if (/null/.test(match)) cls = 'json-null';
-				return '<span class="' + cls + '">' + match + '</span>';
-			}
-		);
-	}
-	return `<pre class="cde-json-viewer">${syntaxHighlight(obj)}</pre>`;
-}
-
 let exportUI = null;
 const exportFooter = 
 `<div style="margin-top:10px"><button id="cde-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
@@ -1135,15 +985,15 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 			mLZString = mLZString.default;
 		}
 		
-		// Load stats module
+		// Load modules
+		mUtils = await ctx.loadModule("modules/utils.mjs");
 		mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
 		mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
 		mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
 
 		mCollector = await ctx.loadModule("modules/collector.mjs");
-		mCollector.setOnGameStatsHandler(() => {
-			return mDisplayStats;
-		});
+		mCollector.setUtilsHandler(() => {return mUtils;});
+		mCollector.setGameStatsHandler(() => {return mDisplayStats;});
 
 		console.log("[CDE] Module loaded !");
 	});
@@ -1155,6 +1005,8 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		mLocalStorage.setDebugHandler(() => {return debugMode});
 
 		mCloudStorage.init(ctx, characterStorage);
+		mCloudStorage.setDebugHandler(() => {return debugMode});
+
 		if (isCfg(SettingsReference.AUTO_EXPORT_ONLOAD)) {
 			processCollectData();
 		}
@@ -1163,7 +1015,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
 		// CSS
-		createIconCSS(ctx);
+		mUtils.createIconCSS(ctx);
 		
 		// Setup Export Button
 		setupExportButtonUI(openExportUI);
@@ -1209,6 +1061,9 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		},
 		getCollector: () => {
 			return mCollector;
+		},
+		getUtils: () => {
+			return mUtils;
 		},
 		openExportUI: (forceCollect = false) => {
 			openExportUI(forceCollect);

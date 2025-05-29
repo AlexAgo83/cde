@@ -6,7 +6,12 @@
 let contexte = null;
 let cloudStorage = null;
 
+let onDebugHandler = () => {
+    return false;
+}
+
 const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
+
 export function getCurrentMonsterData() {
 	return cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
 }
@@ -20,4 +25,8 @@ export function removeCurrentMonsterData() {
 export function init(ctx, characterStorage) {
     contexte = ctx;
 	cloudStorage = characterStorage;
+}
+
+export function setDebugHandler(onDebugCb) {
+    onDebugHandler = onDebugCb;
 }
