@@ -227,6 +227,7 @@ export async function uploadToHastebin(text) {
 		body: text,
 		headers: { "Content-Type": "text/plain" }
 	});
+	if (!res.ok) throw new Error("Upload failed with status " + res.status);
 	const data = await res.json();
 	return `${HASTE_ENDPOINT}/${data.key}`;
 }

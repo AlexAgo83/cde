@@ -362,7 +362,7 @@ function formatChangelogLine(line) {
 	
 	// 🔁 UPD
 	if (line.startsWith("🔁")) {
-		const m = line.match(/^🔁 UPD ([^=]+) = ([^→]+) → (.+)$/);
+		const m = line.match(/^🔁 UPD (.+?) = (.+?) → (.+)$/);
 		if (m)
 			return `<div class="cde-changelog-line"><span class="cde-changelog-changed">🔁 UPD</span>: <span class="cde-changelog-key">${mModules.getUtils().escapeHtml(m[1].trim())}</span> = <span class="cde-changelog-old">${mModules.getUtils().escapeHtml(m[2].trim())}</span> <span class="cde-changelog-arrow">→</span> <span class="cde-changelog-new">${mModules.getUtils().escapeHtml(m[3].trim())}</span></div>`;
 	}

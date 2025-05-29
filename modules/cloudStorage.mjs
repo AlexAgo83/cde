@@ -35,8 +35,14 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
-export function getCurrentMonsterData() {
-	return cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
+export function MonsterData() {
+	try {
+		const raw = cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
+		return typeof raw === "string" ? JSON.parse(raw) : raw;
+	} catch (e) {
+		console.warn("[CDE] Invalid monster data in characterStorage");
+		return null;
+	}
 }
 export function setCurrentMonsterData(monsterData)  {
 	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, monsterData);
