@@ -40,7 +40,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.48";
+const MOD_VERSION = "v1.8.49";
 
 // --- Module Imports ---
 let mModules = null;
@@ -119,31 +119,33 @@ function collector(cfgRef, collectorFn, fallbackMsg) {
 function processCollectData() {
 	const newData = {};
 
-	newData.basics = mModules.getCollector().collectBasics();
-	newData.currentActivity = mModules.getCollector().collectCurrentActivity(onCombat, onNonCombat);
-	newData.agility = mModules.getCollector().collectAgility();
-	newData.activePotions = mModules.getCollector().collectActivePotions();
-	newData.dungeons = mModules.getCollector().collectDungeons();
-	newData.strongholds = mModules.getCollector().collectStrongholds();
-	newData.ancientRelics = mModules.getCollector().collectAncientRelics();
+	const _mc = mModules.getCollector();
+	const _sr = mModules.getSettings().SettingsReference;
 
-	newData.stats = collector(mModules.getSettings().SettingsReference.EXPORT_GAMESTATS, mModules.getCollector().collectGameStats, "Stats data unavailable");
-	newData.shop = collector(mModules.getSettings().SettingsReference.EXPORT_SHOP, mModules.getCollector().collectShopData, "Shop data unavailable");
-	newData.equipment = collector(mModules.getSettings().SettingsReference.EXPORT_EQUIPMENT, mModules.getCollector().collectEquipments, "Equipment data unavailable");
-	newData.equipmentSets = collector(mModules.getSettings().SettingsReference.EXPORT_EQUIPMENT_SETS, mModules.getCollector().collectEquipmentSets, "Equipment sets data unavailable");
-	newData.bank = collector(mModules.getSettings().SettingsReference.EXPORT_BANK, mModules.getCollector().collectBankData, "Bank data unavailable");
-	newData.skills = collector(mModules.getSettings().SettingsReference.EXPORT_SKILLS, mModules.getCollector().collectSkills, "Skills data unavailable");
-	newData.mastery = collector(mModules.getSettings().SettingsReference.EXPORT_MASTERY, mModules.getCollector().collectMastery, "Mastery data unavailable");
-	newData.astrology = collector(mModules.getSettings().SettingsReference.EXPORT_ASTROLOGY, mModules.getCollector().collectAstrology, "Astrology data unavailable");
-	newData.completion = collector(mModules.getSettings().SettingsReference.EXPORT_COMPLETION, mModules.getCollector().collectCompletion, "Completion data unavailable");
-	newData.township = collector(mModules.getSettings().SettingsReference.EXPORT_TOWNSHIP, mModules.getCollector().collectTownship, "Township data unavailable");
-	newData.pets = collector(mModules.getSettings().SettingsReference.EXPORT_PETS, mModules.getCollector().collectPets, "Pets data unavailable");
-	newData.cartography = collector(mModules.getSettings().SettingsReference.EXPORT_CARTOGRAPHY, mModules.getCollector().collectCartography, "Cartography data unavailable");
-	newData.farming = collector(mModules.getSettings().SettingsReference.EXPORT_FARMING, mModules.getCollector().collectFarming, "Farming data unavailable");
+	newData.basics = _mc.collectBasics();
+	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat);
+	newData.agility = _mc.collectAgility();
+	newData.activePotions = _mc.collectActivePotions();
+	newData.dungeons = _mc.collectDungeons();
+	newData.strongholds = _mc.collectStrongholds();
+	newData.ancientRelics = _mc.collectAncientRelics();
+
+	newData.stats = collector(_sr.EXPORT_GAMESTATS, _mc.collectGameStats, "Stats data unavailable");
+	newData.shop = collector(_sr.EXPORT_SHOP, _mc.collectShopData, "Shop data unavailable");
+	newData.equipment = collector(_sr.EXPORT_EQUIPMENT, _mc.collectEquipments, "Equipment data unavailable");
+	newData.equipmentSets = collector(_sr.EXPORT_EQUIPMENT_SETS, _mc.collectEquipmentSets, "Equipment sets data unavailable");
+	newData.bank = collector(_sr.EXPORT_BANK, _mc.collectBankData, "Bank data unavailable");
+	newData.skills = collector(_sr.EXPORT_SKILLS, _mc.collectSkills, "Skills data unavailable");
+	newData.mastery = collector(_sr.EXPORT_MASTERY, _mc.collectMastery, "Mastery data unavailable");
+	newData.astrology = collector(_sr.EXPORT_ASTROLOGY, _mc.collectAstrology, "Astrology data unavailable");
+	newData.completion = collector(_sr.EXPORT_COMPLETION, _mc.collectCompletion, "Completion data unavailable");
+	newData.township = collector(_sr.EXPORT_TOWNSHIP, _mc.collectTownship, "Township data unavailable");
+	newData.pets = collector(_sr.EXPORT_PETS, _mc.collectPets, "Pets data unavailable");
+	newData.cartography = collector(_sr.EXPORT_CARTOGRAPHY, _mc.collectCartography, "Cartography data unavailable");
+	newData.farming = collector(_sr.EXPORT_FARMING, _mc.collectFarming, "Farming data unavailable");
 
 	newData.meta = {
 		exportTimestamp: new Date().toISOString(),
-		// @ts-ignore
 		version: game.lastLoadedGameVersion,
 		modVersion: MOD_VERSION
 	};
