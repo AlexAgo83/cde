@@ -251,14 +251,14 @@ export function collectFarming() {
 
 export function collectGameStats() {
 	const result = {};
-	if (!onGameStatsHandler || !onGameStatsHandler.StatTypes || typeof onGameStatsHandler.displayStatsAsObject !== "function") {
+	if (!onGameStatsHandler() || !onGameStatsHandler().StatTypes || typeof onGameStatsHandler().displayStatsAsObject !== "function") {
 		console.warn("[CDE] displayStats module not ready");
 		return { error: "Stats module unavailable" };
 	}
-	onGameStatsHandler.StatTypes.forEach((type) => {
-		const section = onGameStatsHandler.displayStatsAsObject(game.stats, type);
+	onGameStatsHandler().StatTypes.forEach((type) => {
+		const section = onGameStatsHandler().displayStatsAsObject(game.stats, type);
 		if (section) {
-			const statName = onGameStatsHandler.StatNameMap.get(type);
+			const statName = onGameStatsHandler().StatNameMap.get(type);
 			result[statName] = section;
 		}
 	});

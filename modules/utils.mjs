@@ -54,7 +54,7 @@ export function deepDiff(prev, curr, path = "") {
 	}
 	
 	// Objects
-	if (mUtils.isObject(prev) && mUtils.isObject(curr)) {
+	if (isObject(prev) && isObject(curr)) {
 		for (const key in prev) {
 			if (!(key in curr)) {
 				changes.push(`❌ RMV ${path + key}`);
@@ -67,11 +67,11 @@ export function deepDiff(prev, curr, path = "") {
 			} else {
 				const val1 = prev[key];
 				const val2 = curr[key];
-				if (mUtils.isObject(val1) && mUtils.isObject(val2) || Array.isArray(val1) && Array.isArray(val2)) {
+				if (isObject(val1) && isObject(val2) || Array.isArray(val1) && Array.isArray(val2)) {
 					changes.push(...deepDiff(val1, val2, fullPath + "."));
 				} 
 				else if (val1 !== val2) {
-					changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}${mUtils.getPercentDiff(val1, val2)}`);
+					changes.push(`🔁 UPD ${fullPath} = ${JSON.stringify(val1)} → ${JSON.stringify(val2)}${getPercentDiff(val1, val2)}`);
 				}
 				
 			}
@@ -79,9 +79,9 @@ export function deepDiff(prev, curr, path = "") {
 		return changes;
 	}
 	else if (prev !== curr) {
-		changes.push(`🔁 UPD ${path} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}${mUtils.getPercentDiff(prev, curr)}`);
+		changes.push(`🔁 UPD ${path} = ${JSON.stringify(prev)} → ${JSON.stringify(curr)}${getPercentDiff(prev, curr)}`);
 	}
-	
+
 	return changes;
 }
 
