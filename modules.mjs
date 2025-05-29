@@ -4,7 +4,6 @@
 // @ts-check
 // modules.mjs
 
-
 let mLZString = null;
 let mSettings = null;
 let mUtils = null;
@@ -39,6 +38,10 @@ export function getCollector() {
 
 export function getLZString() {
     return mLZString;
+}
+
+export function Stg() {
+    return getSettings()?.SettingsReference;
 }
 
 export async function onModuleLoad(ctx) {

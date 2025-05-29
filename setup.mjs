@@ -57,6 +57,14 @@ function _Swal() { // @ts-ignore Handle DEVMODE
 }
 
 /**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return mModules.getSettings()?.SettingsReference;
+}
+
+/**
  * Process and collect data for export.
  * This function gathers combat and non-combat data, updating the current monster data
  * and calculating relevant statistics such as kill count, time difference, and Kills per Hour (KpH).
@@ -67,9 +75,13 @@ function _Swal() { // @ts-ignore Handle DEVMODE
  * The `onCombat` and `onNonCombat` callbacks are used to process combat and non-combat events respectively.
  */
 function implProcessCollectData() {
-	mModules.getExport().processCollectData(onCombat, onNonCombat, (meta) => {
-		meta.modVersion = MOD_VERSION
-	});
+	mModules.getExport().processCollectData(
+		onCombat, 
+		onNonCombat, 
+		(meta) => {
+			meta.modVersion = MOD_VERSION
+		}
+	);
 }
 
 /**
@@ -84,7 +96,7 @@ function onCombat(entry) {
 	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
 	const now = new Date();
 
-	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.ETA_COMBAT) && entry.monster) {
+	if (mModules.getSettings().isCfg(Stg().ETA_COMBAT) && entry.monster) {
 		if (currentMonsterData 
 			&& typeof currentMonsterData === 'object' 
 			&& currentMonsterData.id === entry.monster.id
@@ -173,12 +185,12 @@ function visibilityExportButton(visible) {
 }
 
 function onExportOpen() {
-	if (!mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.MOD_ENABLED)) return;
-	
+	if (!mModules.getSettings().isCfg(Stg().MOD_ENABLED)) return;
+
 	// Clean-up
 	const viewDiffButton = document.getElementById("cde-viewdiff-button");
 	if (viewDiffButton) {
-		viewDiffButton.style.display = mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.GENERATE_DIFF) ? "visible" : "none";
+		viewDiffButton.style.display = mModules.getSettings().isCfg(Stg().GENERATE_DIFF) ? "visible" : "none";
 	}
 }
 
@@ -502,13 +514,13 @@ const exportFooter =
  * @param {*} forceCollect 
  */
 function openExportUI(forceCollect = false) {
-	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW) || forceCollect) {
+	if (mModules.getSettings().isCfg(Stg().AUTO_EXPORT_ONWINDOW) || forceCollect) {
 		implProcessCollectData();
 	}
-	if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.MOD_ENABLED)) {
+	if (mModules.getSettings().isCfg(Stg().MOD_ENABLED)) {
 
 		// --- Ajout de la checkbox ---
-		const autoExportChecked = mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW);
+		const autoExportChecked = mModules.getSettings().isCfg(Stg().AUTO_EXPORT_ONWINDOW);
 		const autoExportCheckbox =
 		`<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
 			<input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />
@@ -538,8 +550,8 @@ function openExportUI(forceCollect = false) {
 						checkbox.addEventListener('change', (e) => {
 							const isChecked = /** @type {HTMLInputElement} */(e.target).checked;
 							const sections = mModules.getSettings().getLoadedSections()
-							const section = sections[mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW.section];
-							section.set(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONWINDOW.key, isChecked);
+							const section = sections[Stg().AUTO_EXPORT_ONWINDOW.section];
+							section.set(Stg().AUTO_EXPORT_ONWINDOW.key, isChecked);
 						});
 					}
 					
@@ -566,7 +578,7 @@ function openExportUI(forceCollect = false) {
  * @param {*} reference 
  */
 function onSettingsChange(reference) {
-	if (reference.key === mModules.getSettings().SettingsReference.MOD_DEBUG.key) {
+	if (reference.key === Stg().key) {
 		return (value) => {
 			mModules.getSettings().setDebug(value);
 			if (mModules.getSettings().isDebug()) {
@@ -574,7 +586,7 @@ function onSettingsChange(reference) {
 			}
 		};
 	}
-	if (reference.key === mModules.getSettings().SettingsReference.SHOW_BUTTON.key) {
+	if (reference.key === Stg().SHOW_BUTTON.key) {
 		return (value) => {
 			visibilityExportButton(value);
 			if (mModules.getSettings().isDebug()) {
@@ -582,7 +594,7 @@ function onSettingsChange(reference) {
 			}
 		};
 	}
-	if (reference.key === mModules.getSettings().SettingsReference.MAX_CHANGES_HISTORY.key) {
+	if (reference.key === Stg().MAX_CHANGES_HISTORY.key) {
 		return (value) => {
 			mModules.getExport().cleanChangesHistory();
 			if (mModules.getSettings().isDebug()) {
@@ -604,7 +616,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async () => {
 		mModules.onDataLoad(settings, characterStorage, onSettingsChange);
-		if (mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.AUTO_EXPORT_ONLOAD)) {
+		if (mModules.getSettings().isCfg(Stg().AUTO_EXPORT_ONLOAD)) {
 			implProcessCollectData();
 		}
 		console.info("[CDE] Data loaded !");
@@ -617,7 +629,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		
 		// Setup Export Button
 		setupExportButtonUI(openExportUI);
-		visibilityExportButton(mModules.getSettings().isCfg(mModules.getSettings().SettingsReference.SHOW_BUTTON));
+		visibilityExportButton(mModules.getSettings().isCfg(Stg().SHOW_BUTTON));
 		
 		console.log("[CDE] Interface ready !");
 	});

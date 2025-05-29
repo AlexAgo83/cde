@@ -19,6 +19,14 @@ export function init(modules, characterStorage) {
 	cloudStorage = characterStorage;
 }
 
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return mods.getSettings()?.SettingsReference;
+}
+
 export function getCurrentMonsterData() {
 	return cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
 }

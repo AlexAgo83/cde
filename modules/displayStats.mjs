@@ -14,6 +14,13 @@ export function init(modules) {
   mods = modules;
 }
 
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return mods.getSettings()?.SettingsReference;
+}
 
 export const StatTypes = [
   // @ts-ignore

@@ -26,6 +26,14 @@ function _game() {
 	return game;
 }
 
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return mods.getSettings()?.SettingsReference;
+}
+
 export function isLZStringReady() {
 	return isLoaded && mods.getLZString();
 }

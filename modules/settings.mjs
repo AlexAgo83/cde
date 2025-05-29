@@ -16,7 +16,15 @@ let settings = null;
 export function init(modules, settingsInstance) {
 	mods = modules;
 	settings = settingsInstance;
-}	
+}
+
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return SettingsReference;
+}
 
 let getDebug = () => {
     return _debugMode;
@@ -41,8 +49,7 @@ export const Sections = {
 	General: "General",
 	DataOptions: "Data Options",
 	ETA: "ETA"
-}
-
+};
 export const SettingsReference = {
 	// GENERAL SETTINGS
 	MOD_ENABLED: {
@@ -325,21 +332,16 @@ export function getCfg(settingRef) {
 		console.error("[CDE] Invalid settings reference:", settingRef);
 		return null;
 	}
-	if (isDebug()) {
-		console.warn("[CDE] Toggle value overridden to default:", settingRef);
-		return settingRef.toggle;
-	} else {
-		if (!loadedSections) {
-			console.error("[CDE] Sections not loaded");
-			return null;
-		}
-		const section = loadedSections[settingRef.section];
-		if (!section) {
-			console.error("[CDE] Invalid section reference:", section);
-			return null;
-		}
-		return section.get(settingRef.key) ?? settingRef.toggle;
+	if (!loadedSections) {
+		console.error("[CDE] Sections not loaded");
+		return null;
 	}
+	const section = loadedSections[settingRef.section];
+	if (!section) {
+		console.error("[CDE] Invalid section reference:", section);
+		return null;
+	}
+	return section.get(settingRef.key) ?? settingRef.toggle;
 }
 
 export function isCfg(settingRef) {

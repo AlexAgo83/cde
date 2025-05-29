@@ -21,6 +21,14 @@ function _game() {
 	return game;
 }
 
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return mods.getSettings()?.SettingsReference;
+}
+
 // --- Export Logic ---
 export function getExportJSON() {
 	if (exportData == null) {
@@ -32,7 +40,7 @@ export function getExportJSON() {
 	return exportData;
 }
 export function getExportString() {
-	return mods.getSettings().isCfg(mods.getSettings().SettingsReference.EXPORT_COMPRESS) ? 
+	return mods.getSettings().isCfg(Stg().EXPORT_COMPRESS) ? 
 	JSON.stringify(getExportJSON()) : 
 	JSON.stringify(getExportJSON(), null, 2);
 }
@@ -62,7 +70,7 @@ export function submitChangesHistory(data) {
 }
 export function getMaxHistorySetting() {
 	try {
-		let val = mods.getSettings().getCfg(mods.getSettings().SettingsReference.MAX_CHANGES_HISTORY);
+		let val = mods.getSettings().getCfg(Stg().MAX_CHANGES_HISTORY);
 		val = parseInt(val, 10);
 		if (isNaN(val)) val = 10; // fallback
 		return val;
@@ -93,7 +101,7 @@ export function processCollectData(onCombat, onNonCombat, onMeta) {
 	const newData = {};
 
 	const _mc = mods.getCollector();
-	const _sr = mods.getSettings().SettingsReference;
+	const _sr = Stg();
 
 	newData.basics = _mc.collectBasics();
 	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat);
@@ -122,12 +130,12 @@ export function processCollectData(onCombat, onNonCombat, onMeta) {
 		version: _game().lastLoadedGameVersion
 	};
     onMeta(newData.meta);
-	
-	if (mods.getSettings().isCfg(mods.getSettings().SettingsReference.SAVE_TO_STORAGE)) {
+
+	if (mods.getSettings().isCfg(Stg().SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));
 		
 		// Generate Diff
-		if (mods.getSettings().isCfg(mods.getSettings().SettingsReference.GENERATE_DIFF)) {
+		if (mods.getSettings().isCfg(Stg().GENERATE_DIFF)) {
 			const lastExport = mods.getLocalStorage().getLastExportFromStorage();	
 			const charName = _game().characterName || "Unknown";
 			const exportTime = new Date().toLocaleString();

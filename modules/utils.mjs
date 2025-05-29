@@ -16,6 +16,14 @@ export function init(modules) {
   mods = modules;
 }
 
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return mods.getSettings()?.SettingsReference;
+}
+
 export function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
