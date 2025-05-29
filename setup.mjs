@@ -41,15 +41,17 @@
 
 // --- Configuration ---
 const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
-const MOD_VERSION = "v1.8.26";
+const MOD_VERSION = "v1.8.36";
 
 let debugMode = false;
-let cloudStorage = null;
-let displayStatsModule = null;
 
-let LZString = null;
-let lzStringLoaded = false;
+// --- Module Imports ---
+let mLZString = null;
+let mLocalStorage = null;
+let mCloudStorage = null;
+let mDisplayStats = null;
 
+// --- Settings Initialization ---
 let loadedSections = null;
 const Sections = {
 	General: "General",
@@ -263,7 +265,6 @@ const SettingsReference = {
 		hint: "Toggle to show the estimated time remaining to complete your current combat activity, based on recent kills and efficiency.",
 		toggle: true
 	}
-
 }
 
 class SettingsReferenceItem {
@@ -311,7 +312,8 @@ class SettingsReferenceItem {
 function createSettings(settings) {
 	loadedSections = {
 		[Sections.General]: settings.section(Sections.General),
-		[Sections.DataOptions]: settings.section(Sections.DataOptions)
+		[Sections.DataOptions]: settings.section(Sections.DataOptions),
+		[Sections.ETA]: settings.section(Sections.ETA)
 	}
 	
 	for (const key in SettingsReference) {
@@ -373,18 +375,13 @@ function isCfg(settingRef) {
 }
 
 // --- Export Logic ---
-
-const CS_LAST_EXPORT = "cde_last_export";
-function getStorage_ExportKey() {
-	return CS_LAST_EXPORT+"_"+(sanitizeCharacterName(game.characterName));
-}
 let exportData = {};
 function getExportJSON() {
 	if (exportData == null) {
 		if (debugMode) {
 			console.log("[CDE] Export cache requested!")
 		}
-		exportData = getLastExportFromStorage();
+		exportData = mLocalStorage.getLastExportFromStorage();
 	}
 	return exportData;
 }
@@ -395,19 +392,6 @@ function getExportString() {
 }
 
 // --- Changes Logic ---
-const CS_LAST_CHANGES = "cde_last_changes";
-function sanitizeCharacterName(name) {
-	if (!name) return "unknown";
-	return name
-	.normalize("NFD")
-	.replace(/[\u0300-\u036f]/g, "")
-	.replace(/\s+/g, "_")
-	.replace(/[^a-zA-Z0-9_\-]/g, "")
-	.substring(0, 32);
-}
-function getStorage_ChangesKey() {
-	return CS_LAST_CHANGES+"_"+(sanitizeCharacterName(game.characterName));
-}
 let changesData = [];
 function getChangesData() {
 	return changesData;
@@ -415,7 +399,7 @@ function getChangesData() {
 let changesHistory = null;
 function getChangesHistory() {
 	if (changesHistory == null) {
-		const stored = getChangesFromStorage();
+		const stored = mLocalStorage.getChangesFromStorage();
 		changesHistory = stored instanceof Map ? stored : new Map();
 	}
 	return changesHistory;
@@ -429,7 +413,7 @@ function submitChangesHistory(data) {
 	
 	cleanChangesHistory();
 	if (getMaxHistorySetting() > 0) {
-		saveChangesToStorage(items);
+		mLocalStorage.saveChangesToStorage(items);
 	}
 }
 function getMaxHistorySetting() {
@@ -454,85 +438,6 @@ function cleanChangesHistory() {
 			console.log("[CDE] Remove old history entry:", oldestKey);
 		}
 	}
-}
-
-function isLZStringReady() {
-	return lzStringLoaded 
-	&& LZString 
-	&& typeof LZString !== "undefined"
-	&& isCfg(SettingsReference.USE_LZSTRING);
-}
-
-// READ FROM STORAGE
-function readFromStorage(key) {
-	try {
-		const raw = localStorage.getItem(key);
-		if (!raw) return null;
-		
-		let json = raw;
-		if (isLZStringReady()) {
-			const decompressed = LZString.decompressFromUTF16(raw);
-			if (decompressed) json = decompressed;
-		}
-		
-		json = JSON.parse(json);
-		if (debugMode) {
-			console.log("[CDE] Object read:", json);
-		}
-		return json;
-	} catch (err) {
-		console.warn("[CDE] Could not parse last export:", err);
-		return null;
-	}
-}
-function getLastExportFromStorage() {
-	return readFromStorage(getStorage_ExportKey());
-}
-function getChangesFromStorage() {
-	const raw = readFromStorage(getStorage_ChangesKey());
-	// Si c’est un array d’entries, reconvertis en Map
-	if (Array.isArray(raw)) {
-		return new Map(raw);
-	}
-	return raw;
-}
-
-// SAVE TO STORAGE
-function saveToStorage(key, jsonData) {
-	try {
-		let raw = JSON.stringify(jsonData);
-		if (isLZStringReady()) {
-			raw = LZString.compressToUTF16(raw);
-		}
-		localStorage.setItem(key, raw);
-		if (debugMode) {
-			console.log("[CDE] Object saved:", raw);
-		}
-	} catch (err) {
-		console.warn("[CDE] Failed to save export to storage:", err);
-	}
-}
-function saveExportToStorage(jsonData) {
-	saveToStorage(getStorage_ExportKey(), jsonData);
-}
-function saveChangesToStorage(jsonData) {
-	let toStore = jsonData;
-	if (toStore instanceof Map) {
-		toStore = Array.from(toStore.entries());
-	}
-	saveToStorage(getStorage_ChangesKey(), toStore);
-}
-
-// CLOUD STORAGE
-const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
-function getCurrentMonsterData() {
-	return cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
-}
-function setCurrentMonsterData(monsterData)  {
-	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, monsterData);
-}
-function removeCurrentMonsterData() {
-	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
 }
 
 // Collector
@@ -576,7 +481,7 @@ function processCollectData() {
 		
 		// Generate Diff
 		if (isCfg(SettingsReference.GENERATE_DIFF)) {
-			const lastExport = getLastExportFromStorage();	
+			const lastExport = mLocalStorage.getLastExportFromStorage();	
 			const charName = game.characterName || "Unknown";
 			const exportTime = new Date().toLocaleString();
 			const header = `🧾 Changelog for: ${charName} — ${exportTime}`;
@@ -589,7 +494,7 @@ function processCollectData() {
 		}
 		
 		// Save to storage
-		saveExportToStorage(copy);
+		mLocalStorage.saveExportToStorage(copy);
 	}
 	
 	// Finalize..
@@ -836,14 +741,14 @@ function collectFarming() {
 
 function collectGameStats() {
 	const result = {};
-	if (!displayStatsModule || !displayStatsModule.StatTypes || typeof displayStatsModule.displayStatsAsObject !== "function") {
-		console.warn("[CDE] displayStatsModule not ready");
+	if (!mDisplayStats || !mDisplayStats.StatTypes || typeof mDisplayStats.displayStatsAsObject !== "function") {
+		console.warn("[CDE] displayStats module not ready");
 		return { error: "Stats module unavailable" };
 	}
-	displayStatsModule.StatTypes.forEach((type) => {
-		const section = displayStatsModule.displayStatsAsObject(game.stats, type);
+	mDisplayStats.StatTypes.forEach((type) => {
+		const section = mDisplayStats.displayStatsAsObject(game.stats, type);
 		if (section) {
-			const statName = displayStatsModule.StatNameMap.get(type);
+			const statName = mDisplayStats.StatNameMap.get(type);
 			result[statName] = section;
 		}
 	});
@@ -998,7 +903,7 @@ function collectCurrentActivity() {
 	// const lastTimestamp = getExportJSON()?.meta?.exportTimestamp;
 
 	// ETA - Mode 2
-	const currentMonsterData = getCurrentMonsterData
+	const currentMonsterData = mCloudStorage.getCurrentMonsterData()
 	const now = new Date();
 
 	game.activeActions.registeredObjects.forEach((a) => {
@@ -1059,11 +964,11 @@ function collectCurrentActivity() {
 					}
 
 					// Update the current monster data
-					setCurrentMonsterData(entry.monster);
+					mCloudStorage.setCurrentMonsterData(entry.monster);
 				}
 			} else {
 				if (currentMonsterData) {
-					removeCurrentMonsterData();
+					mCloudStorage.removeCurrentMonsterData();
 					if (debugMode) {
 						console.log("[CDE] Clear activity trace", entry.monster);
 					}
@@ -1379,7 +1284,7 @@ async function onClickExportAllChangelogs() {
 
 async function onClickResetExport() {
 	exportData = null;
-	saveExportToStorage(null);
+	mLocalStorage.saveExportToStorage(null);
 	Swal.fire({
 		toast: true,
 		position: 'top-end',
@@ -1392,7 +1297,7 @@ async function onClickResetExport() {
 async function onClickResetChangelogs() {
 	changesData = [];
 	changesHistory = null;
-	saveChangesToStorage(null);
+	mLocalStorage.saveChangesToStorage(null);
 	Swal.fire({
 		toast: true,
 		position: 'top-end',
@@ -1666,24 +1571,26 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
 		// Load LZString (Compression Tools) module
-		LZString = await ctx.loadModule("libs/lz-string.js");
-		if (LZString && typeof LZString.default === 'object') {
-			LZString = LZString.default;
-		}
-		lzStringLoaded = !!LZString && typeof LZString.compressToUTF16 === 'function';
-		if (lzStringLoaded && debugMode) {
-			console.log("[CDE] LZString loaded", LZString);
+		mLZString = await ctx.loadModule("libs/lz-string.js");
+		if (mLZString && typeof mLZString.default === 'object') {
+			mLZString = mLZString.default;
 		}
 		
 		// Load stats module
-		displayStatsModule = await ctx.loadModule("displayStats.mjs");
-		
+		mLocalStorage = await ctx.loadModule("localStorage.mjs");
+		mCloudStorage = await ctx.loadModule("cloudStorage.mjs");
+		mDisplayStats = await ctx.loadModule("displayStats.mjs");
+
 		console.log("[CDE] Module loaded !");
 	});
 
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async (ctx) => {
-		cloudStorage = characterStorage;
+		mLocalStorage.init(ctx, mLZString);
+		mLocalStorage.setLZStringHandler(() => {return isCfg(SettingsReference.USE_LZSTRING)});	
+		mLocalStorage.setDebugHandler(() => {return debugMode});
+
+		mCloudStorage.init(ctx, characterStorage);
 		if (isCfg(SettingsReference.AUTO_EXPORT_ONLOAD)) {
 			processCollectData();
 		}
@@ -1730,8 +1637,11 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		getCfgValue: (settingsReference) => {
 			return isCfg(settingsReference);
 		},
+		getLocalStorage: () => {
+			return mLocalStorage;
+		},
 		getCloudStorage: () => {
-			return cloudStorage;
+			return mCloudStorage;
 		},
 		debugMode: (toggle) => {
 			debugMode = toggle;

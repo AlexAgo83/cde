@@ -4,6 +4,8 @@
   "setup": "setup.mjs",
   "module": [
     "libs/lz-string.js",
+    "localStorage.mjs",
+    "cloudStorage.mjs",
     "displayStats.mjs"
   ],
   "load": [
