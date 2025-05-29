@@ -528,19 +528,40 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 	const player = _game().combat.player;
 	const stats = _game().stats;
 
+	const actions = _game().activeActions;
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] Current actions: ", actions);
+	}
+
+	const skills = _game().activeAction?.activeSkills;
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] Current skills: ", skills);
+	}
+
 	// ETA - Mode 2
 	// _game().activeAction?.activeSkills?.forEach((a) => {
-	_game().activeActions.registeredObjects.forEach((a) => {
+	actions?.registeredObjects?.forEach((a) => {
 		if (a.isActive) {
 			const entry = {
 				activity: a.localID,
-				level: a.level || null,
-				xp: a.xp,
-				nextLevelProgress: a.nextLevelProgress
 			};
+			
+			const items = []
+			skills.forEach((skill) => {
+				const item = {
+					idSkill: skill.localID,
+					skillXp: skill.xp,
+					skillNextLevelProgress: skill.nextLevelProgress+"%",
+					skillLevel: skill.level
+				}
+				items.push(item);
+			});
+			entry.skills = items;
+
 			if (a.selectedRecipe?.product?.name || null) {
 				entry.recipre = a.selectedRecipe?.product?.name;
 			}
+
 			if (a.localID === "Combat") { /** COMBAT SKILLS */
 				entry.attackType = player.attackType;
 				entry.area = { name: a.selectedArea?.name, id: a.selectedArea?.localID };
@@ -566,6 +587,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 
 					if (mastery) {
 						item.maxteryXp = mastery.xp;
+						// item.maxteryNextLevelProgress = mastery.nextLevelProgress+"%",
 						item.masteryLevel = mastery.level;
 					}
 					queue.push(item);
