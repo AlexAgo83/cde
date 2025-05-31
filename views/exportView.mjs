@@ -112,21 +112,10 @@ async function onClickExportClipboard() {
     try {
         await navigator.clipboard.writeText(mods.getExport().getExportString());
         console.log("[CDE] Export copied to clipboard");
-        _Swal().fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'Copied to clipboard!',
-            showConfirmButton: false,
-            timer: 1500
-        });
+        mods.getViewer().popupSuccess('Copied to clipboard!');
     } catch (err) {
         console.error("Clipboard copy failed:", err);
-        _Swal().fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Could not copy to clipboard.'
-        });
+        mods.getViewer().popupError('Oops...', 'Could not copy to clipboard.');
     }
 }
 
@@ -136,34 +125,17 @@ async function onClickExportHastebin() {
         const hastebinLink = await mods.getUtils().uploadToHastebin(raw);
         await navigator.clipboard.writeText(hastebinLink);
 
-        _Swal().fire({
-            icon: 'success',
-            title: 'Hastebin link copied!',
-            html: `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`,
-            showConfirmButton: true,
-            confirmButtonText: "Close"
-        });
-        window.open(hastebinLink, "_blank");
+        mods.getViewer().popupSuccess('Hastebin link copied!', `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`);
+        // window.open(hastebinLink, "_blank");
     } catch (err) {
         console.error("Failed to upload to Hastebin:", err);
-        _Swal().fire({
-            icon: 'error',
-            title: 'Upload failed',
-            text: 'Could not upload to Hastebin. Please try again later.'
-        });
+        mods.getViewer().popupError('Upload failed', 'Could not upload to Hastebin. Please try again later.')
     }
 }
 
 async function onClickResetExport() {
     mods.getExport().resetExportData()
-    _Swal().fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Export reset!',
-        showConfirmButton: false,
-        timer: 1200
-    });
+    mods.getViewer().popupSuccess('Export reset!');
 }
 
 async function onClickRefreshExport() {

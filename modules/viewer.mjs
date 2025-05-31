@@ -76,3 +76,37 @@ export function load(ctx) {
     m.load(ctx);
   });
 }
+
+export function popupSuccess(titleStr, content = null) {
+  const popup = {
+    icon: 'success',
+    title: titleStr
+  };
+  if (content) {
+    popup.html = content;
+    popup.showConfirmButton = true;
+    popup.confirmButtonText = "Close";
+  } else {
+    popup.toast = true,
+    popup.position = 'top-end',
+    popup.showConfirmButton = false,
+    popup.timer = 1200
+  }
+  _Swal().fire(popup);
+}
+
+export function popupInfo(titleStr, msgStr) {
+  _Swal().fire({
+      icon: 'info',
+      title: titleStr,
+      text: msgStr
+  });
+}
+
+export function popupError(titleStr, msgStr) {
+  _Swal().fire({
+      icon: 'error',
+      title: titleStr,
+      text: msgStr
+  });
+}

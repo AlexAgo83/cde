@@ -50,7 +50,7 @@ export function load(ctx) {
 export async function onClickExportViewDiff() {
     const history = mods.getExport().getChangesHistory();
     if (!history || history.size === 0) {
-        _Swal().fire({ title: "Changelog", html: "No history available." });
+        mods.getViewer().popupInfo("Changelog", "No history available.");
         return;
     }
     
@@ -115,14 +115,7 @@ export async function onClickExportViewDiff() {
             document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", () => {
                 const text = (history.get(selectedKey) || []).join("\n");
                 navigator.clipboard.writeText(text);
-                _Swal().fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Changelog copied!',
-                    showConfirmButton: false,
-                    timer: 1200
-                });
+                mods.getViewer().popupSuccess('Changelog copied!');
             });
         }
     });
@@ -178,21 +171,14 @@ function formatChangelogLine(line) {
 
 async function onClickResetChangelogs() {
     mods.getExport().resetChangesHistory()
-    _Swal().fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Changelogs reset!',
-        showConfirmButton: false,
-        timer: 1200
-    });
+    mods.getViewer().popupSuccess('Changelogs reset!');
 }
 
 
 async function onClickExportAllChangelogs() {
     const history = mods.getExport().getChangesHistory();
     if (!history || history.size === 0) {
-        _Swal().fire({ title: "Export All", html: "No changelog history to export." });
+        mods.getViewer().popupInfo("Export All", "No changelog history to export.");
         return;
     }
     
@@ -217,10 +203,6 @@ async function onClickExportAllChangelogs() {
         URL.revokeObjectURL(url);
     } catch (err) {
         console.error("Failed to generate full changelogs:", err);
-        _Swal().fire({
-            icon: 'error',
-            title: 'Export failed',
-            text: 'Could not generate full changelogs.'
-        });
+        mods.getViewer().popupInfo('Export failed', 'Could not generate full changelogs.');
     }
 }
