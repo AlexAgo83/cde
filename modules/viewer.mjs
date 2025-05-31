@@ -15,11 +15,13 @@ export function getExportView() { return exportView; }
 export function getChangelogView() { return changelogView; }
 
 /**
- * 
+ * Loads views submodules for the viewer.
+ * This should be called once during initialization to set up the viewer's submodules.
+ * @param {*} ctx - The context object used to load submodules.
  */
 export async function loadSubModule(ctx) {
-  exportView = await ctx.loadModule("modules/views/exportView.mjs"); subModules.push(exportView);
-  changelogView = await ctx.loadModule("modules/views/changelogView.mjs"); subModules.push(changelogView);
+  subModules.push(exportView = await ctx.loadModule("modules/views/exportView.mjs"));
+  subModules.push(changelogView = await ctx.loadModule("modules/views/changelogView.mjs"));
 }
 
 /**
@@ -54,13 +56,17 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+/**
+ * Returns the list of loaded viewer submodules (e.g., exportView, changelogView).
+ * @returns {Array} An array of loaded submodule instances.
+ */
 export function getViews() {
   return subModules;
 }
 
 /**
- * 
- * @param {*} modules 
+ * Initializes all loaded viewer submodules with the provided modules object.
+ * @param {*} modules - The modules object containing dependencies.
  */
 export function initSubModule(modules) {
   getViews().forEach((m) => {
@@ -69,7 +75,8 @@ export function initSubModule(modules) {
 }
 
 /**
- * 
+ * Calls the load method on all loaded viewer submodules, passing the context.
+ * @param {*} ctx - The context object to pass to each submodule's load method.
  */
 export function load(ctx) {
   getViews().forEach((m) => {
@@ -77,6 +84,13 @@ export function load(ctx) {
   });
 }
 
+
+/**
+ * Displays a success popup using SweetAlert2.
+ *
+ * @param {string} titleStr - The title text to display in the popup.
+ * @param {string|null} [content=null] - Optional HTML content for the popup. If provided, a modal popup is shown with a "Close" button. If not provided, a toast notification is shown.
+ */
 export function popupSuccess(titleStr, content = null) {
   const popup = {
     icon: 'success',
@@ -87,14 +101,19 @@ export function popupSuccess(titleStr, content = null) {
     popup.showConfirmButton = true;
     popup.confirmButtonText = "Close";
   } else {
-    popup.toast = true,
-    popup.position = 'top-end',
-    popup.showConfirmButton = false,
-    popup.timer = 1200
+    popup.toast = true;
+    popup.position = 'top-end';
+    popup.showConfirmButton = false;
+    popup.timer = 1200;
   }
   _Swal().fire(popup);
 }
 
+/**
+ * Displays an informational popup using SweetAlert2.
+ * @param {string} titleStr - The title text to display in the popup.
+ * @param {string} msgStr - The message text to display in the popup.
+ */
 export function popupInfo(titleStr, msgStr) {
   _Swal().fire({
       icon: 'info',
@@ -103,6 +122,11 @@ export function popupInfo(titleStr, msgStr) {
   });
 }
 
+/**
+ * Displays an error popup using SweetAlert2.
+ * @param {string} titleStr - The title text to display in the popup.
+ * @param {string} msgStr - The error message text to display in the popup.
+ */
 export function popupError(titleStr, msgStr) {
   _Swal().fire({
       icon: 'error',
