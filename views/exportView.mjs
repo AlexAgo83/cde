@@ -32,6 +32,7 @@ function Stg() {
 
 /**
  * Get the boolean value for a settings reference.
+ * @param {*} reference - The settings reference to check.
  * @returns {boolean} True if the reference is allowed, false otherwise.
  */
 function isCfg(reference) {
@@ -39,7 +40,8 @@ function isCfg(reference) {
 }
 
 /**
- * 
+ * Load the export view and setup UI elements.
+ * @param {any} ctx - The context object for initialization.
  */
 export function load(ctx) {
     // CSS
@@ -50,10 +52,20 @@ export function load(ctx) {
     visibilityExportButton(isCfg(Stg().SHOW_BUTTON));
 }
 
+/**
+ * Initialize the callback for processing collected data.
+ * @param {*} cb - The callback function to process collected data.
+ */
 export function initProcessCollectDataCb(cb) {
     processCollectData = cb;
 }
 
+/**
+ * Create a button component for the export UI.
+ * @param {*} template - The HTML template for the button.
+ * @param {*} cb - The callback function to execute on button click.
+ * @returns {Object} The button component object.
+ */
 function CDEButton(template, cb) {
     return {
         $template: template,
@@ -65,6 +77,10 @@ function CDEButton(template, cb) {
 }
 
 let lazyBtCde = null;
+/**
+ * Setup the export button UI in the DOM.
+ * @param {*} cb - The callback function to execute when the button is clicked.
+ */
 function setupExportButtonUI(cb) {
     _ui().create(CDEButton("#cde-button-topbar", cb), document.body);
     const cde = document.getElementById("cde");
@@ -75,6 +91,11 @@ function setupExportButtonUI(cb) {
     lazyBtCde = cde;
 }
 
+/**
+ * Set the visibility of the export button.
+ * @param {*} visible - Whether the export button should be visible.
+ * @returns {void}
+ */
 function visibilityExportButton(visible) {
     if (!lazyBtCde) {
         console.warn("[CDE] Export button not initialized");
@@ -83,6 +104,10 @@ function visibilityExportButton(visible) {
     lazyBtCde.style.visibility = visible ? "visible" : "hidden";
 }
 
+/**
+ * Handle actions to perform when the export UI is opened.
+ * @returns {void}
+ */
 function onExportOpen() {
     if (!isCfg(Stg().MOD_ENABLED)) return;
 
@@ -93,6 +118,11 @@ function onExportOpen() {
     }
 }
 
+/**
+ * Handle the export download button click event.
+ * Generates a JSON export and triggers a download.
+ * @returns {Promise<void>}
+ */
 async function onClickExportDownload() {
     const exportString = mods.getExport().getExportString();
     const blob = new Blob([exportString], { type: "application/json" });
@@ -108,6 +138,11 @@ async function onClickExportDownload() {
     URL.revokeObjectURL(url);
 }
 
+/**
+ * Handle the export clipboard button click event.
+ * Copies the export string to the clipboard.
+ * @returns {Promise<void>}
+ */
 async function onClickExportClipboard() {
     try {
         await navigator.clipboard.writeText(mods.getExport().getExportString());
@@ -119,6 +154,11 @@ async function onClickExportClipboard() {
     }
 }
 
+/**
+ * Handle the export Hastebin button click event.
+ * Uploads the export string to Hastebin and copies the link to the clipboard.
+ * @returns {Promise<void>}
+ */
 async function onClickExportHastebin() {
     try {
         const raw = mods.getExport().getExportString();
@@ -133,11 +173,21 @@ async function onClickExportHastebin() {
     }
 }
 
+/**
+ * Handle the reset export button click event.
+ * Resets the export data.
+ * @returns {Promise<void>}
+ */
 async function onClickResetExport() {
     mods.getExport().resetExportData()
     mods.getViewer().popupSuccess('Export reset!');
 }
 
+/**
+ * Handle the refresh export button click event.
+ * Refreshes the export data and UI.
+ * @returns {Promise<void>}
+ */
 async function onClickRefreshExport() {
     // Todo: to improve..
     openExportUI(true);
@@ -156,7 +206,8 @@ const exportFooter =
  * Open the export UI for character data.
  * This function checks the settings to determine if data collection should be forced,
  * and if so, it processes the data collection before displaying the export UI.
- * @param {*} forceCollect 
+ * @param {*} [forceCollect=false] - Whether to force data collection before opening the UI.
+ * @returns {void}
  */
 function openExportUI(forceCollect = false) {
     if (isCfg(Stg().AUTO_EXPORT_ONWINDOW) || forceCollect) {
@@ -224,6 +275,7 @@ function openExportUI(forceCollect = false) {
  * Setup collapsible JSON display.
  * This function initializes the click event listeners for the JSON caret elements,
  * allowing users to expand or collapse JSON nodes in the export UI.
+ * @returns {void}
  */
 function setupCollapsibleJSON() {
     document.querySelectorAll('.cde-json-caret').forEach(caret => {
@@ -239,9 +291,11 @@ function setupCollapsibleJSON() {
 }
 
 /**
- * @param {any} obj
- * @param {string|null} [key]
- * @param {string} [path]
+ * Render a collapsible JSON structure as HTML.
+ * @param {any} obj - The object or value to render.
+ * @param {string|null} [key] - The key of the current node.
+ * @param {string} [path] - The path to the current node.
+ * @returns {string} The HTML string representing the collapsible JSON.
  */
 function renderCollapsibleJSON(obj, key = null, path = '') {
     const type = Object.prototype.toString.call(obj);
