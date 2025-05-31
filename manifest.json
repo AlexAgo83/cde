@@ -11,6 +11,7 @@
     "modules/collector.mjs",
     "modules/utils.mjs",
     "modules/export.mjs",
+    "modules/viewer.mjs",
     "modules.mjs"
   ],
   "load": [

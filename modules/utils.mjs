@@ -19,13 +19,12 @@ export const masteryXP = [
 
 let mods = null;
 /**
- * Initialize the collector module.
+ * Initialize utils module.
  * @param {Object} modules - The modules object containing dependencies.
  */
 export function init(modules) {
   mods = modules;
 }
-
 
 /**
  * Get the settings reference object.

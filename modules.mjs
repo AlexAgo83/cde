@@ -12,6 +12,7 @@ let mCloudStorage = null;
 let mDisplayStats = null;
 let mCollector = null;
 let mExport = null;
+let mViewer = null;
 
 export function getSettings() {
     return mSettings;
@@ -43,6 +44,10 @@ export function getExport() {
 
 export function getLZString() {
     return mLZString;
+}
+
+export function getViewer() {
+    return mViewer;
 }
 
 /**
@@ -81,6 +86,7 @@ export async function onModuleLoad(ctx) {
     mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
+    mViewer = await ctx.loadModule("modules/viewer.mjs");
 }
 
 /**
@@ -108,4 +114,9 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     mDisplayStats.init(this);
     mCollector.init(this);
     mExport.init(this);
+    mViewer.init(this);
+}
+
+export async function onViewLoad(ctx, processCollectDataCb) {
+    mViewer.load(ctx, processCollectDataCb);
 }
