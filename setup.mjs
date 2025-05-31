@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.91";
+const MOD_VERSION = "v1.8.92";
 
 // --- Module Imports ---
 let mModules = null;
@@ -127,7 +127,6 @@ function onCombat(activity, entry, syncDate=new Date()) {
 			} else {
 				entry.monster.kph = "NaN";
 			}
-			entry.monster.kphStr = `${entry.monster.kph} kills/h`;
 			if (mModules.getSettings().isDebug()) {
 				console.log("[CDE] Matching current monster data", entry.monster);
 			}
@@ -137,7 +136,6 @@ function onCombat(activity, entry, syncDate=new Date()) {
 			entry.monster.diffTime = 0;
 			entry.monster.diffTimeStr = "NaN";
 			entry.monster.kph = 0;
-			entry.monster.kphStr = "NaN kills/h";
 			entry.monster.startKillcount = entry.monster.killCount;
 			entry.monster.startTime = now;
 			if (mModules.getSettings().isDebug()) {
@@ -235,6 +233,8 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		data.diffTime = now.getTime() - startDate.getTime();
 		data.diffTimeStr = mModules.getUtils().formatDuration(data.diffTime);
 		data.diffXp = data.skillXp - current.startXp;
+		
+		// XP per Hour
 		if (data.diffTime > 0) {
 			data.xph = Math.round(
 				(data.diffXp / (data.diffTime / 3600000)) || 0
@@ -242,7 +242,13 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		} else {
 			data.xph = "NaN";
 		}
-		data.xphStr = `${data.xph} XP/h`;
+
+		// Time before next level
+		if (data.xph > 0 && data.xpLeft > 0) {
+			const secondsToNextLevel = data.xpLeft / (data.xph / 3600);
+			data.secondsToNextLevel = +secondsToNextLevel.toFixed(0);
+			data.timeToNextLevelStr = mModules.getUtils().formatDuration(data.secondsToNextLevel * 1000);
+		}
 	}
 }
 
