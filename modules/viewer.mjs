@@ -20,8 +20,8 @@ export function getChangelogView() { return changelogView; }
  * @param {*} ctx - The context object used to load submodules.
  */
 export async function loadSubModule(ctx) {
-  subModules.push(exportView = await ctx.loadModule("modules/views/exportView.mjs"));
-  subModules.push(changelogView = await ctx.loadModule("modules/views/changelogView.mjs"));
+  subModules.push(exportView = await ctx.loadModule("views/exportView.mjs"));
+  subModules.push(changelogView = await ctx.loadModule("views/changelogView.mjs"));
 }
 
 /**

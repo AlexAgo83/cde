@@ -96,7 +96,7 @@ function setupExportButtonUI(cb) {
  * @param {*} visible - Whether the export button should be visible.
  * @returns {void}
  */
-function visibilityExportButton(visible) {
+export function visibilityExportButton(visible) {
     if (!lazyBtCde) {
         console.warn("[CDE] Export button not initialized");
         return;
