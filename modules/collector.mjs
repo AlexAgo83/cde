@@ -531,9 +531,10 @@ export function collectCompletion() {
  * @param {*} onCombat 
  * @param {*} onNonCombat 
  * @param {*} onActiveSkill 
+ * @param {*} onSkllsUpdate
  * @returns {Object} An object containing the current activities.
  */
-export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill) {
+export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate) {
 	const result = {};
 	const player = _game().combat.player;
 	const stats = _game().stats;
@@ -558,6 +559,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill) {
 			};
 			
 			const items = {};
+			const skillsToUpdate = []
 			skills.forEach((skill) => {
 				const item = {
 					// idSkill: skill.localID,
@@ -566,8 +568,10 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill) {
 					skillLevel: skill.level
 				}
 				items[skill.localID] = item;
+				skillsToUpdate.push(skill.localID);
 				onActiveSkill(skill.localID, item, syncDate);
 			});
+			onSkllsUpdate(skillsToUpdate, items);
 			entry.skills = items;
 
 			if (a.selectedRecipe?.product?.name || null) {

@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.88";
+const MOD_VERSION = "v1.8.91";
 
 // --- Module Imports ---
 let mModules = null;
@@ -70,19 +70,21 @@ function isCfg(reference) {
 
 /**
  * Process and collect data for export.
- * This function gathers combat and non-combat data, updating the current monster data
- * and calculating relevant statistics such as kill count, time difference, and Kills per Hour (KpH).
+ * This function gathers combat, non-combat, and skill data, updating the current monster and skill data,
+ * and calculating relevant statistics such as kill count, time difference, Kills per Hour (KpH), and XP per Hour (XPh).
  * It also updates the export metadata with the current module version.
+ * 
  * @description
  * This function is called to collect data when the game starts or when the export UI is opened.
  * It uses the `mModules.getExport().processCollectData` method to handle the data collection.
- * The `onCombat` and `onNonCombat` callbacks are used to process combat and non-combat events respectively.
+ * The `onCombat`, `onNonCombat`, `onActiveSkill`, and `onSkllsUpdate` callbacks are used to process respective events.
  */
 function implProcessCollectData() {
 	mModules.getExport().processCollectData(
 		onCombat, 
 		onNonCombat, 
 		onActiveSkill,
+		onSkllsUpdate,
 		(meta) => {
 			meta.modVersion = MOD_VERSION
 		}
@@ -167,10 +169,12 @@ function onNonCombat(activity, entry, syncDate=new Date()) {
 }
 
 /**
- * ETA - Callback for skill event.
- * @param {string} skillId 
- * @param {object} data 
- * @param {Date} syncDate 
+ * ETA - Callback for active skill event.
+ * Tracks skill progression, calculates XP left to next level, and estimates XP per hour (XPh).
+ * Handles skill data resets on level up and manages skill session timing.
+ * @param {string} skillId - The skill identifier.
+ * @param {object} data - The skill data object.
+ * @param {Date} [syncDate=new Date()] - The timestamp for the event.
  */
 function onActiveSkill(skillId, data, syncDate=new Date()) {
 	const now = syncDate;
@@ -194,6 +198,14 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 				// Reset if level change
 				delete currentSkillData[skillId];
 			}
+			let startDate = current.startTime;
+			if (!(startDate instanceof Date)) {
+				startDate = new Date(startDate);
+			}
+			// if (now.getTime() - startDate.getTime() > 3600000) {
+			// 	// Reset if time exceed 1H
+			// 	delete currentSkillData[skillId];
+			// }
 		}
 	} else {
 		currentSkillData = {};
@@ -216,10 +228,14 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		&& currentSkillData[skillId]) {
 		// UPDATING ETA ...
 		const current = currentSkillData[skillId];
-		data.diffTime = now.getTime() - current.startTime.getTime();
+		let startDate = current.startTime;
+		if (!(startDate instanceof Date)) {
+			startDate = new Date(startDate);
+		}
+		data.diffTime = now.getTime() - startDate.getTime();
 		data.diffTimeStr = mModules.getUtils().formatDuration(data.diffTime);
 		data.diffXp = data.skillXp - current.startXp;
-		if (data.diffTimeStr > 0) {
+		if (data.diffTime > 0) {
 			data.xph = Math.round(
 				(data.diffXp / (data.diffTime / 3600000)) || 0
 			);
@@ -231,8 +247,31 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 }
 
 /**
+ * ETA - Registered active skill identifiers.
+ * Cleans up skill tracking data for skills that are no longer active.
+ * @param {Set<string>} identifiers - The set of currently active skill identifiers.
+ */
+function onSkllsUpdate(identifiers) {
+	if (identifiers && identifiers.size > 0) {
+		let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
+		if (currentSkillData) {
+			const properties = Object.keys(currentSkillData);
+			properties.forEach(p => {
+				if (!identifiers.has(p)) {
+					delete currentSkillData[p];
+					console.log("[CDE] remove unused skillData.", p);
+				}
+			});
+		}
+	}
+}
+
+/**
  * Main - Handle settings changes. (Override default action)
- * @param {*} reference 
+ * Handles changes to mod settings, such as toggling debug mode, showing/hiding the export button,
+ * cleaning changes history, or clearing storage.
+ * @param {*} reference - The settings reference object containing the key and value.
+ * @returns {Function|undefined} Optionally returns a function for value propagation.
  */
 function onSettingsChange(reference) {
 	if (mModules.getSettings().isDebug()) {
@@ -277,7 +316,19 @@ function onSettingsChange(reference) {
 	}
 }
 
-// --- Init ---
+/**
+ * Main setup entry point for the mod.
+ * Registers lifecycle hooks for mod loading, character loading, and interface readiness.
+ * Also exposes an API for external use.
+ * 
+ * @param {Object} context - The setup context object.
+ * @param {Object} context.settings - The settings object for the mod.
+ * @param {Object} context.api - The API registration function.
+ * @param {Object} context.characterStorage - The character storage object.
+ * @param {Function} context.onModsLoaded - Callback for when mods are loaded.
+ * @param {Function} context.onCharacterLoaded - Callback for when the character is loaded.
+ * @param {Function} context.onInterfaceReady - Callback for when the interface is ready.
+ */
 export function setup({settings, api, characterStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {

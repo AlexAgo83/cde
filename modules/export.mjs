@@ -105,7 +105,7 @@ export function collector(cfgRef, collectorFn, fallbackMsg) {
 	return isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
 }
 
-export function processCollectData(onCombat, onNonCombat, onActiveSkill, onMeta) {
+export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, onMeta) {
 	const newData = {};
 
 	const _mc = mods.getCollector();
@@ -113,7 +113,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onMeta)
 	const date = new Date();
 
 	newData.basics = _mc.collectBasics();
-	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat, onActiveSkill);
+	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate);
 	newData.agility = _mc.collectAgility();
 	newData.activePotions = _mc.collectActivePotions();
 	newData.dungeons = _mc.collectDungeons();
