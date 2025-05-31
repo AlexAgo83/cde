@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.105";
+const MOD_VERSION = "v1.8.107";
 
 // --- Module Imports ---
 let mModules = null;
@@ -284,16 +284,19 @@ function onSettingsChange(reference) {
 		console.log("[CDE] settings - reference triggered:", reference);
 	}
 	
-	let key = reference?.ref?.key;
+	let key = reference?.ref;
 	let value = reference?.value;
 
-	if (key === Stg().ETA_DISPLAY.key) {
+	if (key == Stg().ETA_DISPLAY) {
 		mModules.getPages().triggerObservers(value);
+		if (mModules.getSettings().isDebug()) {
+			console.log("[CDE] Observers triggered (settings) :", value);
+		}
 		return () => { return value};
 	}
 
 	// MODE DEBUG
-	if (key === Stg().MOD_DEBUG.key) {
+	if (key == Stg().MOD_DEBUG) {
 		mModules.getSettings().setDebug(value);
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] settings - Debugmode :", value);
@@ -302,7 +305,7 @@ function onSettingsChange(reference) {
 	}
 
 	// SHOW BUTTON
-	if (key === Stg().SHOW_BUTTON.key) {
+	if (key == Stg().SHOW_BUTTON) {
 		mModules.getViewer().visibilityExportButton(value);
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] settings - showButton :", value);
@@ -311,7 +314,7 @@ function onSettingsChange(reference) {
 	}
 
 	// MAX CHANGES HISTORY
-	if (key === Stg().MAX_CHANGES_HISTORY.key) {
+	if (key == Stg().MAX_CHANGES_HISTORY) {
 		mModules.getExport().cleanChangesHistory();
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] settings - maxChangesHistory :", value);
@@ -320,7 +323,7 @@ function onSettingsChange(reference) {
 	}
 
 	// CLEAR STORAGE
-	if (key === Stg().CLEAR_STORAGE.key) {
+	if (key == Stg().CLEAR_STORAGE) {
 		mModules.getLocalStorage().clearStorage();
 		mModules.getCloudStorage().clearStorage();
 		console.log("[CDE] Storage cleared!");

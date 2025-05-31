@@ -97,13 +97,17 @@ function pageContainer(targetPage, identifier) {
  * Sets up observers to monitor DOM changes and inject summary headers if the corresponding setting is enabled.
  * @param {boolean} connect Connect observer to view
  */
-function initObservers(connect = false) {
-    if (isCfg(Stg().ETA_DISPLAY)) {
+function initObservers(etaDisplay = false, connect = false) {
+    if (etaDisplay) {
         const reference = pageContainer('#combat-container', 'combat')
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", reference);
         }
-        if (reference && connect) reference?.observer.observe(document.body, { childList: true, subtree: true });
+        if (reference && connect) reference.observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] ETA display is turned off");
+        }
     }
 }
 /**
@@ -121,6 +125,6 @@ export function triggerObservers(value) {
         pageObservers.clear();
     }
     if (value && pageObservers.size == 0) {
-        initObservers(true);
+        initObservers(true, true);
     }
 }

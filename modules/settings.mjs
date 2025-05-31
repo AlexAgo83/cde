@@ -377,6 +377,9 @@ export function loadAllSettings() {
 		console.error("[CDE] CloudStorage module not available");
 		return;
 	}
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] Load all settings");
+	}
 	for (const key in SettingsReference) {
 		referenceItems.get(key)?.loadSetting();
 	}
@@ -422,7 +425,8 @@ export function getCfg(settingRef) {
 		console.error("[CDE] Invalid section reference:", section);
 		return null;
 	}
-	return section.get(settingRef.key) ?? settingRef.toggle;
+	const result = mods.getCloudStorage().loadSetting(settingRef);
+	return result ? result : settingRef.toggle;
 }
 
 export function isCfg(settingRef) {
