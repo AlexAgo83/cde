@@ -231,8 +231,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
 		mModules.onViewLoad(ctx);
-		mModules.getViewer()?.getExportView()?.overrideProcessCollectDataCb(implProcessCollectData);
-		
+		mModules.getViewer().getExportView().initProcessCollectDataCb(implProcessCollectData);
 		console.log("[CDE] Interface ready !");
 	});
 	

@@ -50,7 +50,7 @@ export function load(ctx) {
     visibilityExportButton(isCfg(Stg().SHOW_BUTTON));
 }
 
-export function overrideProcessCollectDataCb(cb) {
+export function initProcessCollectDataCb(cb) {
     processCollectData = cb;
 }
 

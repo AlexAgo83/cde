@@ -118,6 +118,6 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     mViewer.init(this);
 }
 
-export async function onViewLoad(ctx, processCollectDataCb) {
-    mViewer.load(ctx, processCollectDataCb);
+export async function onViewLoad(ctx) {
+    mViewer.load(ctx);
 }
