@@ -530,9 +530,10 @@ export function collectCompletion() {
  * Collect the player's current activity.
  * @param {*} onCombat 
  * @param {*} onNonCombat 
+ * @param {*} onActiveSkill 
  * @returns {Object} An object containing the current activities.
  */
-export function collectCurrentActivity(onCombat, onNonCombat) {
+export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill) {
 	const result = {};
 	const player = _game().combat.player;
 	const stats = _game().stats;
@@ -551,6 +552,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 	// _game().activeAction?.activeSkills?.forEach((a) => {
 	actions?.registeredObjects?.forEach((a) => {
 		if (a.isActive) {
+			const syncDate = new Date();
 			const entry = {
 				activity: a.localID,
 			};
@@ -564,6 +566,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 					skillLevel: skill.level
 				}
 				items[skill.localID] = item;
+				onActiveSkill(skill.localID, item, syncDate);
 			});
 			entry.skills = items;
 
@@ -581,7 +584,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 						killCount: stats.monsterKillCount(a.selectedMonster)
 					};
 				}
-				onCombat(a, entry);
+				onCombat(a, entry, syncDate);
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update combat", entry);
 			} else { /** NON COMBAT SKILLS */
@@ -597,7 +600,7 @@ export function collectCurrentActivity(onCombat, onNonCombat) {
 					}
 				});
 				entry.recipeQueue = queue;
-				onNonCombat(a, entry);
+				onNonCombat(a, entry, syncDate);
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update non-combat", entry);
 			}

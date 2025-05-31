@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.82";
+const MOD_VERSION = "v1.8.83";
 
 // --- Module Imports ---
 let mModules = null;
@@ -82,6 +82,7 @@ function implProcessCollectData() {
 	mModules.getExport().processCollectData(
 		onCombat, 
 		onNonCombat, 
+		onActiveSkill,
 		(meta) => {
 			meta.modVersion = MOD_VERSION
 		}
@@ -96,10 +97,11 @@ function implProcessCollectData() {
  * If the current monster data matches the entry, it updates the statistics accordingly.
  * @param {object} activity 
  * @param {object} entry 
+ * @param {Date} syncDate
  */
-function onCombat(activity, entry) {
+function onCombat(activity, entry, syncDate) {
 	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
-	const now = new Date();
+	const now = syncDate;
 
 	if (isCfg(Stg().ETA_COMBAT) && entry.monster) {
 		if (currentMonsterData 
@@ -152,8 +154,9 @@ function onCombat(activity, entry) {
  * effectively resetting the activity trace for the current monster.
  * @param {object} activity 
  * @param {object} entry 
+ * @param {Date} syncDate
  */
-function onNonCombat(activity, entry) {
+function onNonCombat(activity, entry, syncDate) {
 	/* Reset current monster data memory */
 	if (mModules.getCloudStorage().getCurrentMonsterData()) {
 		mModules.getCloudStorage().removeCurrentMonsterData();
@@ -161,6 +164,17 @@ function onNonCombat(activity, entry) {
 			console.log("[CDE] Clear activity trace", entry.monster);
 		}
 	}
+}
+
+/**
+ * ETA - Callback for skill event.
+ * @param {string} skillId 
+ * @param {object} data 
+ * @param {Date} syncDate 
+ */
+function onActiveSkill(skillId, data, syncDate) {
+	const now = syncDate;
+	
 }
 
 /**
