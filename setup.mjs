@@ -99,7 +99,7 @@ function implProcessCollectData() {
  * @param {object} entry 
  * @param {Date} syncDate
  */
-function onCombat(activity, entry, syncDate) {
+function onCombat(activity, entry, syncDate=new Date()) {
 	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
 	const now = syncDate;
 
@@ -156,7 +156,7 @@ function onCombat(activity, entry, syncDate) {
  * @param {object} entry 
  * @param {Date} syncDate
  */
-function onNonCombat(activity, entry, syncDate) {
+function onNonCombat(activity, entry, syncDate=new Date()) {
 	/* Reset current monster data memory */
 	if (mModules.getCloudStorage().getCurrentMonsterData()) {
 		mModules.getCloudStorage().removeCurrentMonsterData();
@@ -172,8 +172,10 @@ function onNonCombat(activity, entry, syncDate) {
  * @param {object} data 
  * @param {Date} syncDate 
  */
-function onActiveSkill(skillId, data, syncDate) {
+function onActiveSkill(skillId, data, syncDate=new Date()) {
+	const currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
 	const now = syncDate;
+
 	
 }
 

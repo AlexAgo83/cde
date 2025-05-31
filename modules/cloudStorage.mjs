@@ -5,6 +5,7 @@
 // cloudStorage.mjs
 
 const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
+const CS_CURRENT_SKILL_DATA = "cs_current_skill_data";
 
 let mods = null;
 let cloudStorage = null;
@@ -49,6 +50,22 @@ export function setCurrentMonsterData(monsterData)  {
 }
 export function removeCurrentMonsterData() {
 	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
+}
+
+export function getCurrentSkillData() {
+	try {
+		const raw = cloudStorage?.getItem(CS_CURRENT_SKILL_DATA);
+		return typeof raw === "string" ? JSON.parse(raw) : raw;
+	} catch (e) {
+		console.warn("[CDE] Invalid skill data in characterStorage");
+		return null;
+	}
+}
+export function setCurrentSkillData(skillData)  {
+	cloudStorage?.setItem(CS_CURRENT_SKILL_DATA, skillData);
+}
+export function removeCurrentSkillData() {
+	cloudStorage?.removeItem(CS_CURRENT_SKILL_DATA);
 }
 
 export function clearStorage() {
