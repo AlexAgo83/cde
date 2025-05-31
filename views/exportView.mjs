@@ -124,18 +124,12 @@ function onExportOpen() {
  * @returns {Promise<void>}
  */
 async function onClickExportDownload() {
-    const exportString = mods.getExport().getExportString();
-    const blob = new Blob([exportString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    const date = new Date();
-    const timestamp = mods.getUtils().parseTimestamp(date);
-    link.download = `melvor-export-${timestamp}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+        mods.getViewer().doShareFile('export', mods.getExport().getExportString());
+    } catch (err) {
+        console.error("Failed to generate export:", err);
+        mods.getViewer().popupError('Export failed', 'Could not generate export.');
+    }
 }
 
 /**

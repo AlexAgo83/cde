@@ -133,3 +133,17 @@ export function popupError(titleStr, msgStr) {
       text: msgStr
   });
 }
+
+export async function doShareFile(identifier, contentString, timestampStr = null) {
+    const blob = new Blob([contentString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const date = new Date();
+    const timestamp = timestampStr == null ? mods.getUtils().parseTimestamp(date) : timestampStr;
+    link.download = `melvor-${identifier}-${timestamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}

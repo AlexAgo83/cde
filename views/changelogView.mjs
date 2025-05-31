@@ -38,7 +38,8 @@ function isCfg(reference) {
 }
 
 /**
- * 
+ * Placeholder for load function.
+ * @param {*} ctx - Context parameter (currently unused).
  */
 export function load(ctx) {
 }
@@ -100,15 +101,7 @@ export async function onClickExportViewDiff() {
             document.getElementById("cde-changelog-reset-button")?.addEventListener("click", onClickResetChangelogs);
             document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
                 const text = (history.get(selectedKey) || []).join("\n");
-                const blob = new Blob([text], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `melvor-changelog-${selectedKey}.txt`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                mods.getViewer().doShareFile('changelog', text, selectedKey);
             });
             document.getElementById("cde-changelog-exportall-button")?.addEventListener("click", onClickExportAllChangelogs);
             
@@ -174,35 +167,21 @@ async function onClickResetChangelogs() {
     mods.getViewer().popupSuccess('Changelogs reset!');
 }
 
-
 async function onClickExportAllChangelogs() {
     const history = mods.getExport().getChangesHistory();
     if (!history || history.size === 0) {
         mods.getViewer().popupInfo("Export All", "No changelog history to export.");
         return;
     }
-    
     try {
         const allData = {};
         Array.from(history.entries()).forEach(([key, value]) => {
             allData[key] = value;
         });
-        
-        const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
-        const date = new Date();
-        const timestamp = mods.getUtils().parseTimestamp(date);
-        const fileName = `melvor-changelog-ALL-${timestamp}.json`;
-        
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        const contentString = JSON.stringify(allData, null, 2);
+        mods.getViewer().doShareFile('changelog-ALL', contentString);
     } catch (err) {
         console.error("Failed to generate full changelogs:", err);
-        mods.getViewer().popupInfo('Export failed', 'Could not generate full changelogs.');
+        mods.getViewer().popupError('Export failed', 'Could not generate full changelogs.');
     }
 }
