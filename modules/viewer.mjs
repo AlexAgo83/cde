@@ -135,8 +135,10 @@ export function popupError(titleStr, msgStr) {
 }
 
 /**
- * 
- * @param {*} contentString 
+ * Copies the given string to the clipboard and optionally shows a success popup.
+ * @param {string} contentString - The text content to copy to the clipboard.
+ * @param {boolean} [withPopupSuccess=true] - Whether to show a success popup after copying.
+ * @returns {Promise<void>} Resolves when the copy is complete.
  */
 export async function doCopyClipboard(contentString, withPopupSuccess=true) {
     try {
@@ -150,10 +152,11 @@ export async function doCopyClipboard(contentString, withPopupSuccess=true) {
 }
 
 /**
- * 
- * @param {*} identifier 
- * @param {*} contentString 
- * @param {*} timestampStr 
+ * Triggers a download of the given content as a JSON file, using the provided identifier and timestamp.
+ * @param {string} identifier - A string to include in the filename (e.g., character name or export type).
+ * @param {string} contentString - The content to save as a file (usually JSON).
+ * @param {string|null} [timestampStr=null] - Optional timestamp string for the filename. If not provided, the current date/time is used.
+ * @returns {Promise<void>} Resolves when the file download is triggered.
  */
 export async function doShareFile(identifier, contentString, timestampStr = null) {
     const blob = new Blob([contentString], { type: "application/json" });
@@ -170,7 +173,9 @@ export async function doShareFile(identifier, contentString, timestampStr = null
 }
 
 /**
- * 
+ * Uploads the given content to Hastebin, copies the resulting link to the clipboard, and shows a popup with the link.
+ * @param {string} contentString - The content to upload to Hastebin.
+ * @returns {Promise<void>} Resolves when the upload and copy are complete.
  */
 export async function doShareHastebin(contentString) {
     try {
