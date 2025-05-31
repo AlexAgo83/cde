@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.85";
+const MOD_VERSION = "v1.8.88";
 
 // --- Module Imports ---
 let mModules = null;
@@ -175,14 +175,13 @@ function onNonCombat(activity, entry, syncDate=new Date()) {
 function onActiveSkill(skillId, data, syncDate=new Date()) {
 	const now = syncDate;
 
-	const nextLevel = data.level+1;
+	const nextLevel = data.skillLevel+1;
 
 	const currentXp = data.skillXp;
-	const currentLevelXp = mModules.getUtils().getXpForLevel(data.skillLevel);
 	const nextLevelXp = mModules.getUtils().getXpForLevel(nextLevel);
 	
-	const xpLeft = (currentLevelXp - currentXp) / (nextLevelXp - currentLevelXp);
-	data.xpLeft = xpLeft;
+	data.xpLeft = nextLevelXp > currentXp ? nextLevelXp - currentXp : 0;
+	data.nextLevelXp = nextLevelXp > currentXp ? nextLevelXp : 0;
 
 	let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
 	let skill = {};
@@ -212,7 +211,7 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 
 	// ETA Check Skill Progression
 	if (isCfg(Stg().ETA_SKILLS) 
-		&& xpLeft > 0
+		&& data.xpLeft > 0
 		&& currentSkillData
 		&& currentSkillData[skillId]) {
 		// UPDATING ETA ...
@@ -220,7 +219,6 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		data.diffTime = now.getTime() - current.startTime.getTime();
 		data.diffTimeStr = mModules.getUtils().formatDuration(data.diffTime);
 		data.diffXp = data.skillXp - current.startXp;
-
 		if (data.diffTimeStr > 0) {
 			data.xph = Math.round(
 				(data.diffXp / (data.diffTime / 3600000)) || 0
