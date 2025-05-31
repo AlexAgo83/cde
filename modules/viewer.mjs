@@ -84,7 +84,6 @@ export function load(ctx) {
   });
 }
 
-
 /**
  * Displays a success popup using SweetAlert2.
  *
