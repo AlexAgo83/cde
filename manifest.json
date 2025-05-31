@@ -12,6 +12,7 @@
     "modules/utils.mjs",
     "modules/export.mjs",
     "modules/viewer.mjs",
+    "modules/pages.mjs",
     "views/exportView.mjs",
     "views/changelogView.mjs",
     "modules.mjs"

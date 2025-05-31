@@ -13,6 +13,7 @@ let mDisplayStats = null;
 let mCollector = null;
 let mExport = null;
 let mViewer = null;
+let mPages = null;
 
 export function getSettings() {
     return mSettings;
@@ -48,6 +49,10 @@ export function getLZString() {
 
 export function getViewer() {
     return mViewer;
+}
+
+export function getPages() {
+    return mPages;
 }
 
 /**
@@ -87,6 +92,9 @@ export async function onModuleLoad(ctx) {
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
     mViewer = await ctx.loadModule("modules/viewer.mjs");
+    mPages = await ctx.loadModule("modules/pages.mjs");
+    
+    // Load subModules :
     mViewer.loadSubModule(ctx);
 }
 
@@ -116,6 +124,7 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     mCollector.init(this);
     mExport.init(this);
     mViewer.init(this);
+    mPages.init(this);
 }
 
 export async function onViewLoad(ctx) {

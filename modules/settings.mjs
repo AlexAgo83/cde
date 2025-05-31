@@ -195,6 +195,14 @@ export const SettingsReference = {
 	},
 
 	// ETA
+	ETA_DISPLAY: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-display",
+		label: "Display ETA on Available Pages",
+		hint: "Toggle to show the ETA section on any available page.",
+		toggle: false
+	},
 	ETA_COMBAT: {
 		section: Sections.ETA,
 		type: "switch",
@@ -208,7 +216,7 @@ export const SettingsReference = {
 		type: "switch",
 		key: "eta-skills",
 		label: "Display Skills ETA",
-		hint: "Toggle to show the estimated time remaining to complete your current skills activity, based on recent xp changes.",
+		hint: "Toggle to show the estimated time remaining to complete your current skill activity, based on recent XP changes.",
 		toggle: true
 	},
 

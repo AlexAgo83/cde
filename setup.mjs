@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.92";
+const MOD_VERSION = "v1.8.96";
 
 // --- Module Imports ---
 let mModules = null;
@@ -287,6 +287,11 @@ function onSettingsChange(reference) {
 	let key = reference?.ref?.key;
 	let value = reference?.value;
 
+	if (key === Stg().ETA_DISPLAY.key) {
+		mModules.getPages().triggerObservers(value);
+		return () => { return value};
+	}
+
 	// MODE DEBUG
 	if (key === Stg().MOD_DEBUG.key) {
 		mModules.getSettings().setDebug(value);
@@ -355,8 +360,13 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
 		mModules.onViewLoad(ctx);
-		// Override processCollectData callback
+		
+		// Override processCollectData callback (Viewer)
 		mModules.getViewer().getExportView().initProcessCollectDataCb(implProcessCollectData);
+
+		// Init content pangel for pages
+		mModules.getPages().triggerObservers(isCfg(Stg().ETA_DISPLAY));
+
 		console.log("[CDE] Interface ready !");
 	});
 	
