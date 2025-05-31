@@ -105,7 +105,7 @@ export function collectMastery() {
 		
 		const entries = {};
 		masteryMap.forEach((progress, entry) => {
-			entries[entry.name] = {
+			entries[entry.localID] = {
 				id: entry.localID,
 				level: progress.level,
 				xp: progress.xp
@@ -113,7 +113,7 @@ export function collectMastery() {
 		});
 		
 		if (Object.keys(entries).length > 0) {
-			result[skill.name] = entries;
+			result[skill.localID] = entries;
 		}
 	});
 	

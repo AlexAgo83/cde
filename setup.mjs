@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.78";
+const MOD_VERSION = "v1.8.79";
 
 // --- Module Imports ---
 let mModules = null;
