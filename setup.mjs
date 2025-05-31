@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.80";
+const MOD_VERSION = "v1.8.81";
 
 // --- Module Imports ---
 let mModules = null;
@@ -164,7 +164,7 @@ function onNonCombat(activity, entry) {
 }
 
 /**
- * Handle changes to settings.
+ * Main - Handle settings changes. (Override default action)
  * @param {*} reference 
  */
 function onSettingsChange(reference) {
@@ -231,6 +231,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
 		mModules.onViewLoad(ctx);
+		// Override processCollectData callback
 		mModules.getViewer().getExportView().initProcessCollectDataCb(implProcessCollectData);
 		console.log("[CDE] Interface ready !");
 	});
@@ -242,6 +243,9 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		},
 		getModules: () => {
 			return mModules;
+		},
+		getViews: () => {
+			return mModules.getViewer().getViews();
 		},
 		setDebug: (toggle) => {
 			mModules.getSettings().setDebug(toggle);

@@ -54,12 +54,16 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+export function getViews() {
+  return subModules;
+}
+
 /**
  * 
  * @param {*} modules 
  */
 export function initSubModule(modules) {
-  subModules.forEach((m) => {
+  getViews().forEach((m) => {
     m.init(modules);
   });
 }
@@ -68,7 +72,7 @@ export function initSubModule(modules) {
  * 
  */
 export function load(ctx) {
-  subModules.forEach((m) => {
+  getViews().forEach((m) => {
     m.load(ctx);
   });
 }
