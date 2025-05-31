@@ -66,7 +66,7 @@ export function getChangesHistory() {
 }
 export function submitChangesHistory(data) {
 	const date = new Date();
-	const key = date.toISOString().split("T")[0] + "_" + date.toTimeString().split(" ")[0].replace(/:/g, "");
+	const key = mods.getUtils().parseTimestamp(date);
 	
 	const items = getChangesHistory();
 	items.set(key, data);
@@ -110,6 +110,7 @@ export function processCollectData(onCombat, onNonCombat, onMeta) {
 
 	const _mc = mods.getCollector();
 	const _sr = Stg();
+	const date = new Date();
 
 	newData.basics = _mc.collectBasics();
 	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat);
@@ -134,7 +135,7 @@ export function processCollectData(onCombat, onNonCombat, onMeta) {
 	newData.farming = collector(_sr.EXPORT_FARMING, _mc.collectFarming, "Farming data unavailable");
 
 	newData.meta = {
-		exportTimestamp: new Date().toISOString(),
+		exportTimestamp: mods.getUtils().parseTimestamp(date),
 		version: _game().lastLoadedGameVersion
 	};
     onMeta(newData.meta);

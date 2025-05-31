@@ -40,7 +40,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.73";
+const MOD_VERSION = "v1.8.75";
 
 // --- Module Imports ---
 let mModules = null;
@@ -225,7 +225,9 @@ async function onClickExportDownload() {
 	const url = URL.createObjectURL(blob);
 	const link = document.createElement("a");
 	link.href = url;
-	link.download = `melvor-export-${new Date().toISOString().split("T")[0]}_${new Date().toTimeString().split(" ")[0].replace(/:/g, "")}.json`;
+	const date = new Date();
+	const timestamp = mModules.getUtils().parseTimestamp(date);
+	link.download = `melvor-export-${timestamp}.json`;
 	document.body.appendChild(link);
 	link.click();
 	document.body.removeChild(link);
@@ -292,9 +294,9 @@ async function onClickExportAllChangelogs() {
 		});
 		
 		const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
-		const now = new Date();
-		const stamp = now.toISOString().replace(/[-:T]/g,"").slice(0, 15);
-		const fileName = `melvor-changelog-ALL-${stamp}.json`;
+		const date = new Date();
+		const timestamp = mModules.getUtils().parseTimestamp(date);
+		const fileName = `melvor-changelog-ALL-${timestamp}.json`;
 		
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement("a");
