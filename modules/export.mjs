@@ -31,13 +31,17 @@ function Stg() {
 
 /**
  * Get the boolean value for a settings reference.
+ * @param {*} reference - The settings reference to check.
  * @returns {boolean} True if the reference is allowed, false otherwise.
  */
 function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
-// --- Export Logic ---
+/**
+ * Get the last export data as a JSON object, either from cache or from local storage.
+ * @returns {Object} The export data as a JSON object.
+ */
 export function getExportJSON() {
 	if (exportData == null) {
 		if (mods.getSettings().isDebug()) {
@@ -47,16 +51,29 @@ export function getExportJSON() {
 	}
 	return exportData;
 }
+
+/**
+ * Get the export data as a JSON string, either compressed or pretty-printed depending on settings.
+ * @returns {string} The export data as a JSON string.
+ */
 export function getExportString() {
 	return isCfg(Stg().EXPORT_COMPRESS) ? 
 	JSON.stringify(getExportJSON()) : 
 	JSON.stringify(getExportJSON(), null, 2);
 }
 
-// --- Changes Logic ---
+/**
+ * Get the last generated changes (diff) array.
+ * @returns {Array} The changes data array.
+ */
 export function getChangesData() {
 	return changesData;
 }
+
+/**
+ * Get the saved changes history as a Map.
+ * @returns {Map} The changes history.
+ */
 export function getChangesHistory() {
 	if (changesHistory == null) {
 		const stored = mods.getLocalStorage().getChangesFromStorage();
@@ -64,6 +81,11 @@ export function getChangesHistory() {
 	}
 	return changesHistory;
 }
+
+/**
+ * Add a new entry to the changes history, clean up if needed, and save to storage.
+ * @param {Array} data - The changes data to add to the history.
+ */
 export function submitChangesHistory(data) {
 	const date = new Date();
 	const key = mods.getUtils().parseTimestamp(date);
@@ -76,6 +98,11 @@ export function submitChangesHistory(data) {
 		mods.getLocalStorage().saveChangesToStorage(items);
 	}
 }
+
+/**
+ * Get the maximum number of entries to keep in the changes history.
+ * @returns {number} The maximum number of history entries.
+ */
 export function getMaxHistorySetting() {
 	try {
 		let val = mods.getSettings().getCfg(Stg().MAX_CHANGES_HISTORY);
@@ -87,6 +114,10 @@ export function getMaxHistorySetting() {
 	}
 	return 0;
 }
+
+/**
+ * Clean the changes history to not exceed the configured maximum.
+ */
 export function cleanChangesHistory() {
 	const history = getChangesHistory();
 	const maxHistory = getMaxHistorySetting();
@@ -100,11 +131,26 @@ export function cleanChangesHistory() {
 	}
 }
 
-// Collector
+/**
+ * Utility to collect data if the config allows, otherwise returns a fallback message.
+ * @param {*} cfgRef - The config reference to check.
+ * @param {Function} collectorFn - The collector function to call if allowed.
+ * @param {string} fallbackMsg - The message to return if not allowed.
+ * @returns {*} The collected data or an info object.
+ */
 export function collector(cfgRef, collectorFn, fallbackMsg) {
 	return isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
 }
 
+/**
+ * Collects all character data, calls all collectors, handles saving and diff generation.
+ * @param {Function} onCombat - Callback for combat events.
+ * @param {Function} onNonCombat - Callback for non-combat events.
+ * @param {Function} onActiveSkill - Callback for active skill events.
+ * @param {Function} onSkllsUpdate - Callback for updating active skills.
+ * @param {Function} onMeta - Callback to enrich export metadata.
+ * @returns {Object} The generated export data.
+ */
 export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, onMeta) {
 	const newData = {};
 
@@ -169,6 +215,9 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	return exportData;
 }
 
+/**
+ * Reset all export data and changes history.
+ */
 export function resetExportData() {
 	exportData = {};
 	changesData = [];
@@ -180,6 +229,9 @@ export function resetExportData() {
 	}
 }
 
+/**
+ * Reset only the changes history.
+ */
 export function resetChangesHistory() {
 	changesData = [];
 	changesHistory = null;
