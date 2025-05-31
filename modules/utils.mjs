@@ -6,18 +6,12 @@
 
 export const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "melvorItA"];
 export const HASTE_ENDPOINT = "https://haste.zneix.eu";
-export const masteryXP = [
-  0, 83, 174, 276, 388, 512, 650, 801, 969, 1154, 1358, 1584, 1833, 2107, 2411, 2746, 3115, 3523,
-  3973, 4470, 5018, 5624, 6291, 7028, 7842, 8740, 9730, 10824, 12031, 13363, 14833, 16456, 18247,
-  20224, 22406, 24815, 27473, 30408, 33648, 37224, 41171, 45529, 50339, 55649, 61512, 67983, 75127,
-  83014, 91721, 101333, 111945, 123660, 136594, 150872, 166636, 184040, 203254, 224466, 247886,
-  273742, 302288, 333804, 368599, 407015, 449428, 496254, 547953, 605032, 668051, 737627, 814445,
-  899257, 992895, 1096278, 1210421, 1336443, 1475581, 1629200, 1798808, 1986068, 200000, 200000,
-  200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000,
-  200000, 200000, 200000, 200000, 200000
-];
 
 let mods = null;
+
+/* @ts-ignore Handle DEVMODE */
+function _exp()  {  return exp;  }
+
 /**
  * Initialize utils module.
  * @param {Object} modules - The modules object containing dependencies.
@@ -241,23 +235,32 @@ export async function uploadToHastebin(text) {
 	return `${HASTE_ENDPOINT}/${data.key}`;
 }
 
-export function getMasteryProgressPercent(xp) {
-  if (xp >= 200000) return { level: 99, percent: 100 };
+/**
+ * 
+ * @param {*} currentLevel
+ * @param {*} currentXp 
+ * @returns 
+ */
+export function getMasteryProgressPercent(currentLevel, currentXp) {
+	if (currentXp >= 200000) return { level: 99, percent: 100 };
 
-  let level = 1;
-  for (let i = 1; i < masteryXP.length; i++) {
-	if (xp < masteryXP[i]) {
-	  level = i;
-	  const xpCurrent = masteryXP[i - 1];
-	  const xpNext = masteryXP[i];
-	  const percent = ((xp - xpCurrent) / (xpNext - xpCurrent)) * 100;
-	  return { level, percent: +percent.toFixed(2) };
+	const nextLevel = currentLevel + 1;
+	const currentLevelXp = getXpForLevel(currentLevel);
+	const nextLevelXp = getXpForLevel(nextLevel);
+
+	if (currentXp < nextLevelXp) {
+		const percent = ((currentLevelXp - currentXp) / (nextLevelXp - currentLevelXp)) * 100;
+		return { nextLevel, percent: +percent.toFixed(2) };
 	}
-  }
 
-  return { level: 99, percent: 100 };
+	return { level: 99, percent: 100 };
 }
 
+/**
+ * 
+ * @param {*} date 
+ * @returns 
+ */
 export function parseTimestamp(date) {
 	const localStamp = 
 		date.getFullYear().toString() +
@@ -267,4 +270,13 @@ export function parseTimestamp(date) {
 		String(date.getMinutes()).padStart(2, "0") +
 		String(date.getSeconds()).padStart(2, "0");
 	return localStamp;
+}
+
+/**
+ * 
+ * @param {*} level 
+ * @returns 
+ */
+export function getXpForLevel(level) {
+	return _exp().levelToXP(level);
 }

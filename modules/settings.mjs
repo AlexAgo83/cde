@@ -203,6 +203,14 @@ export const SettingsReference = {
 		hint: "Toggle to show the estimated time remaining to complete your current combat activity, based on recent kills and efficiency.",
 		toggle: true
 	},
+	ETA_SKILLS: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-skills",
+		label: "Display Skills ETA",
+		hint: "Toggle to show the estimated time remaining to complete your current skills activity, based on recent xp changes.",
+		toggle: true
+	},
 
 	// ADVANCE
 	MOD_ENABLED: {

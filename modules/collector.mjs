@@ -593,8 +593,11 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill) {
 					const mastery = a.actionMastery?.get(key);
 					const item = {};
 					if (mastery) {
+						const masteryPercent = mods.getUtils().getMasteryProgressPercent(
+							mastery.level,
+							mastery.nextLevelProgress)?.percent;
 						item.maxteryXp = mastery.xp;
-						item.maxteryNextLevelProgress = mods.getUtils().getMasteryProgressPercent(mastery.nextLevelProgress)?.percent,
+						item.maxteryNextLevelProgress = masteryPercent;
 						item.masteryLevel = mastery.level;
 						queue[key.localID] = item;
 					}
