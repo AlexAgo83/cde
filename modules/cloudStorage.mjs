@@ -74,3 +74,21 @@ export function clearStorage() {
 		console.log("[CDE] cloudStorage cleared!")
 	}
 }
+
+export function saveSetting(reference, value) {
+    const toStore = typeof value === "string" ? value : JSON.stringify(value);
+    cloudStorage?.setItem(reference.key, toStore);
+}
+export function loadSetting(reference) {
+    const raw = cloudStorage?.getItem(reference.key);
+    try {
+        if (typeof raw !== "string") return raw;
+        if (raw === "true") return true;
+        if (raw === "false") return false;
+		if (!isNaN(Number(raw)) && raw.trim() !== "") return Number(raw);
+        if (raw.startsWith("{") || raw.startsWith("[")) return JSON.parse(raw);
+        return raw;
+    } catch {
+        return raw;
+    }
+}

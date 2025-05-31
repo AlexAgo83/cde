@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.98";
+const MOD_VERSION = "v1.8.105";
 
 // --- Module Imports ---
 let mModules = null;
@@ -325,6 +325,8 @@ function onSettingsChange(reference) {
 		mModules.getCloudStorage().clearStorage();
 		console.log("[CDE] Storage cleared!");
 	}
+
+	return () => { return value};
 }
 
 /**

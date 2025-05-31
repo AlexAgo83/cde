@@ -305,20 +305,38 @@ export class SettingsReferenceItem {
 		this.itemMax = stgRef.max;
 		this.itemStep = stgRef.step;
 		this.itemOnChange = onChangeCb;
+		this.config = null;
 	}
 
 	getReference() {
 		return this.reference;
 	}
-	
+	saveSetting(value) {
+		mods?.getCloudStorage()?.saveSetting(this.getReference(), value);
+	}
+	loadSetting() {
+		if (!mods || !mods.getCloudStorage) {
+			console.error("[CDE] CloudStorage module not available");
+			return this.itemDefault;
+		}
+		const tempValue = mods.getCloudStorage().loadSetting(this.getReference());
+		this.value = tempValue !== undefined ? tempValue : this.itemDefault;
+		return this.value;
+	}
+
 	init(section) {
 		if (!this.attachedSection) {
 			const implOnChange = (value) => {
-				if (this.itemOnChange) return this.itemOnChange({ref: this.getReference(), value: value});
+				if (this.itemOnChange) {
+					const fold = this.itemOnChange({ref: this.getReference(), value: value});
+					const toSave = (value && typeof value === "object" && "value" in value) ? value.value : value;
+					this.saveSetting(toSave);
+					return fold;
+				}
 			}
 
 			// DEFAULT (Switch)
-			const config = {
+			this.config = {
 				type: this.itemType,
 				name: this.itemKey,
 				label: this.itemLabel,
@@ -328,29 +346,39 @@ export class SettingsReferenceItem {
 
 			// BUTTON
 			if (this.itemType == 'button') {
-				config.display = this.itemLabel;
-				config.onClick = implOnChange;
+				this.config.display = this.itemLabel;
+				this.config.onClick = implOnChange;
 
 			// OTHERS
 			} else {
-				config.onChange = implOnChange;
+				this.config.onChange = implOnChange;
 			}
 			
 			// > DROPDOWN
 			if ((this.itemType == "select" || this.itemType == "dropdown") 
 				&& this.itemOptions) {
-				config.options = this.itemOptions;
+				this.config.options = this.itemOptions;
 			}
 			// > INPUT
 			if (this.itemType == "input") {
-				config.min = this.itemMin;
-				config.max = this.itemMax;
-				config.step = this.itemStep;
+				this.config.min = this.itemMin;
+				this.config.max = this.itemMax;
+				this.config.step = this.itemStep;
 			}
-			section.add(config);
+			section.add(this.config);
 			if (isDebug()) console.log("[CDE] settings reference item added: " + this.itemKey);
 			this.attachedSection = section;
 		}
+	}
+}
+
+export function loadAllSettings() {
+	if (!mods || !mods.getCloudStorage) {
+		console.error("[CDE] CloudStorage module not available");
+		return;
+	}
+	for (const key in SettingsReference) {
+		referenceItems.get(key)?.loadSetting();
 	}
 }
 
@@ -363,6 +391,7 @@ export function setOnSettingsChange(handler) {
     }
 }
 
+let referenceItems = new Map();
 export function createSettings() {
 	loadedSections = {
 		[Sections.General]: settings.section(Sections.General),
@@ -375,6 +404,7 @@ export function createSettings() {
 		const reference = SettingsReference[key];
 		const item = new SettingsReferenceItem(reference, onSettingsChange);
 		item.init(loadedSections[reference.section]);
+		referenceItems.set(key, item);
 	}
 }
 

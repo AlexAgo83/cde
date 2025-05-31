@@ -129,4 +129,5 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
 
 export async function onViewLoad(ctx) {
     mViewer.load(ctx);
+    getSettings().loadAllSettings();
 }
