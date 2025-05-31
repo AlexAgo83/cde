@@ -6,6 +6,8 @@
 
 let mods = null;
 
+let subModules = [];
+
 let exportView = null;
 let changelogView = null;
 
@@ -13,11 +15,20 @@ export function getExportView() { return exportView; }
 export function getChangelogView() { return changelogView; }
 
 /**
+ * 
+ */
+export async function loadSubModule(ctx) {
+  exportView = await ctx.loadModule("modules/views/exportView.mjs"); subModules.push(exportView);
+  changelogView = await ctx.loadModule("modules/views/changelogView.mjs"); subModules.push(changelogView);
+}
+
+/**
  * Initialize the viewer module.
  * @param {Object} modules - The modules object containing dependencies.
  */
 export function init(modules) {
   mods = modules;
+  initSubModule(modules);
 }
 
 /* @ts-ignore Handle DEVMODE */
@@ -45,16 +56,19 @@ function isCfg(reference) {
 
 /**
  * 
+ * @param {*} modules 
  */
-export async function loadSubModule(ctx) {
-    exportView = await ctx.loadModule("modules/views/exportView.mjs");
-    changelogView = await ctx.loadModule("modules/views/changelogView.mjs");
+export function initSubModule(modules) {
+  subModules.forEach((m) => {
+    m.init(modules);
+  });
 }
 
 /**
  * 
  */
 export function load(ctx) {
-    exportView.load(ctx);
-    changelogView.load(ctx);
+  subModules.forEach((m) => {
+    m.load(ctx);
+  });
 }
