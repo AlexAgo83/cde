@@ -134,6 +134,16 @@ export function popupError(titleStr, msgStr) {
   });
 }
 
+export async function doCopyClipboard(contentString) {
+    try {
+        await navigator.clipboard.writeText(contentString);
+        popupSuccess('Copied to clipboard!');
+    } catch (err) {
+        console.error("Clipboard copy failed:", err);
+        popupError('Oops...', 'Could not copy to clipboard.');
+    }
+}
+
 export async function doShareFile(identifier, contentString, timestampStr = null) {
     const blob = new Blob([contentString], { type: "application/json" });
     const url = URL.createObjectURL(blob);

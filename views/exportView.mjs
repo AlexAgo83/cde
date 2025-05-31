@@ -138,14 +138,8 @@ async function onClickExportDownload() {
  * @returns {Promise<void>}
  */
 async function onClickExportClipboard() {
-    try {
-        await navigator.clipboard.writeText(mods.getExport().getExportString());
-        console.log("[CDE] Export copied to clipboard");
-        mods.getViewer().popupSuccess('Copied to clipboard!');
-    } catch (err) {
-        console.error("Clipboard copy failed:", err);
-        mods.getViewer().popupError('Oops...', 'Could not copy to clipboard.');
-    }
+    const contentStr = mods.getExport().getExportString();
+    mods.getViewer().doCopyClipboard(contentStr);
 }
 
 /**

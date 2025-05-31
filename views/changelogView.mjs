@@ -106,9 +106,8 @@ export async function onClickExportViewDiff() {
             document.getElementById("cde-changelog-exportall-button")?.addEventListener("click", onClickExportAllChangelogs);
             
             document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", () => {
-                const text = (history.get(selectedKey) || []).join("\n");
-                navigator.clipboard.writeText(text);
-                mods.getViewer().popupSuccess('Changelog copied!');
+                const contentStr = (history.get(selectedKey) || []).join("\n");
+                mods.getViewer().doCopyClipboard(contentStr);
             });
         }
     });
