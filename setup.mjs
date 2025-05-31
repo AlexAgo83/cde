@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.107";
+const MOD_VERSION = "v1.8.108";
 
 // --- Module Imports ---
 let mModules = null;
@@ -368,9 +368,6 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		
 		// Override processCollectData callback (Viewer)
 		mModules.getViewer().getExportView().initProcessCollectDataCb(implProcessCollectData);
-
-		// Init content pangel for pages
-		mModules.getPages().triggerObservers(isCfg(Stg().ETA_DISPLAY));
 
 		console.log("[CDE] Interface ready !");
 	});

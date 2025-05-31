@@ -89,6 +89,7 @@ export function loadSetting(reference) {
         if (raw.startsWith("{") || raw.startsWith("[")) return JSON.parse(raw);
         return raw;
     } catch {
+		console.log("[CDE] Can't parse settings", reference, raw);
         return raw;
     }
 }

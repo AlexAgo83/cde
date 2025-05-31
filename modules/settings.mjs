@@ -426,6 +426,9 @@ export function getCfg(settingRef) {
 		return null;
 	}
 	const result = mods.getCloudStorage().loadSetting(settingRef);
+	if (isDebug()) {
+		console.log("[CDE] Get CFG", result);
+	}
 	return result ? result : settingRef.toggle;
 }
 
