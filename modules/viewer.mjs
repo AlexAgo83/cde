@@ -45,7 +45,7 @@ export function overrideProcessCollectDataCb(cb) {
 /**
  * 
  */
-function load(ctx, collectCb) {
+export function load(ctx, collectCb) {
     // CSS
     mods.getUtils().createIconCSS(ctx);
 
