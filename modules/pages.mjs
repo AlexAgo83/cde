@@ -40,13 +40,13 @@ function getSummaryID(identifier) {
 }
 
 /**
- * Creates or retrieves a MutationObserver for a given target page and identifier.
+ * Creates or retrieves a MutationObserver reference object for a given target page and identifier.
  * The observer monitors changes to the DOM and injects a styled header block with a summary
  * if it does not already exist in the target container.
  *
  * @param {string} targetPage - The CSS selector for the target page container.
  * @param {string} identifier - A unique identifier used to generate element IDs.
- * @returns {MutationObserver} The MutationObserver instance associated with the target page.
+ * @returns {{observer: MutationObserver, identifier: string}} The observer reference object.
  */
 function pageContainer(targetPage, identifier) {
     if (pageObservers && pageObservers.has(targetPage)) {
@@ -54,11 +54,10 @@ function pageContainer(targetPage, identifier) {
     }
     const observer = new MutationObserver(() => {
         const container = document.querySelector(targetPage);
-        const headerId = getHeaderID(identifier)
-        const summaryId = getSummaryID(identifier);
         if (!container) return;
-        if (document.querySelector(headerId)) return;
-
+        const headerId = getHeaderID(identifier)
+        if (document.getElementById(headerId)) return;
+        const summaryId = getSummaryID(identifier);
         const block = document.createElement('div');
         block.id = headerId;
         block.innerHTML = `
@@ -82,24 +81,29 @@ function pageContainer(targetPage, identifier) {
         const summaryElem = document?.getElementById(summaryId);
         if (summaryElem) summaryElem.innerHTML = content;
     });
-    pageObservers.set(targetPage, observer);
-    if (mods.getSettings().isDebug()) {
-        console.log("[CDE] New observer registered", observer);
+    const reference = {
+        observer: observer,
+        identifier: identifier    
     }
-    return observer;
+    pageObservers.set(targetPage, reference);
+    if (mods.getSettings().isDebug()) {
+        console.log("[CDE] New observer registered", reference);
+    }
+    return reference;
 }
 
 /**
  * Initializes all MutationObservers for the relevant pages.
  * Sets up observers to monitor DOM changes and inject summary headers if the corresponding setting is enabled.
+ * @param {boolean} connect Connect observer to view
  */
-function initObservers() {
+function initObservers(connect = false) {
     if (isCfg(Stg().ETA_DISPLAY)) {
-        const observer = pageContainer('#combat-container', 'combat')
-        observer.observe(document.body, { childList: true, subtree: true });
+        const reference = pageContainer('#combat-container', 'combat')
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Observers initialized", observer);
+            console.log("[CDE] Observers initialized", reference);
         }
+        if (reference && connect) reference?.observer.observe(document.body, { childList: true, subtree: true });
     }
 }
 /**
@@ -109,12 +113,14 @@ function initObservers() {
  */
 export function triggerObservers(value) {
     if (!value && pageObservers.size > 0) {
-        pageObservers.forEach((obs) => {
-            obs.disconnect();
-            console.log("[CDE] Observer disconnected", obs);
+        pageObservers.forEach((reference, targetPage) => {
+            document.getElementById(getHeaderID(reference.identifier))?.remove();
+            reference.observer.disconnect();
+            console.log("[CDE] Observer disconnected", targetPage);
         });
+        pageObservers.clear();
     }
     if (value && pageObservers.size == 0) {
-        initObservers();
+        initObservers(true);
     }
 }
