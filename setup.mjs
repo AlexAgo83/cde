@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.79";
+const MOD_VERSION = "v1.8.80";
 
 // --- Module Imports ---
 let mModules = null;
@@ -230,7 +230,8 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		mModules.onViewLoad(ctx, implProcessCollectData);
+		mModules.onViewLoad(ctx);
+		mModules.getViewer()?.getExportView()?.overrideProcessCollectDataCb(implProcessCollectData);
 		
 		console.log("[CDE] Interface ready !");
 	});

@@ -2,14 +2,9 @@
 // This work is free. You can redistribute it and/or modify it
 
 // @ts-check
-// viewer.mjs
+// changelogView.mjs
 
 let mods = null;
-let exportView = null;
-let changelogView = null;
-
-export function getExportView() { return exportView; }
-export function getChangelogView() { return changelogView; }
 
 /**
  * Initialize the viewer module.
@@ -31,7 +26,7 @@ function _Swal() { return Swal; }
  * @returns {Object} The settings reference object.
  */
 function Stg() {
-	return mods.getSettings()?.SettingsReference;
+    return mods.getSettings()?.SettingsReference;
 }
 
 /**
@@ -39,21 +34,10 @@ function Stg() {
  * @returns {boolean} True if the reference is allowed, false otherwise.
  */
 function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
+    return mods.getSettings()?.isCfg(reference);
 }
 
 /**
  * 
  */
-export async function loadSubModule(ctx) {
-    exportView = await ctx.loadModule("modules/views/exportView.mjs");
-    changelogView = await ctx.loadModule("modules/views/changelogView.mjs");
-}
-
-/**
- * 
- */
-export function load(ctx) {
-    exportView.load(ctx);
-    changelogView.load(ctx);
-}
+export function load(ctx) {}

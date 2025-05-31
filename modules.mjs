@@ -87,6 +87,7 @@ export async function onModuleLoad(ctx) {
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
     mViewer = await ctx.loadModule("modules/viewer.mjs");
+    mViewer.loadSubModule(ctx);
 }
 
 /**

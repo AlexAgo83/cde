@@ -12,6 +12,8 @@
     "modules/utils.mjs",
     "modules/export.mjs",
     "modules/viewer.mjs",
+    "modules/views/exportView.mjs",
+    "modules/views/changelogView.mjs",
     "modules.mjs"
   ],
   "load": [
