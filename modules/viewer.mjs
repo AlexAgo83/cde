@@ -134,16 +134,27 @@ export function popupError(titleStr, msgStr) {
   });
 }
 
-export async function doCopyClipboard(contentString) {
+/**
+ * 
+ * @param {*} contentString 
+ */
+export async function doCopyClipboard(contentString, withPopupSuccess=true) {
     try {
         await navigator.clipboard.writeText(contentString);
-        popupSuccess('Copied to clipboard!');
+        if (withPopupSuccess)
+          popupSuccess('Copied to clipboard!');
     } catch (err) {
         console.error("Clipboard copy failed:", err);
         popupError('Oops...', 'Could not copy to clipboard.');
     }
 }
 
+/**
+ * 
+ * @param {*} identifier 
+ * @param {*} contentString 
+ * @param {*} timestampStr 
+ */
 export async function doShareFile(identifier, contentString, timestampStr = null) {
     const blob = new Blob([contentString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -156,4 +167,20 @@ export async function doShareFile(identifier, contentString, timestampStr = null
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+/**
+ * 
+ */
+export async function doShareHastebin(contentString) {
+    try {
+        const hastebinLink = await mods.getUtils().uploadToHastebin(contentString);
+        doCopyClipboard(hastebinLink, false);
+
+        mods.getViewer().popupSuccess('Hastebin link copied!', `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`);
+        // window.open(hastebinLink, "_blank");
+    } catch (err) {
+        console.error("Failed to upload to Hastebin:", err);
+        mods.getViewer().popupError('Upload failed', 'Could not upload to Hastebin. Please try again later.')
+    }
 }

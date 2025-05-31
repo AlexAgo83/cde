@@ -148,17 +148,8 @@ async function onClickExportClipboard() {
  * @returns {Promise<void>}
  */
 async function onClickExportHastebin() {
-    try {
-        const raw = mods.getExport().getExportString();
-        const hastebinLink = await mods.getUtils().uploadToHastebin(raw);
-        await navigator.clipboard.writeText(hastebinLink);
-
-        mods.getViewer().popupSuccess('Hastebin link copied!', `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`);
-        // window.open(hastebinLink, "_blank");
-    } catch (err) {
-        console.error("Failed to upload to Hastebin:", err);
-        mods.getViewer().popupError('Upload failed', 'Could not upload to Hastebin. Please try again later.')
-    }
+    const raw = mods.getExport().getExportString();
+    mods.getViewer().doShareHastebin(raw);
 }
 
 /**
