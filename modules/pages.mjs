@@ -101,13 +101,13 @@ export function load(ctx) {
  */
 export function worker(ctx) {
     // Worker UI refresh
-    ctx.patch(_CombatManager(), 'onMonsterDeath').after(function(monster, ...args) {
+    ctx.patch(_CombatManager(), 'onEnemyDeath').after(function(...args) {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Monster died:", monster);
-            const panel = getCombatPanel();
-            if (panel && typeof panel.onRefresh === "function") {
-               panel.onRefresh();
-            }
+            console.log("[CDE] Combat ended:", ...args);
+        }
+        const panel = getCombatPanel();
+        if (panel && typeof panel.onRefresh === "function") {
+            panel.onRefresh();
         }
     });
 }
