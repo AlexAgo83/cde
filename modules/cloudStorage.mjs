@@ -40,7 +40,7 @@ function isCfg(reference) {
 export function getCurrentMonsterData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
-		// return typeof raw === "string" ? JSON.parse(raw) : raw;
+		return typeof raw === "string" ? JSON.parse(raw) : raw;
 	} catch (e) {
 		console.warn("[CDE] Invalid monster data in characterStorage");
 		return null;
@@ -56,7 +56,7 @@ export function removeCurrentMonsterData() {
 export function getCurrentSkillData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_SKILL_DATA);
-		// return typeof raw === "string" ? JSON.parse(raw) : raw;
+		return typeof raw === "string" ? JSON.parse(raw) : raw;
 	} catch (e) {
 		console.warn("[CDE] Invalid skill data in characterStorage");
 		return null;

@@ -160,8 +160,10 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
     const observer = new MutationObserver(() => {
         const container = document.querySelector(targetPage);
         if (!container) return;
+
         const headerId = getHeaderID(identifier)
         if (document.getElementById(headerId)) return;
+
         const summaryId = getSummaryID(identifier);
         const block = document.createElement('div');
         block.id = headerId;
@@ -169,7 +171,18 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         if (typeof onRefresh === "function") {
             block.addEventListener("click", onRefresh);
         }
-        container.prepend(block);
+
+        const skillInfo = container.querySelector('.skill-info');
+        const isVisible = skillInfo &&
+            (skillInfo instanceof HTMLElement && skillInfo.offsetParent !== null) &&
+            window.getComputedStyle(skillInfo).display !== 'none' &&
+            window.getComputedStyle(skillInfo).visibility !== 'hidden';
+        
+        if (isVisible && skillInfo && skillInfo.parentNode) {
+            skillInfo.parentNode.insertBefore(block, skillInfo.nextSibling);
+        } else {
+            container.prepend(block);
+        }
     });
     const reference = {
         observer: observer,

@@ -124,8 +124,14 @@ export const onRefresh = () => {
                                 const time = currentSkill.timeToNextLevelStr;
 
                                 result.push(
-                                    `<b>Time to Next Level (${activeSkill.localID}):</b> <span class="vph">${time ?? "N/A"}</span>`,
-                                    `<b>Craft Duration:</b> <span class="duration">${diffTimeStr ?? "N/A"}</span>`
+                                    `<div class="cde-generic-panel">
+                                        <span class="skill-label">Time to Next Level (${activeSkill.localID}):</span>
+                                        <span class="skill-value vph">${time ?? "N/A"}</span>
+                                    </div>
+                                    <div class="cde-generic-panel">
+                                        <span class="skill-label">Craft Duration:</span>
+                                        <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>
+                                    </div>`
                                 );
                             }
                         });

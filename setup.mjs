@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.29";
+const MOD_VERSION = "v1.9.32";
 
 // --- Module Imports ---
 let mModules = null;
@@ -145,6 +145,12 @@ function onCombat(activity, entry, syncDate=new Date()) {
 				console.log("[CDE] Matching current monster data", entry.monster);
 			}
 		} else {
+			if (currentMonsterData 
+				&& typeof currentMonsterData === 'object'
+				&& mModules.getSettings().isDebug()) {
+				console.log("[CDE] Entry change detected", currentMonsterData);
+			}
+			
 			/* New current monster */
 			entry.monster.id = entry.monster.id;
 			entry.monster.diffKillcount = 0;
