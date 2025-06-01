@@ -88,7 +88,9 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
  */
 export const onRefresh = () => {
     const currTime = new Date();
-    if (lastTickTime == null || lastTickTime.getTime() + 1000 < currTime.getTime()) {
+    if (
+        lastTickTime == null 
+        || lastTickTime.getTime() + 1000 < currTime.getTime()) {
         lastTickTime = currTime;
     } else {
         return;
