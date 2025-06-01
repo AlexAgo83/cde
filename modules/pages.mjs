@@ -32,13 +32,28 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+/**
+ * Generates the HTML ID for the ETA panel header for a given identifier.
+ * @param {*} identifier - Unique identifier for the panel.
+ * @returns {string} The header element ID.
+ */
 function getHeaderID(identifier) {
     return `cde-${identifier}-header`;
 }
+/**
+ * Generates the HTML ID for the ETA panel summary for a given identifier.
+ * @param {*} identifier - Unique identifier for the panel.
+ * @returns {string} The summary element ID.
+ */
 function getSummaryID(identifier) {
     return `cde-${identifier}-summary`;
 }
 
+/**
+ * Returns the default HTML for an ETA panel.
+ * @param {*} summaryId - The summary element ID to use in the panel.
+ * @returns {string} The default panel HTML.
+ */
 function onDefaultPanel(summaryId) {
     return `<div class="cde-eta-panel">
             <strong>DEBUG TITLE</strong><br>
