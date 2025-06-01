@@ -205,6 +205,7 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         corePanel.id = headerId;
         corePanel.classList.add("cde-eta-header");
         corePanel.innerHTML = viewPanel(corePanel, summaryId, identifier);
+        corePanel.style.display = "none";
         if (typeof onRefresh === "function") {
             corePanel.addEventListener("click", onRefresh);
         }
@@ -242,13 +243,13 @@ function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
         const references = []
         
-        // Combat
+        /* Combat */
         const pCombat = getCombatPanel();
         if (pCombat && typeof pCombat.container === "function" && typeof pCombat.onRefresh === "function") {
             references.push(pageContainer('#combat-container', 'combat', pCombat.container, pCombat.onRefresh));
         }
 
-        // Runecraft
+        /* Runecraft */
         const pRunecraft = getRunecraftPanel();
         if (pRunecraft && typeof pRunecraft.container === "function" && typeof pRunecraft.onRefresh === "function") {
             references.push(pageContainer('#runecrafting-container', 'runecraft', pRunecraft.container, pRunecraft.onRefresh));
