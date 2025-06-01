@@ -16,6 +16,7 @@
     "views/exportView.mjs",
     "views/changelogView.mjs",
     "pages/combatPanel.mjs",
+    "pages/nonCombatPanel.mjs",
     "modules.mjs"
   ],
   "load": [

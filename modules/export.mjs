@@ -6,8 +6,10 @@
 
 let mods = null;
 let exportData = {};
+let etaExtract = {};
 let changesData = [];
 let changesHistory = null;
+let lastTimeBuffer = null;
 
 /**
  * Initialize the export module.
@@ -149,15 +151,22 @@ export function collector(cfgRef, collectorFn, fallbackMsg) {
  * @param {Function} onActiveSkill - Callback for active skill events.
  * @param {Function} onSkllsUpdate - Callback for updating active skills.
  * @param {boolean} extractEta - Force a custom processing
+ * @param {Number} timeBuffer - Force a custom buffer time
  * @param {Function} onMeta - Callback to enrich export metadata.
  * @returns {Object} The generated export data.
  */
-export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, extractEta=false, onMeta) {
+export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, extractEta=false, timeBuffer=100, onMeta) {
 	const newData = {};
 
 	const _mc = mods.getCollector();
 	const _sr = Stg();
 	const date = new Date();
+
+	if (extractEta && (lastTimeBuffer == null  || lastTimeBuffer.getTime() + timeBuffer < date.getTime())) {
+		lastTimeBuffer = date;
+	} else {
+		return etaExtract;
+	}
 
 	newData.basics = _mc.collectBasics();
 	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate);
@@ -187,11 +196,14 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		version: _game().lastLoadedGameVersion
 	};
     onMeta(newData.meta);
+
+	// Custom result for extract ETA
 	if (extractEta) {
+		etaExtract = newData;
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] exportData for quick ETA: ", newData);
 		}
-		return newData;
+		return etaExtract;
 	}
 
 	if (isCfg(Stg().SAVE_TO_STORAGE)) {

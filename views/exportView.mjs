@@ -5,7 +5,7 @@
 // exportView.mjs
 
 let mods = null;
-let processCollectData = (etaExtract=false) => {return null;};
+let extractETA = (etaExtract=false, timeBuffer=50) => {return null;};
 
 /**
  * Initialize the export view module.
@@ -57,7 +57,7 @@ export function load(ctx) {
  * @param {*} cb - The callback function to process collected data.
  */
 export function setCollectCb(cb) {
-    processCollectData = cb;
+    extractETA = cb;
 }
 
 /**
@@ -190,7 +190,7 @@ const exportFooter =
  */
 function openExportUI(forceCollect = false) {
     if (isCfg(Stg().AUTO_EXPORT_ONWINDOW) || forceCollect) {
-        processCollectData();
+        extractETA();
     }
     if (isCfg(Stg().MOD_ENABLED)) {
 

@@ -9,8 +9,10 @@ let subModules = [];
 let pageObservers = new Map();
 
 let combatPanel = null;
+let runecraftPanel = null;
 
 export function getCombatPanel() { return combatPanel; }
+export function getRunecraftPanel() { return runecraftPanel; }
 
 /**
  * Loads panel submodules for the pages manager.
@@ -19,6 +21,7 @@ export function getCombatPanel() { return combatPanel; }
  */
 export async function loadSubModule(ctx) {
   subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
+  subModules.push(runecraftPanel = await ctx.loadModule("pages/nonCombatPanel.mjs"));
 }
 
 /**
@@ -29,6 +32,9 @@ export function init(modules) {
   mods = modules;
   initSubModule(modules);
 }
+
+/* @ts-ignore Handle DEVMODE */
+function _Skill()  {  return Skill;  }
 
 /**
  * Get the proxy-settings reference object.
@@ -70,9 +76,15 @@ export function initSubModule(modules) {
  * @param {*} ctx - The context object to pass to each submodule's load method.
  */
 export function load(ctx) {
-  getViews().forEach((m) => {
-    m.load(ctx);
-  });
+    getViews().forEach((m) => {
+        m.load(ctx);
+    });
+    ctx.patch(_Skill(), 'addXP').after(function(amount, masteryAction) {
+        getViews().forEach((m) => {
+            m.onRefresh();
+        });
+        return [amount, masteryAction];
+    });
 }
 
 /**
@@ -97,10 +109,10 @@ function getSummaryID(identifier) {
  * @param {*} summaryId - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
  */
-function onDefaultPanel(parentPanel, summaryId) {
+function onDefaultPanel(parentPanel, summaryId, identifier) {
     return `<div class="cde-eta-panel">
             <strong>DEBUG TITLE</strong><br>
-            <span id="${summaryId}">DEBUG SUMMARY</span>
+            <span id="${summaryId}">DEBUG SUMMARY - ${identifier}</span>
             </div>`;
 }
 
@@ -128,7 +140,7 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         const summaryId = getSummaryID(identifier);
         const block = document.createElement('div');
         block.id = headerId;
-        block.innerHTML = viewPanel(block, summaryId);
+        block.innerHTML = viewPanel(block, summaryId, identifier);
         if (typeof onRefresh === "function") {
             block.addEventListener("click", onRefresh);
         }
@@ -155,6 +167,7 @@ function initObservers(etaDisplay = false, connect = false) {
         const references = []
         
         references.push(pageContainer('#combat-container', 'combat', getCombatPanel().container, getCombatPanel().onRefresh));
+        references.push(pageContainer('#runecraft-container', 'runecraft', getRunecraftPanel().container, getRunecraftPanel().onRefresh));
         
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);
@@ -187,4 +200,14 @@ export function triggerObservers(value) {
     if (value && pageObservers.size == 0) {
         initObservers(true, true);
     }
+}
+
+/**
+ * 
+ * @param {*} cb 
+ */
+export function setCollectCb(cb) {
+    getViews().forEach((view) => {
+        view.setCollectCb(cb);
+    });
 }

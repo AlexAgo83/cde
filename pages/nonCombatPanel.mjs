@@ -2,7 +2,7 @@
 // This work is free. You can redistribute it and/or modify it
 
 // @ts-check
-// combatPanel.mjs
+// nonCombatPanel.mjs
 
 let mods = null;
 let parent = null;
@@ -19,7 +19,7 @@ let lastTickTime = null;
 let extractETA = (etaExtract=true, timeBuffer=100) => {return {currentActivity: null}};
 
 /**
- * Initialize the combat panel.
+ * Initialize the nonCombat panel.
  * @param {Object} modules - The modules object containing dependencies.
  */
 export function init(modules) {
@@ -65,7 +65,7 @@ export function load(ctx) {
  */
 export function setCollectCb(cb) {
     if (mods.getSettings().isDebug()) {
-        console.log("[CDE] Combat panel callback:", cb);
+        console.log("[CDE] Non-Combat panel callback:", cb);
     }
     extractETA = cb;
 }
@@ -80,7 +80,7 @@ export function container(parentPanel, summaryIdentifier, identifier) {
     summaryId = summaryIdentifier;
     identity = identifier;
     const etaStr = etaData ? etaData : "n/a";
-    return `<div class="cde-${identity}-panel"><span id="${summaryIdentifier}">${etaStr}</span></div>`;
+    return `<div class="cde-eta-generic cde-${identity}-panel"><span id="${summaryIdentifier}">${etaStr}</span></div>`;
 }
 
 /**
@@ -108,29 +108,34 @@ export function onRefresh() {
             const scanWithActivity = scan;
             const activities = scanWithActivity.currentActivity;
 
-            /* ETA - Combat */
-            const activity = activities.Combat;
-            const kph = activity.monster?.kph;
-            const time = activity.monster?.diffTimeStr;
+            /* ETA - Non-Combat */
             const result = [];
-            
-            result.push(
-                `<b>Kills per Hour:</b> <span class="vph">${kph ?? "N/A"}</span>`,
-                `<b>Fight Duration:</b> <span class="duration">${time ?? "N/A"}</span>`
-            );
 
-            if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
-                const skills = activity.skills;
-                result.push(`<b>Time to Next Level:</b>`);
-                _game().skills?.registeredObjects.forEach((skill) => {
-                    if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
-                        const current = skills[skill.localID];
-                        result.push(
-                            `&nbsp;&nbsp;<span class="skill-label">${skill.name}:</span> <span class="skill-value">${current.timeToNextLevelStr}</span>`
-                        );
+            _game().skills?.registeredObjects.forEach((skill) => {
+                if (!skill.isCombat && Object.prototype.hasOwnProperty.call(activities, skill.localID)) {
+                    const activity = activities[skill.localID];
+                    if (Object.prototype.hasOwnProperty.call(activity, "skills")) {
+                        // Parse Skills
+                        const skills = activity.skills;
+                        _game().skills?.registeredObjects.forEach((activeSkill) => {
+                            if (Object.prototype.hasOwnProperty.call(skills, activeSkill.localID)) {
+                                const currentSkill = skills[activeSkill.localID];
+                                const diffTimeStr = currentSkill.diffTimeStr;
+                                const time = currentSkill.timeToNextLevelStr;
+
+                                result.push(
+                                    `<b>Time to Next Level (${activeSkill.localID}):</b> <span class="vph">${time ?? "N/A"}</span>`,
+                                    `<b>Craft Duration:</b> <span class="duration">${diffTimeStr ?? "N/A"}</span>`
+                                );
+                            }
+                        });
                     }
-                });
-            }
+                    if (Object.prototype.hasOwnProperty.call(activity, "recipeQueue")) {
+                        // Parse Mastery
+                        // const recipeQueue = activity.recipeQueue;
+                    }
+                }
+            });
             etaData = result.join("<br>");
         }
         parent.innerHTML = container(parent, summaryId, identity);
