@@ -88,7 +88,12 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
  * @param {*} value 
  */
 export function show(value) {
-    parent?.setVisible(value);
+    if (parent && parent.style) {
+        if (value)
+            parent.style.display = "";
+        else
+            parent.style.display = "none";
+    }
 }
 
 /**
