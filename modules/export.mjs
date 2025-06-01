@@ -162,18 +162,28 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	const _sr = Stg();
 	const date = new Date();
 
-	if (
-		lastTimeBuffer == null  
-		|| lastTimeBuffer.getTime() + timeBuffer < date.getTime()
-		|| timeBuffer == 0
-	) {
+	if (lastTimeBuffer == null  
+		|| (lastTimeBuffer.getTime() + timeBuffer) < date.getTime()
+		|| timeBuffer == 0) {
 		lastTimeBuffer = date;
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] ETA - start trace: ", date);
+		}
 	} else if (extractEta) {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] ETA - collect skipped: ", etaData);
+		}
+		/* RETURN LAST SNAPSHOT (BUFFER) */
 		return etaData;
+	} else {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] ETA - refresh data.");
+		}
 	}
 
 	newData.basics = _mc.collectBasics();
 	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate);
+
 	if (!extractEta) {
 		newData.agility = _mc.collectAgility();
 		newData.activePotions = _mc.collectActivePotions();
@@ -199,7 +209,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		exportTimestamp: mods.getUtils().parseTimestamp(date),
 		version: _game().lastLoadedGameVersion
 	};
-    onMeta(newData.meta);
+    if (typeof onMeta === "function") onMeta(newData.meta);
 
 	// Custom result for extract ETA
 	if (extractEta) {

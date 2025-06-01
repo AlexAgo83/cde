@@ -550,10 +550,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 	}
 
 	// ETA - Mode 2
-	// _game().activeAction?.activeSkills?.forEach((a) => {
+	const syncDate = new Date();
 	actions?.registeredObjects?.forEach((a) => {
 		if (a.isActive) {
-			const syncDate = new Date();
 			const entry = {
 				activity: a.localID,
 			};

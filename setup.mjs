@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.26";
+const MOD_VERSION = "v1.9.29";
 
 // --- Module Imports ---
 let mModules = null;
@@ -146,6 +146,7 @@ function onCombat(activity, entry, syncDate=new Date()) {
 			}
 		} else {
 			/* New current monster */
+			entry.monster.id = entry.monster.id;
 			entry.monster.diffKillcount = 0;
 			entry.monster.diffTime = 0;
 			entry.monster.diffTimeStr = "NaN";
