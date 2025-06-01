@@ -85,13 +85,22 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
 
 /**
  * 
+ * @param {*} value 
+ */
+export function show(value) {
+    parent?.setVisible(value);
+}
+
+/**
+ * 
  */
 export const onRefresh = () => {
     const currTime = new Date();
+    let updated = false;
     if (lastCraftTime == null || lastCraftTime.getTime() + 1000 < currTime.getTime()) {
         lastCraftTime = currTime;
     } else {
-        return;
+        return updated;
     }
     if (parent && typeof extractETA === "function" && isCfg(Stg().ETA_DISPLAY)) {
         
@@ -141,8 +150,10 @@ export const onRefresh = () => {
                     });
                 }
                 etaData = result.join("<br>");
+                updated = true;
             }
         }
         parent.innerHTML = container(parent, summaryId, identity);
     }
+    return updated;
 }

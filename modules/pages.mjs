@@ -11,8 +11,6 @@ let pageObservers = new Map();
 let combatPanel = null;
 let runecraftPanel = null;
 
-let refreshOnPatch = false;
-
 export function getCombatPanel() { return combatPanel; }
 export function getRunecraftPanel() { return runecraftPanel; }
 
@@ -109,7 +107,7 @@ export function worker(ctx) {
         }
         const panel = getCombatPanel();
         if (panel && typeof panel.onRefresh === "function") {
-            panel.onRefresh();
+            panel.setVisible(panel.onRefresh());
         }
     });
 
@@ -119,7 +117,7 @@ export function worker(ctx) {
         }
         const panel = getRunecraftPanel();
         if (panel && typeof panel.onRefresh === "function") {
-            panel.onRefresh();
+            panel.setVisible(panel.onRefresh());
         }
     });
 }
@@ -177,12 +175,12 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         if (document.getElementById(headerId)) return;
 
         const summaryId = getSummaryID(identifier);
-        const block = document.createElement('div');
-        block.id = headerId;
-        block.classList.add("cde-eta-header");
-        block.innerHTML = viewPanel(block, summaryId, identifier);
+        const corePanel = document.createElement('div');
+        corePanel.id = headerId;
+        corePanel.classList.add("cde-eta-header");
+        corePanel.innerHTML = viewPanel(corePanel, summaryId, identifier);
         if (typeof onRefresh === "function") {
-            block.addEventListener("click", onRefresh);
+            corePanel.addEventListener("click", onRefresh);
         }
 
         const rowDeck = container.querySelector('.row-deck');
@@ -190,17 +188,17 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
             if (mods.getSettings().isDebug()) {
                 console.log("[CDE] Match current row-deck:", rowDeck);
             }
-            rowDeck.prepend(block);
+            rowDeck.prepend(corePanel);
         } else {
             if (mods.getSettings().isDebug()) {
                 console.log("[CDE] Can't match row-deck:", rowDeck);
             }
-            container.prepend(block);
+            container.prepend(corePanel);
         }
     });
     const reference = {
         observer: observer,
-        identifier: identifier    
+        identifier: identifier
     }
     pageObservers.set(targetPage, reference);
     if (mods.getSettings().isDebug()) {
@@ -220,13 +218,15 @@ function initObservers(etaDisplay = false, connect = false) {
         
         // Combat
         const pCombat = getCombatPanel();
-        if (pCombat && typeof pCombat.container === "function" && typeof pCombat.onRefresh === "function")
+        if (pCombat && typeof pCombat.container === "function" && typeof pCombat.onRefresh === "function") {
             references.push(pageContainer('#combat-container', 'combat', pCombat.container, pCombat.onRefresh));
+        }
 
         // Runecraft
         const pRunecraft = getRunecraftPanel();
-        if (pRunecraft && typeof pRunecraft.container === "function" && typeof pRunecraft.onRefresh === "function")
+        if (pRunecraft && typeof pRunecraft.container === "function" && typeof pRunecraft.onRefresh === "function") {
             references.push(pageContainer('#runecrafting-container', 'runecraft', pRunecraft.container, pRunecraft.onRefresh));
+        }
         
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);

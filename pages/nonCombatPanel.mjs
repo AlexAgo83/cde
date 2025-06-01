@@ -85,15 +85,24 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
 
 /**
  * 
+ * @param {*} value 
+ */
+export function show(value) {
+    parent?.setVisible(value);
+}
+
+/**
+ * 
  */
 export const onRefresh = () => {
+    let updated = false;
     const currTime = new Date();
     if (
         lastTickTime == null 
         || lastTickTime.getTime() + 1000 < currTime.getTime()) {
         lastTickTime = currTime;
     } else {
-        return;
+        return updated;
     }
     if (parent && typeof extractETA === "function" && isCfg(Stg().ETA_DISPLAY)) {
         
@@ -124,7 +133,6 @@ export const onRefresh = () => {
                                 const currentSkill = skills[activeSkill.localID];
                                 const diffTimeStr = currentSkill.diffTimeStr;
                                 const time = currentSkill.timeToNextLevelStr;
-
                                 result.push(
                                     `<div class="cde-generic-panel">
                                         <span class="skill-label">Time to Next Level (${activeSkill.localID}):</span>
@@ -135,6 +143,7 @@ export const onRefresh = () => {
                                         <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>
                                     </div>`
                                 );
+                                updated = true;
                             }
                         });
                     }
@@ -148,4 +157,5 @@ export const onRefresh = () => {
         }
         parent.innerHTML = container(parent, summaryId, identity);
     }
+    return updated;
 }
