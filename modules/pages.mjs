@@ -101,7 +101,8 @@ export function load(ctx) {
 }
 
 const doWorker = (userPage, panel, localID) => {
-    if (userPage.localID == "Runecrafting") {    
+    if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:"+localID, userPage);
+    if (userPage.localID == localID) {    
         if (panel && typeof panel.onRefresh === "function") {
             panel.show(panel.onRefresh());
         }
