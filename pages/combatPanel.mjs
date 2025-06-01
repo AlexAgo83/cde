@@ -9,7 +9,7 @@ let parent = null;
 let summaryId = null;
 let identity = null;
 let etaData = null;
-let lastTickTime = null;
+let lastCraftTime = null;
 
 /**
  * 
@@ -75,7 +75,7 @@ export function setCollectCb(cb) {
  * @param {*} summaryIdentifier - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
  */
-export function container(parentPanel, summaryIdentifier, identifier) {
+export const container = (parentPanel, summaryIdentifier, identifier) => {
     parent = parentPanel;
     summaryId = summaryIdentifier;
     identity = identifier;
@@ -86,10 +86,10 @@ export function container(parentPanel, summaryIdentifier, identifier) {
 /**
  * 
  */
-export function onRefresh() {
+export const onRefresh = () => {
     const currTime = new Date();
-    if (lastTickTime == null || lastTickTime.getTime() + 1000 < currTime.getTime()) {
-        lastTickTime = currTime;
+    if (lastCraftTime == null || lastCraftTime.getTime() + 1000 < currTime.getTime()) {
+        lastCraftTime = currTime;
     } else {
         return;
     }
@@ -101,37 +101,47 @@ export function onRefresh() {
         }
         
         if (
-            scan && typeof scan === "object" && scan !== null &&
-            Object.prototype.hasOwnProperty.call(scan, "currentActivity")
+            scan 
+            && typeof scan === "object" 
+            && scan !== null 
+            && Object.prototype.hasOwnProperty.call(scan, "currentActivity")
         ) {
             /** @type {{ currentActivity: any }} */
             const scanWithActivity = scan;
             const activities = scanWithActivity.currentActivity;
 
-            /* ETA - Combat */
-            const activity = activities.Combat;
-            const kph = activity.monster?.kph;
-            const time = activity.monster?.diffTimeStr;
-            const result = [];
+            /* Activity: Combat */
+            if (
+                activities 
+                && typeof activities === "object" 
+                && activities !== null 
+                && Object.prototype.hasOwnProperty.call(activities, "Combat")) {
             
-            result.push(
-                `<b>Kills per Hour:</b> <span class="vph">${kph ?? "N/A"}</span>`,
-                `<b>Fight Duration:</b> <span class="duration">${time ?? "N/A"}</span>`
-            );
+                const activity = activities.Combat;
+                
+                const kph = activity.monster?.kph;
+                const time = activity.monster?.diffTimeStr;
+                const result = [];
+                
+                result.push(
+                    `<b>Kills per Hour:</b> <span class="vph">${kph ?? "N/A"}</span>`,
+                    `<b>Fight Duration:</b> <span class="duration">${time ?? "N/A"}</span>`
+                );
 
-            if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
-                const skills = activity.skills;
-                result.push(`<b>Time to Next Level:</b>`);
-                _game().skills?.registeredObjects.forEach((skill) => {
-                    if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
-                        const current = skills[skill.localID];
-                        result.push(
-                            `&nbsp;&nbsp;<span class="skill-label">${skill.name}:</span> <span class="skill-value">${current.timeToNextLevelStr}</span>`
-                        );
-                    }
-                });
+                if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
+                    const skills = activity.skills;
+                    result.push(`<b>Time to Next Level:</b>`);
+                    _game().skills?.registeredObjects.forEach((skill) => {
+                        if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
+                            const current = skills[skill.localID];
+                            result.push(
+                                `&nbsp;&nbsp;<span class="skill-label">${skill.name}:</span> <span class="skill-value">${current.timeToNextLevelStr}</span>`
+                            );
+                        }
+                    });
+                }
+                etaData = result.join("<br>");
             }
-            etaData = result.join("<br>");
         }
         parent.innerHTML = container(parent, summaryId, identity);
     }

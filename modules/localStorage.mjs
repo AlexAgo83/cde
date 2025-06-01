@@ -79,9 +79,9 @@ function saveToStorage(key, jsonData) {
             console.log("[CDE] LZString not ready, saving raw data to storage.");
         }
 		localStorage.setItem(key, raw);
-		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] Object saved:", raw);
-		}
+		// if (mods.getSettings().isDebug()) {
+		// 	console.log("[CDE] Object saved:", raw);
+		// }
 	} catch (err) {
 		console.warn("[CDE] Failed to save export to storage:", err);
 	}

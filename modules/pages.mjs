@@ -11,6 +11,8 @@ let pageObservers = new Map();
 let combatPanel = null;
 let runecraftPanel = null;
 
+let refreshOnPatch = false;
+
 export function getCombatPanel() { return combatPanel; }
 export function getRunecraftPanel() { return runecraftPanel; }
 
@@ -35,6 +37,9 @@ export function init(modules) {
 
 /* @ts-ignore Handle DEVMODE */
 function _Skill()  {  return Skill;  }
+
+/* @ts-ignore Handle DEVMODE */
+function _CombatManager()  {  return CombatManager;  }
 
 /**
  * Get the proxy-settings reference object.
@@ -67,7 +72,9 @@ export function getViews() {
  */
 export function initSubModule(modules) {
   getViews().forEach((m) => {
-    m.init(modules);
+    if (m && typeof m.init === "function")
+        m.init(modules);
+    else console.log("[CDE] Page error", m);
   });
 }
 
@@ -76,14 +83,29 @@ export function initSubModule(modules) {
  * @param {*} ctx - The context object to pass to each submodule's load method.
  */
 export function load(ctx) {
+    if (mods?.getSettings().isDebug()) {
+        console.log("[CDE] Loading pages", getViews());
+    }
+
     getViews().forEach((m) => {
-        m.load(ctx);
+        if (m && typeof m.load === "function")
+            m.load(ctx);
+        else console.log("[CDE] Page error", m);
     });
-    ctx.patch(_Skill(), 'addXP').after(function(amount, masteryAction) {
-        getViews().forEach((m) => {
-            m.onRefresh();
-        });
-        return [amount, masteryAction];
+}
+
+export function worker(ctx) {
+    // Worker UI refresh
+    
+    // Skill.onRecipeComplete
+    ctx.patch(_CombatManager(), 'onMonsterDeath').after(function(monster, ...args) {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Monster died:", monster);
+            const panel = getCombatPanel();
+            if (panel && typeof panel.onRefresh === "function") {
+               panel.onRefresh();
+            }
+        }
     });
 }
 
@@ -166,8 +188,15 @@ function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
         const references = []
         
-        references.push(pageContainer('#combat-container', 'combat', getCombatPanel().container, getCombatPanel().onRefresh));
-        references.push(pageContainer('#runecraft-container', 'runecraft', getRunecraftPanel().container, getRunecraftPanel().onRefresh));
+        // Combat
+        const pCombat = getCombatPanel();
+        if (pCombat && typeof pCombat.container === "function" && typeof pCombat.onRefresh === "function")
+            references.push(pageContainer('#combat-container', 'combat', pCombat.container, pCombat.onRefresh));
+
+        // Runecraft
+        const pRunecraft = getRunecraftPanel();
+        if (pRunecraft && typeof pRunecraft.container === "function" && typeof pRunecraft.onRefresh === "function")
+            references.push(pageContainer('#runecrafting-container', 'runecraft', pRunecraft.container, pRunecraft.onRefresh));
         
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);
@@ -207,7 +236,9 @@ export function triggerObservers(value) {
  * @param {*} cb 
  */
 export function setCollectCb(cb) {
-    getViews().forEach((view) => {
-        view.setCollectCb(cb);
+    getViews().forEach((m) => {
+        if (m && typeof m.setCollectCb === "function")
+            m.setCollectCb(cb);
+        else console.log("[CDE] Page error", m);
     });
 }

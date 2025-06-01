@@ -5,7 +5,7 @@
 // exportView.mjs
 
 let mods = null;
-let extractETA = (etaExtract=false, timeBuffer=50) => {return null;};
+let extractETA = (etaExtract=false, timeBuffer=0) => {return null;};
 
 /**
  * Initialize the export view module.
@@ -190,7 +190,7 @@ const exportFooter =
  */
 function openExportUI(forceCollect = false) {
     if (isCfg(Stg().AUTO_EXPORT_ONWINDOW) || forceCollect) {
-        extractETA();
+        extractETA(false, 0);
     }
     if (isCfg(Stg().MOD_ENABLED)) {
 

@@ -6,7 +6,7 @@
 
 let mods = null;
 let exportData = {};
-let etaExtract = {};
+let etaData = {};
 let changesData = [];
 let changesHistory = null;
 let lastTimeBuffer = null;
@@ -162,10 +162,14 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	const _sr = Stg();
 	const date = new Date();
 
-	if (extractEta && (lastTimeBuffer == null  || lastTimeBuffer.getTime() + timeBuffer < date.getTime())) {
+	if (
+		lastTimeBuffer == null  
+		|| lastTimeBuffer.getTime() + timeBuffer < date.getTime()
+		|| timeBuffer == 0
+	) {
 		lastTimeBuffer = date;
-	} else {
-		return etaExtract;
+	} else if (extractEta) {
+		return etaData;
 	}
 
 	newData.basics = _mc.collectBasics();
@@ -199,11 +203,11 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 
 	// Custom result for extract ETA
 	if (extractEta) {
-		etaExtract = newData;
+		etaData = newData;
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] exportData for quick ETA: ", newData);
 		}
-		return etaExtract;
+		return etaData;
 	}
 
 	if (isCfg(Stg().SAVE_TO_STORAGE)) {
@@ -229,6 +233,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	
 	// Finalize..
 	exportData = newData;
+	etaData = newData;
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] exportData updated: ", exportData);
 	}

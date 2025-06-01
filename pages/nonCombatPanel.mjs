@@ -75,7 +75,7 @@ export function setCollectCb(cb) {
  * @param {*} summaryIdentifier - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
  */
-export function container(parentPanel, summaryIdentifier, identifier) {
+export const container = (parentPanel, summaryIdentifier, identifier) => {
     parent = parentPanel;
     summaryId = summaryIdentifier;
     identity = identifier;
@@ -86,7 +86,7 @@ export function container(parentPanel, summaryIdentifier, identifier) {
 /**
  * 
  */
-export function onRefresh() {
+export const onRefresh = () => {
     const currTime = new Date();
     if (lastTickTime == null || lastTickTime.getTime() + 1000 < currTime.getTime()) {
         lastTickTime = currTime;
