@@ -10,9 +10,11 @@ let pageObservers = new Map();
 
 let combatPanel = null;
 let runecraftPanel = null;
+let thievingPanel = null;
 
 export function getCombatPanel() { return combatPanel; }
 export function getRunecraftPanel() { return runecraftPanel; }
+export function getThievingPanel() { return thievingPanel; }
 
 /**
  * Loads panel submodules for the pages manager.
@@ -22,6 +24,7 @@ export function getRunecraftPanel() { return runecraftPanel; }
 export async function loadSubModule(ctx) {
   subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
   subModules.push(runecraftPanel = await ctx.loadModule("pages/nonCombatPanel.mjs"));
+  subModules.push(thievingPanel = await ctx.loadModule("pages/nonCombatPanel.mjs"));
 }
 
 /**
@@ -43,6 +46,8 @@ function _Swal() { return Swal; }
 function _Skill()  {  return Skill;  }
 /* @ts-ignore Handle DEVMODE */
 function _CraftingSkill() { return CraftingSkill; }
+/* @ts-ignore Handle DEVMODE */
+function _Thieving() { return Thieving; }
 
 /* @ts-ignore Handle DEVMODE */
 function _CombatManager()  {  return CombatManager;  }
@@ -102,11 +107,9 @@ export function load(ctx) {
 
 const doWorker = (userPage, panel, localID) => {
     if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:"+localID, userPage);
-    //if (userPage.localID == localID) {    
     if (panel && typeof panel.onRefresh === "function") {
         panel.show(panel.onRefresh());
     }
-    // } else if (panel) panel.show(false);
 }
 
 /**
@@ -126,8 +129,7 @@ export function worker(ctx) {
             && userPage.localID
             && userPage.containerID) {
             
-            /* COMBAT */
-            doWorker(userPage, getCombatPanel(), "Combat");
+            /* COMBAT */ doWorker(userPage, getCombatPanel(), "Combat");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
@@ -142,8 +144,23 @@ export function worker(ctx) {
             && userPage.localID
             && userPage.containerID) {
             
-            /* RUNECRAFTING */
-            doWorker(userPage, getRunecraftPanel(), "Runecrafting");
+            /* Runecrafting */ doWorker(userPage, getRunecraftPanel(), "Runecrafting");
+
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
+    });
+
+    ctx.patch(_Thieving(), 'action').after(function(...args) {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Thieving action finished", ...args);
+        }
+
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            
+            /* Thieving */ doWorker(userPage, getThievingPanel(), "Thieving");
+
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
 }
@@ -234,6 +251,12 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
     return reference;
 }
 
+function registerObserver(references, panel, pageId, identifier) {
+    if (panel && typeof panel.container === "function" && typeof panel.onRefresh === "function") {
+        references.push(pageContainer('#combat-container', 'combat', panel.container, panel.onRefresh));
+    }
+}
+
 /**
  * Initializes all MutationObservers for the relevant pages.
  * Sets up observers to monitor DOM changes and inject summary headers if the corresponding setting is enabled.
@@ -242,19 +265,11 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
 function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
         const references = []
-        
-        /* Combat */
-        const pCombat = getCombatPanel();
-        if (pCombat && typeof pCombat.container === "function" && typeof pCombat.onRefresh === "function") {
-            references.push(pageContainer('#combat-container', 'combat', pCombat.container, pCombat.onRefresh));
-        }
+                
+        /* Combat */ registerObserver(references, getCombatPanel(), '#combat-container', 'combat')
+        /* Runecraft */ registerObserver(references, getRunecraftPanel(), '#runecrafting-container', 'runecraft')
+        /* Thieving */ registerObserver(references, getThievingPanel(), '#thieving-container', 'thieving')
 
-        /* Runecraft */
-        const pRunecraft = getRunecraftPanel();
-        if (pRunecraft && typeof pRunecraft.container === "function" && typeof pRunecraft.onRefresh === "function") {
-            references.push(pageContainer('#runecrafting-container', 'runecraft', pRunecraft.container, pRunecraft.onRefresh));
-        }
-        
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);
         }
