@@ -8,7 +8,12 @@ let mods = null;
 let parent = null;
 let summaryId = null;
 
-let processCollectData = (etaExtract=true) => {};
+/**
+ * 
+ * @param {*} etaExtract 
+ * @returns {{ currentActivity: any }}
+ */
+let processCollectData = (etaExtract=true) => {return {currentActivity: null}};
 
 /**
  * Initialize the panel.
@@ -61,6 +66,9 @@ export function load(ctx) {
  * @param {*} cb 
  */
 export function setCollectCb(cb) {
+    if (mods.getSettings().isDebug()) {
+        console.log("[CDE] Combat panel callback:", cb);
+    }
     processCollectData = cb;
 }
 
@@ -85,8 +93,43 @@ let etaData = null;
  */
 export function onRefresh() {
     if (typeof processCollectData === "function" && isCfg(Stg().ETA_DISPLAY)) {
-        etaData = processCollectData(true);
-        console.log("[CDE] Process quick scan:", etaData);
+        
+        const scan = processCollectData(true);
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Process quick scan:", scan);
+        }
+        
+        if (
+            scan && typeof scan === "object" && scan !== null &&
+            Object.prototype.hasOwnProperty.call(scan, "currentActivity")
+        ) {
+            /** @type {{ currentActivity: any }} */
+            const scanWithActivity = scan;
+            const activities = scanWithActivity.currentActivity;
+
+            // ETA - Combat
+            if (activities && Object.prototype.hasOwnProperty.call(activities, "Combat")) {
+                const activity = activities.Combat;
+                const kph = activity.monster?.kph;
+                const time = activity.monster?.diffTimeStr;
+                const result = [];
+                result.push(`${kph ?? "N/A"} kills/hour, Fight duration: ${time ?? "N/A"}`);
+
+                if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
+                    const skills = activity.skills;
+
+                    _game().skills?.registeredObjects.forEach((skill) => {
+                        if (skill.isCombat) {
+                            if (Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
+                                const current = skills[skill.localID];
+                                result.push(`${skill.localID}: Next Level IN ${current.timeToNextLevelStr}`);
+                            }
+                        }
+                    });
+                }
+                etaData = result.join("<br>");
+            }
+        }
         parent.innerHTML = container(parent, summaryId);
     }
 }

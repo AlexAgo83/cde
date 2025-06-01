@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.9";
+const MOD_VERSION = "v1.9.13";
 
 // --- Module Imports ---
 let mModules = null;
@@ -87,8 +87,8 @@ function isCfg(reference) {
  * It uses the `mModules.getExport().processCollectData` method to handle the data collection.
  * The `onCombat`, `onNonCombat`, `onActiveSkill`, and `onSkllsUpdate` callbacks are used to process respective events.
  */
-export function implProcessCollectData(extractEta=false) {
-	mModules.getExport().processCollectData(
+export const implProcessCollectData = (extractEta=false) => {
+	const value = mModules.getExport().processCollectData(
 		onCombat, 
 		onNonCombat, 
 		onActiveSkill,
@@ -98,6 +98,10 @@ export function implProcessCollectData(extractEta=false) {
 			meta.modVersion = MOD_VERSION
 		}
 	);
+	if (mModules.getSettings().isDebug()) {
+		console.log("[CDE] Requested: processCollectData", value);
+	}
+	return value;
 }
 
 /**
