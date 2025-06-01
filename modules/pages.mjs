@@ -37,6 +37,8 @@ export function init(modules) {
 
 /* @ts-ignore Handle DEVMODE */
 function _Skill()  {  return Skill;  }
+/* @ts-ignore Handle DEVMODE */
+function _CraftingSkill() { return CraftingSkill; }
 
 /* @ts-ignore Handle DEVMODE */
 function _CombatManager()  {  return CombatManager;  }
@@ -110,6 +112,16 @@ export function worker(ctx) {
             panel.onRefresh();
         }
     });
+
+    ctx.patch(_CraftingSkill(), 'action').after(function(...args) {
+       if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Craft ended:", ...args);
+        }
+        const panel = getRunecraftPanel();
+        if (panel && typeof panel.onRefresh === "function") {
+            panel.onRefresh();
+        }
+    });
 }
 
 /**
@@ -179,8 +191,11 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
             window.getComputedStyle(skillInfo).visibility !== 'hidden';
         
         if (isVisible && skillInfo && skillInfo.parentNode) {
-            skillInfo.parentNode.insertBefore(block, skillInfo.nextSibling);
+            skillInfo.parentNode.insertBefore(block, skillInfo);
         } else {
+            if (mods.getSettings().isDebug()) {
+                console.log("[CDE] Can't found skill-info", skillInfo);
+            }
             container.prepend(block);
         }
     });

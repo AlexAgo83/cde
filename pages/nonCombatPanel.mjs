@@ -142,7 +142,7 @@ export const onRefresh = () => {
                     }
                 }
             });
-            etaData = result.join("<br>");
+            etaData = `<div class="cde-generic-list">${result.join("")}</div>`;
         }
         parent.innerHTML = container(parent, summaryId, identity);
     }

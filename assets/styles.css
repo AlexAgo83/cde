@@ -342,3 +342,7 @@
 .cde-combat-panel .skill-value {
   color: #fff;
 }
+
+.cde-generic-list .cde-generic-panel {
+  margin-bottom: 8px;
+}
