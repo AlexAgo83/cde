@@ -80,7 +80,7 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
     summaryId = summaryIdentifier;
     identity = identifier;
     const etaStr = etaData ? etaData : "n/a";
-    return `<div class="cde-${identity}-panel"><span id="${summaryIdentifier}">${etaStr}</span></div>`;
+    return `<div class="cde-${identity}-panel cde-eta-generic"><span id="${summaryIdentifier}">${etaStr}</span></div>`;
 }
 
 /**

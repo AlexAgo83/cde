@@ -107,7 +107,7 @@ export function worker(ctx) {
         }
         const panel = getCombatPanel();
         if (panel && typeof panel.onRefresh === "function") {
-            panel.setVisible(panel.onRefresh());
+            panel.show(panel.onRefresh());
         }
     });
 
@@ -117,7 +117,7 @@ export function worker(ctx) {
         }
         const panel = getRunecraftPanel();
         if (panel && typeof panel.onRefresh === "function") {
-            panel.setVisible(panel.onRefresh());
+            panel.show(panel.onRefresh());
         }
     });
 }

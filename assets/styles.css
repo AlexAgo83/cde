@@ -310,8 +310,7 @@
   width: 100%;
   max-width: 100%;
 }
-.cde-eta-generic,
-.cde-combat-panel {
+.cde-eta-generic {
   background: #23233a;
   color: #fff;
   padding: 16px 20px;
@@ -327,31 +326,26 @@
   max-width: 100%;
 }
 
-.cde-eta-generic,
-.cde-combat-panel b {
+.cde-eta-generic b {
   color: #fff;
 }
 
-.cde-generic-panel,
-.cde-combat-panel .vph {
+.cde-eta-generic .vph {
   color: #8fff8f;
 }
 
-.cde-eta-generic,
-.cde-combat-panel .duration {
+.cde-eta-generic .duration {
   color: #8fcaff;
 }
 
-.cde-generic-panel,
-.cde-combat-panel .skill-label {
+.cde-eta-generic .skill-label {
   color: #ffd700;
 }
 
-.cde-generic-panel,
-.cde-combat-panel .skill-value {
+.cde-eta-generic .skill-value {
   color: #fff;
 }
 
-.cde-generic-list .cde-generic-panel {
+.cde-generic-panel .cde-generic-list  {
   margin-bottom: 8px;
 }
