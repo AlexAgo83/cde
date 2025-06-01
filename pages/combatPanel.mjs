@@ -7,6 +7,8 @@
 let mods = null;
 let parent = null;
 let summaryId = null;
+let etaData = null;
+let lastTickTime = null;
 
 /**
  * 
@@ -29,6 +31,8 @@ function _game()  {  return game;  }
 function _ui() { return ui; }
 /* @ts-ignore Handle DEVMODE */
 function _Swal() { return Swal; }
+/* @ts-ignore Handle DEVMODE */
+function _Skill()  {  return Skill;  }
 
 /**
  * Get the settings reference object.
@@ -56,8 +60,10 @@ function isCfg(reference) {
  */
 export function load(ctx) {
     if (isCfg(Stg().ETA_DISPLAY)) {
-        // const data = collectCb(true);
-        // console.log(data);
+        ctx.patch(_Skill(), 'addXP').after(function(amount, masteryAction) {
+            onRefresh();
+            return [amount, masteryAction];
+        });
     }
 }
 
@@ -87,11 +93,16 @@ export function container(parentPanel, summaryIdentifier) {
             </div>`;
 }
 
-let etaData = null;
 /**
  * 
  */
 export function onRefresh() {
+    const currTime = new Date();
+    if (lastTickTime == null || lastTickTime.getTime() + 1000 < currTime.getTime()) {
+        lastTickTime = currTime;
+    } else {
+        return;
+    }
     if (typeof processCollectData === "function" && isCfg(Stg().ETA_DISPLAY)) {
         
         const scan = processCollectData(true);
@@ -108,27 +119,29 @@ export function onRefresh() {
             const activities = scanWithActivity.currentActivity;
 
             // ETA - Combat
-            if (activities && Object.prototype.hasOwnProperty.call(activities, "Combat")) {
-                const activity = activities.Combat;
-                const kph = activity.monster?.kph;
-                const time = activity.monster?.diffTimeStr;
-                const result = [];
-                result.push(`${kph ?? "N/A"} kills/hour, Fight duration: ${time ?? "N/A"}`);
+            const activity = activities.Combat;
+            const kph = activity.monster?.kph;
+            const time = activity.monster?.diffTimeStr;
+            const result = [];
+            
+            result.push(
+                `<b>Kills per Hour:</b> <span style="color:#8fff8f">${kph ?? "N/A"}</span>`,
+                `<b>Fight Duration:</b> <span style="color:#8fcaff">${time ?? "N/A"}</span>`
+            );
 
-                if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
-                    const skills = activity.skills;
-
-                    _game().skills?.registeredObjects.forEach((skill) => {
-                        if (skill.isCombat) {
-                            if (Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
-                                const current = skills[skill.localID];
-                                result.push(`${skill.localID}: Next Level IN ${current.timeToNextLevelStr}`);
-                            }
-                        }
-                    });
-                }
-                etaData = result.join("<br>");
+            if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
+                const skills = activity.skills;
+                result.push(`<b>Time to Next Level:</b>`);
+                _game().skills?.registeredObjects.forEach((skill) => {
+                    if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
+                        const current = skills[skill.localID];
+                        result.push(
+                            `&nbsp;&nbsp;<span style="color:#ffd700">${skill.name}:</span> <span style="color:#fff">${current.timeToNextLevelStr}</span>`
+                        );
+                    }
+                });
             }
+            etaData = result.join("<br>");
         }
         parent.innerHTML = container(parent, summaryId);
     }
