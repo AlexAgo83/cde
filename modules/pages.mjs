@@ -34,6 +34,12 @@ export function init(modules) {
 }
 
 /* @ts-ignore Handle DEVMODE */
+function _game()  {  return game;  }
+/* @ts-ignore Handle DEVMODE */
+function _ui() { return ui; }
+/* @ts-ignore Handle DEVMODE */
+function _Swal() { return Swal; }
+/* @ts-ignore Handle DEVMODE */
 function _Skill()  {  return Skill;  }
 /* @ts-ignore Handle DEVMODE */
 function _CraftingSkill() { return CraftingSkill; }
@@ -94,6 +100,14 @@ export function load(ctx) {
     });
 }
 
+const doWorker = (userPage, panel, localID) => {
+    if (userPage.localID == "Runecrafting") {    
+        if (panel && typeof panel.onRefresh === "function") {
+            panel.show(panel.onRefresh());
+        }
+    } else if (panel) panel.show(false);
+}
+
 /**
  * 
  * @param {*} ctx 
@@ -105,20 +119,31 @@ export function worker(ctx) {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Combat ended:", ...args);
         }
-        const panel = getCombatPanel();
-        if (panel && typeof panel.onRefresh === "function") {
-            panel.show(panel.onRefresh());
-        }
+        
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            
+            /* COMBAT */
+            doWorker(userPage, getCombatPanel(), "Combat");
+
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
 
     ctx.patch(_CraftingSkill(), 'action').after(function(...args) {
        if (mods.getSettings().isDebug()) {
             console.log("[CDE] Craft ended:", ...args);
         }
-        const panel = getRunecraftPanel();
-        if (panel && typeof panel.onRefresh === "function") {
-            panel.show(panel.onRefresh());
-        }
+
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            
+            /* RUNECRAFTING */
+            doWorker(userPage, getRunecraftPanel(), "Runecrafting");
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
 }
 
