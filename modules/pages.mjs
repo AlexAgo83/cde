@@ -129,7 +129,9 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         const block = document.createElement('div');
         block.id = headerId;
         block.innerHTML = viewPanel(block, summaryId);
-        block.addEventListener("click", onRefresh);
+        if (typeof onRefresh === "function") {
+            block.addEventListener("click", onRefresh);
+        }
         container.prepend(block);
     });
     const reference = {
