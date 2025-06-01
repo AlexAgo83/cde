@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.1";
+const MOD_VERSION = "v1.9.5";
 
 // --- Module Imports ---
 let mModules = null;
@@ -87,12 +87,13 @@ function isCfg(reference) {
  * It uses the `mModules.getExport().processCollectData` method to handle the data collection.
  * The `onCombat`, `onNonCombat`, `onActiveSkill`, and `onSkllsUpdate` callbacks are used to process respective events.
  */
-function implProcessCollectData() {
+export function implProcessCollectData(extractEta=false) {
 	mModules.getExport().processCollectData(
 		onCombat, 
 		onNonCombat, 
 		onActiveSkill,
 		onSkllsUpdate,
+		extractEta,
 		(meta) => {
 			meta.modVersion = MOD_VERSION
 		}
@@ -374,8 +375,10 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	onInterfaceReady(async (ctx) => {
 		mModules.onViewLoad(ctx);
 		
-		// Override processCollectData callback (Viewer)
-		mModules.getViewer().getExportView().initProcessCollectDataCb(implProcessCollectData);
+		// Override processCollectData callback (Viewer / Panel)
+		mModules.getViewer().getExportView().setCollectCb(implProcessCollectData);
+		mModules.getPages().getCombatPanel().setCollectCb(implProcessCollectData);
+		mModules.getPages().triggerObservers(isCfg(Stg().ETA_DISPLAY));
 
 		console.log("[CDE] Interface ready !");
 	});

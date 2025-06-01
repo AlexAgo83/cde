@@ -148,10 +148,11 @@ export function collector(cfgRef, collectorFn, fallbackMsg) {
  * @param {Function} onNonCombat - Callback for non-combat events.
  * @param {Function} onActiveSkill - Callback for active skill events.
  * @param {Function} onSkllsUpdate - Callback for updating active skills.
+ * @param {boolean} extractEta - Force a custom processing
  * @param {Function} onMeta - Callback to enrich export metadata.
  * @returns {Object} The generated export data.
  */
-export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, onMeta) {
+export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, extractEta=false, onMeta) {
 	const newData = {};
 
 	const _mc = mods.getCollector();
@@ -160,31 +161,35 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 
 	newData.basics = _mc.collectBasics();
 	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate);
-	newData.agility = _mc.collectAgility();
-	newData.activePotions = _mc.collectActivePotions();
-	newData.dungeons = _mc.collectDungeons();
-	newData.strongholds = _mc.collectStrongholds();
-	newData.ancientRelics = _mc.collectAncientRelics();
+	if (!extractEta) {
+		newData.agility = _mc.collectAgility();
+		newData.activePotions = _mc.collectActivePotions();
+		newData.dungeons = _mc.collectDungeons();
+		newData.strongholds = _mc.collectStrongholds();
+		newData.ancientRelics = _mc.collectAncientRelics();
 
-	newData.stats = collector(_sr.EXPORT_GAMESTATS, _mc.collectGameStats, "Stats data unavailable");
-	newData.shop = collector(_sr.EXPORT_SHOP, _mc.collectShopData, "Shop data unavailable");
-	newData.equipment = collector(_sr.EXPORT_EQUIPMENT, _mc.collectEquipments, "Equipment data unavailable");
-	newData.equipmentSets = collector(_sr.EXPORT_EQUIPMENT_SETS, _mc.collectEquipmentSets, "Equipment sets data unavailable");
-	newData.bank = collector(_sr.EXPORT_BANK, _mc.collectBankData, "Bank data unavailable");
-	newData.skills = collector(_sr.EXPORT_SKILLS, _mc.collectSkills, "Skills data unavailable");
-	newData.mastery = collector(_sr.EXPORT_MASTERY, _mc.collectMastery, "Mastery data unavailable");
-	newData.astrology = collector(_sr.EXPORT_ASTROLOGY, _mc.collectAstrology, "Astrology data unavailable");
-	newData.completion = collector(_sr.EXPORT_COMPLETION, _mc.collectCompletion, "Completion data unavailable");
-	newData.township = collector(_sr.EXPORT_TOWNSHIP, _mc.collectTownship, "Township data unavailable");
-	newData.pets = collector(_sr.EXPORT_PETS, _mc.collectPets, "Pets data unavailable");
-	newData.cartography = collector(_sr.EXPORT_CARTOGRAPHY, _mc.collectCartography, "Cartography data unavailable");
-	newData.farming = collector(_sr.EXPORT_FARMING, _mc.collectFarming, "Farming data unavailable");
-
+		newData.stats = collector(_sr.EXPORT_GAMESTATS, _mc.collectGameStats, "Stats data unavailable");
+		newData.shop = collector(_sr.EXPORT_SHOP, _mc.collectShopData, "Shop data unavailable");
+		newData.equipment = collector(_sr.EXPORT_EQUIPMENT, _mc.collectEquipments, "Equipment data unavailable");
+		newData.equipmentSets = collector(_sr.EXPORT_EQUIPMENT_SETS, _mc.collectEquipmentSets, "Equipment sets data unavailable");
+		newData.bank = collector(_sr.EXPORT_BANK, _mc.collectBankData, "Bank data unavailable");
+		newData.skills = collector(_sr.EXPORT_SKILLS, _mc.collectSkills, "Skills data unavailable");
+		newData.mastery = collector(_sr.EXPORT_MASTERY, _mc.collectMastery, "Mastery data unavailable");
+		newData.astrology = collector(_sr.EXPORT_ASTROLOGY, _mc.collectAstrology, "Astrology data unavailable");
+		newData.completion = collector(_sr.EXPORT_COMPLETION, _mc.collectCompletion, "Completion data unavailable");
+		newData.township = collector(_sr.EXPORT_TOWNSHIP, _mc.collectTownship, "Township data unavailable");
+		newData.pets = collector(_sr.EXPORT_PETS, _mc.collectPets, "Pets data unavailable");
+		newData.cartography = collector(_sr.EXPORT_CARTOGRAPHY, _mc.collectCartography, "Cartography data unavailable");
+		newData.farming = collector(_sr.EXPORT_FARMING, _mc.collectFarming, "Farming data unavailable");
+	}
 	newData.meta = {
 		exportTimestamp: mods.getUtils().parseTimestamp(date),
 		version: _game().lastLoadedGameVersion
 	};
     onMeta(newData.meta);
+	if (extractEta) {
+		return newData;
+	}
 
 	if (isCfg(Stg().SAVE_TO_STORAGE)) {
 		const copy = JSON.parse(JSON.stringify(newData));

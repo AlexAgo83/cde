@@ -96,6 +96,7 @@ export async function onModuleLoad(ctx) {
     
     // Load subModules :
     mViewer.loadSubModule(ctx);
+    mPages.loadSubModule(ctx);
 }
 
 /**
@@ -120,6 +121,8 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     mDisplayStats.init(this);
     mCollector.init(this);
     mExport.init(this);
+
+    // Interfaces
     mViewer.init(this);
     mPages.init(this);
 }
@@ -136,5 +139,5 @@ export async function onViewLoad(ctx) {
     }
 
     mViewer.load(ctx);
-    mPages.triggerObservers(isCfg(Stg().ETA_DISPLAY));
+    mPages.load(ctx);
 }

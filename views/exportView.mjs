@@ -56,7 +56,7 @@ export function load(ctx) {
  * Initialize the callback for processing collected data.
  * @param {*} cb - The callback function to process collected data.
  */
-export function initProcessCollectDataCb(cb) {
+export function setCollectCb(cb) {
     processCollectData = cb;
 }
 

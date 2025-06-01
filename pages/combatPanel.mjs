@@ -26,6 +26,10 @@ function _Swal() { return Swal; }
  * @returns {Object} The settings reference object.
  */
 function Stg() {
+    if (!mods) {
+        console.warn("[CDE] combatPanel: mods not initialized");
+        return {};
+    }
     return mods.getSettings()?.SettingsReference;
 }
 
@@ -42,7 +46,19 @@ function isCfg(reference) {
  * @param {*} ctx - Context parameter (currently unused).
  */
 export function load(ctx) {
-    // ...
+    if (isCfg(Stg().ETA_DISPLAY)) {
+        // const data = collectCb(true);
+        // console.log(data);
+    }
+}
+
+let processCollectData;
+/**
+ * 
+ * @param {*} cb 
+ */
+export function setCollectCb(cb) {
+    processCollectData = cb;
 }
 
 /**
@@ -50,9 +66,13 @@ export function load(ctx) {
  * @param {*} summaryId - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
  */
-function container(summaryId) {
+export function container(summaryId) {
+    if (typeof processCollectData === "function" && isCfg(Stg().ETA_DISPLAY)) {
+        const data = processCollectData(true);
+        console.log(data);
+    }
     return `<div class="cde-eta-panel">
-            <strong>DEBUG TITLE</strong><br>
+            <strong>ETA - Combat</strong><br>
             <span id="${summaryId}">DEBUG SUMMARY</span>
             </div>`;
 }

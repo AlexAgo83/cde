@@ -10,6 +10,8 @@ let pageObservers = new Map();
 
 let combatPanel = null;
 
+export function getCombatPanel() { return combatPanel; }
+
 /**
  * Loads panel submodules for the pages manager.
  * This should be called once during initialization to set up the pages's submodules.
@@ -154,7 +156,7 @@ function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
         const references = []
         
-        references.push(pageContainer('#combat-container', 'combat', combatPanel.container));
+        references.push(pageContainer('#combat-container', 'combat', getCombatPanel()?.container));
         
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);
