@@ -39,6 +39,13 @@ function getSummaryID(identifier) {
     return `cde-${identifier}-summary`;
 }
 
+function onDefaultPanel(summaryId) {
+    return `<div class="cde-eta-panel">
+            <strong>DEBUG TITLE</strong><br>
+            <span id="${summaryId}">DEBUG SUMMARY</span>
+            </div>`;
+}
+
 /**
  * Creates or retrieves a MutationObserver reference object for a given target page and identifier.
  * The observer monitors changes to the DOM and injects a styled header block with a summary
@@ -48,7 +55,10 @@ function getSummaryID(identifier) {
  * @param {string} identifier - A unique identifier used to generate element IDs.
  * @returns {{observer: MutationObserver, identifier: string}} The observer reference object.
  */
-function pageContainer(targetPage, identifier) {
+function pageContainer(targetPage, identifier, viewPanel) {
+    if (!mods) {
+        throw new Error("Modules not initialized. Call init(modules) before using pageContainer.");
+    }
     if (pageObservers && pageObservers.has(targetPage)) {
         return pageObservers.get(targetPage);
     }
@@ -60,21 +70,8 @@ function pageContainer(targetPage, identifier) {
         const summaryId = getSummaryID(identifier);
         const block = document.createElement('div');
         block.id = headerId;
-        block.innerHTML = `
-            <div style="
-            background: linear-gradient(to right, #1e1e2f, #2b2b40);
-            color: #fff;
-            padding: 10px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-            font-family: sans-serif;
-            font-size: 14px;
-            ">
-            <strong>DEBUG TITLE</strong><br>
-            <span id="${summaryId}">DEBUG SUMMARY</span>
-            </div>
-        `;
+        const panelFn = viewPanel || onDefaultPanel;
+        block.innerHTML = panelFn(summaryId);
         container.prepend(block);
 
         const content = `DEBUG UPDATED SUMMARY`;
@@ -99,11 +96,18 @@ function pageContainer(targetPage, identifier) {
  */
 function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
-        const reference = pageContainer('#combat-container', 'combat')
+        const references = []
+        
+        references.push(pageContainer('#combat-container', 'combat', onSetupPanel));
+        
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Observers initialized", reference);
+            console.log("[CDE] Observers initialized", references);
         }
-        if (reference && connect) reference.observer.observe(document.body, { childList: true, subtree: true });
+        if (references && references.length > 0 && connect) {
+            references.forEach((reference) => {
+                reference.observer.observe(document.body, { childList: true, subtree: true });
+            })
+        }
     } else {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] ETA display is turned off");
