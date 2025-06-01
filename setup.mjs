@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.25";
+const MOD_VERSION = "v1.9.26";
 
 // --- Module Imports ---
 let mModules = null;
@@ -385,7 +385,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		mModules.getPages().setCollectCb(implProcessCollectData);
 
 		mModules.getPages().triggerObservers(isCfg(Stg().ETA_DISPLAY));
-		mModules.worker(ctx);
+		mModules.getPages().worker(ctx);
 
 		console.log("[CDE] Interface ready !");
 	});

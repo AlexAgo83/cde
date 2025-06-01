@@ -94,10 +94,13 @@ export function load(ctx) {
     });
 }
 
+/**
+ * 
+ * @param {*} ctx 
+ * // Skill.onRecipeComplete
+ */
 export function worker(ctx) {
     // Worker UI refresh
-    
-    // Skill.onRecipeComplete
     ctx.patch(_CombatManager(), 'onMonsterDeath').after(function(monster, ...args) {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Monster died:", monster);
