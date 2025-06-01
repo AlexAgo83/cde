@@ -179,17 +179,21 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         const summaryId = getSummaryID(identifier);
         const block = document.createElement('div');
         block.id = headerId;
+        block.classList.add("cde-eta-header");
         block.innerHTML = viewPanel(block, summaryId, identifier);
         if (typeof onRefresh === "function") {
             block.addEventListener("click", onRefresh);
         }
 
-        const skillInfo = container.querySelector('.skill-info');
-        if (skillInfo && skillInfo.parentNode) {
-            skillInfo.parentNode.insertBefore(block, skillInfo);
+        const rowDeck = container.querySelector('.row-deck');
+        if (rowDeck) {
+            if (mods.getSettings().isDebug()) {
+                console.log("[CDE] Match current row-deck:", rowDeck);
+            }
+            rowDeck.prepend(block);
         } else {
-            if (mods.getSettings().isDebug() && skillInfo) {
-                console.log("[CDE] Can't match skill-info:", skillInfo);
+            if (mods.getSettings().isDebug()) {
+                console.log("[CDE] Can't match row-deck:", rowDeck);
             }
             container.prepend(block);
         }
