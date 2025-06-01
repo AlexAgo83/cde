@@ -185,16 +185,11 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         }
 
         const skillInfo = container.querySelector('.skill-info');
-        const isVisible = skillInfo &&
-            (skillInfo instanceof HTMLElement && skillInfo.offsetParent !== null) &&
-            window.getComputedStyle(skillInfo).display !== 'none' &&
-            window.getComputedStyle(skillInfo).visibility !== 'hidden';
-        
-        if (isVisible && skillInfo && skillInfo.parentNode) {
+        if (skillInfo && skillInfo.parentNode) {
             skillInfo.parentNode.insertBefore(block, skillInfo);
         } else {
-            if (mods.getSettings().isDebug()) {
-                console.log("[CDE] Can't found skill-info", skillInfo);
+            if (mods.getSettings().isDebug() && skillInfo) {
+                console.log("[CDE] Can't match skill-info:", skillInfo);
             }
             container.prepend(block);
         }
