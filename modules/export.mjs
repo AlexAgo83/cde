@@ -188,6 +188,9 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	};
     onMeta(newData.meta);
 	if (extractEta) {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] exportData for quick ETA: ", newData);
+		}
 		return newData;
 	}
 

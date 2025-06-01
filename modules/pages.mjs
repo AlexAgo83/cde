@@ -97,7 +97,7 @@ function getSummaryID(identifier) {
  * @param {*} summaryId - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
  */
-function onDefaultPanel(summaryId) {
+function onDefaultPanel(parentPanel, summaryId) {
     return `<div class="cde-eta-panel">
             <strong>DEBUG TITLE</strong><br>
             <span id="${summaryId}">DEBUG SUMMARY</span>
@@ -113,7 +113,7 @@ function onDefaultPanel(summaryId) {
  * @param {string} identifier - A unique identifier used to generate element IDs.
  * @returns {{observer: MutationObserver, identifier: string}} The observer reference object.
  */
-function pageContainer(targetPage, identifier, viewPanel) {
+function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
     if (!mods) {
         throw new Error("Modules not initialized. Call init(modules) before using pageContainer.");
     }
@@ -128,13 +128,9 @@ function pageContainer(targetPage, identifier, viewPanel) {
         const summaryId = getSummaryID(identifier);
         const block = document.createElement('div');
         block.id = headerId;
-        const panelFn = viewPanel || onDefaultPanel;
-        block.innerHTML = panelFn(summaryId);
+        block.innerHTML = viewPanel(block, summaryId);
+        block.addEventListener("click", onRefresh);
         container.prepend(block);
-
-        const content = `DEBUG UPDATED SUMMARY`;
-        const summaryElem = document?.getElementById(summaryId);
-        if (summaryElem) summaryElem.innerHTML = content;
     });
     const reference = {
         observer: observer,
@@ -156,7 +152,7 @@ function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
         const references = []
         
-        references.push(pageContainer('#combat-container', 'combat', getCombatPanel()?.container));
+        references.push(pageContainer('#combat-container', 'combat', getCombatPanel().container, getCombatPanel().onRefresh));
         
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);

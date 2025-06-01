@@ -5,7 +5,7 @@
 // exportView.mjs
 
 let mods = null;
-let processCollectData = () => {};
+let processCollectData = (etaExtract=false) => {};
 
 /**
  * Initialize the export view module.

@@ -306,7 +306,8 @@
 }
 
 /* ETA PANEL */
-.cde-eta-panel {
+.cde-eta-panel
+.cde-combat-panel {
   background: linear-gradient(to right, #1e1e2f, #2b2b40);
   color: #fff;
   padding: 10px;

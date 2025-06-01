@@ -5,6 +5,10 @@
 // combatPanel.mjs
 
 let mods = null;
+let parent = null;
+let summaryId = null;
+
+let processCollectData = (etaExtract=true) => {};
 
 /**
  * Initialize the panel.
@@ -52,7 +56,6 @@ export function load(ctx) {
     }
 }
 
-let processCollectData;
 /**
  * 
  * @param {*} cb 
@@ -63,16 +66,27 @@ export function setCollectCb(cb) {
 
 /**
  * Returns the default HTML for an ETA panel.
- * @param {*} summaryId - The summary element ID to use in the panel.
+ * @param {*} summaryIdentifier - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
  */
-export function container(summaryId) {
-    if (typeof processCollectData === "function" && isCfg(Stg().ETA_DISPLAY)) {
-        const data = processCollectData(true);
-        console.log(data);
-    }
-    return `<div class="cde-eta-panel">
+export function container(parentPanel, summaryIdentifier) {
+    parent = parentPanel;
+    summaryId = summaryIdentifier;
+    const etaStr = etaData ? etaData : "n/a";
+    return `<div class="cde-combat-panel">
             <strong>ETA - Combat</strong><br>
-            <span id="${summaryId}">DEBUG SUMMARY</span>
+            <span id="${summaryIdentifier}">${etaStr}</span>
             </div>`;
+}
+
+let etaData = null;
+/**
+ * 
+ */
+export function onRefresh() {
+    if (typeof processCollectData === "function" && isCfg(Stg().ETA_DISPLAY)) {
+        etaData = processCollectData(true);
+        console.log("[CDE] Process quick scan:", etaData);
+        parent.innerHTML = container(parent, summaryId);
+    }
 }
