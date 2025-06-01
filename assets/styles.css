@@ -304,3 +304,15 @@
     border-color: #38d39f;
   }
 }
+
+/* ETA PANEL */
+.cde-eta-panel {
+  background: linear-gradient(to right, #1e1e2f, #2b2b40);
+  color: #fff;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  font-family: sans-serif;
+  font-size: 14px;
+}

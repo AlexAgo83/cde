@@ -5,7 +5,19 @@
 // pages.mjs
 
 let mods = null;
+let subModules = [];
 let pageObservers = new Map();
+
+let combatPanel = null;
+
+/**
+ * Loads panel submodules for the pages manager.
+ * This should be called once during initialization to set up the pages's submodules.
+ * @param {*} ctx - The context object used to load submodules.
+ */
+export async function loadSubModule(ctx) {
+  subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
+}
 
 /**
  * Initialize pages module.
@@ -13,6 +25,7 @@ let pageObservers = new Map();
  */
 export function init(modules) {
   mods = modules;
+  initSubModule(modules);
 }
 
 /**
@@ -30,6 +43,34 @@ function Stg() {
  */
 function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
+}
+
+/**
+ * Returns the list of loaded panel submodules (e.g., combatPanel).
+ * @returns {Array} An array of loaded submodule instances.
+ */
+export function getViews() {
+  return subModules;
+}
+
+/**
+ * Initializes all loaded panel submodules with the provided modules object.
+ * @param {*} modules - The modules object containing dependencies.
+ */
+export function initSubModule(modules) {
+  getViews().forEach((m) => {
+    m.init(modules);
+  });
+}
+
+/**
+ * Calls the load method on all loaded panel submodules, passing the context.
+ * @param {*} ctx - The context object to pass to each submodule's load method.
+ */
+export function load(ctx) {
+  getViews().forEach((m) => {
+    m.load(ctx);
+  });
 }
 
 /**
@@ -113,7 +154,7 @@ function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
         const references = []
         
-        references.push(pageContainer('#combat-container', 'combat', onSetupPanel));
+        references.push(pageContainer('#combat-container', 'combat', combatPanel.container));
         
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);
