@@ -311,16 +311,27 @@ export class SettingsReferenceItem {
 	getReference() {
 		return this.reference;
 	}
-	saveSetting(value) {
-		mods?.getCloudStorage()?.saveSetting(this.getReference(), value);
+
+	saveValue(value) {
+		if (isDebug()) {
+			console.log("[CDE] *saveSetting*:", value);
+		}
+		if (this._isSaving) return;
+		this._isSaving = true;
+		setCfg(this.getReference(), value);
+		this._isSaving = false;
 	}
-	loadSetting() {
+
+	loadValue() {
 		if (!mods || !mods.getCloudStorage) {
 			console.error("[CDE] CloudStorage module not available");
 			return this.itemDefault;
 		}
 		const tempValue = mods.getCloudStorage().loadSetting(this.getReference());
 		this.value = tempValue !== undefined ? tempValue : this.itemDefault;
+		if (isDebug()) {
+			console.log("[CDE] *loadSetting*", this.value);
+		}
 		return this.value;
 	}
 
@@ -328,9 +339,17 @@ export class SettingsReferenceItem {
 		if (!this.attachedSection) {
 			const implOnChange = (value) => {
 				if (this.itemOnChange) {
+					if (mods.getSettings().isDebug()) {
+						console.log("[CDE] *implOnChange*:Section triggered", this.getReference(), value);
+					}
+
 					const fold = this.itemOnChange({ref: this.getReference(), value: value});
 					const toSave = (value && typeof value === "object" && "value" in value) ? value.value : value;
-					this.saveSetting(toSave);
+					
+					this.saveValue(toSave);
+					if (mods.getSettings().isDebug()) {
+						console.log("[CDE] *implOnChange*:Result fold", this.getReference(), fold);
+					}
 					return fold;
 				}
 			}
@@ -380,12 +399,25 @@ export function loadAllSettings() {
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] Load all settings");
 	}
+	// for (const key in SettingsReference) {
+	// 	if (isDebug()) {
+	// 		console.log("[CDE] Setting:loadSetting "+key);
+	// 	}
+	// 	referenceItems.get(key)?.loadSetting();
+	// }
+	// UPDATE SETTINGS
 	for (const key in SettingsReference) {
-		referenceItems.get(key)?.loadSetting();
+		const ref = SettingsReference[key];
+		const savedValue = mods.getCloudStorage().loadSetting(ref);
+		if (savedValue !== undefined && savedValue !== null) {
+			settings.section(ref.section).set(ref.key, savedValue);
+		}
 	}
 }
 
-let onSettingsChange = (settingRef) => {};
+let onSettingsChange = (settingRef) => {
+	console.warn("[CDE] No handler set for 'onSettingsChange'");
+};
 export function setOnSettingsChange(handler) {
     if (typeof handler === "function") {
         onSettingsChange = handler;
@@ -425,11 +457,41 @@ export function getCfg(settingRef) {
 		console.error("[CDE] Invalid section reference:", section);
 		return null;
 	}
-	const result = mods.getCloudStorage().loadSetting(settingRef);
-	if (isDebug()) {
-		console.log("[CDE] Get CFG", result);
+	// let result = mods.getCloudStorage().loadSetting(settingRef);
+	let result = settings.section(settingRef.section).get(settingRef.key);
+	if (result == null) {
+		mods.getCloudStorage().saveSetting(settingRef, settingRef.toggle);
+		result = settingRef.toggle;
+		if (isDebug()) {
+			console.log("[CDE] Get CFG(firstinit)"+settingRef.key, settingRef.toggle);
+		}
 	}
-	return result ? result : settingRef.toggle;
+	if (isDebug()) {
+		console.log("[CDE] Get CFG:"+settingRef.key, result);
+	}
+	return (result != null) ? result : settingRef.toggle;
+}
+
+export function setCfg(settingRef, value) {
+	if (!settingRef || !settingRef.section || !settingRef.key) {
+		console.error("[CDE] Invalid settings reference:", settingRef);
+		return null;
+	}
+	if (!loadedSections) {
+		console.error("[CDE] Sections not loaded");
+		return null;
+	}
+	const section = loadedSections[settingRef.section];
+	if (!section) {
+		console.error("[CDE] Invalid section reference:", section);
+		return null;
+	}
+	if (isDebug()) {
+		console.log("[CDE] Set CFG:"+settingRef.key, value);
+	}
+	// return mods.getCloudStorage().saveSetting(settingRef, value);
+	settings.section(settingRef.section).set(settingRef.key, value);
+	mods.getCloudStorage().saveSetting(settingRef, value);
 }
 
 export function isCfg(settingRef) {

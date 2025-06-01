@@ -41,7 +41,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.8.108";
+const MOD_VERSION = "v1.9.1";
 
 // --- Module Imports ---
 let mModules = null;
@@ -58,6 +58,10 @@ function _Swal() { return Swal; }
  * @returns {Object} The settings reference object.
  */
 function Stg() {
+	if (!mModules) {
+        console.warn("[CDE] Module manager not loaded yet");
+        return false;
+    }
 	return mModules.getSettings()?.SettingsReference;
 }
 /**
@@ -65,6 +69,10 @@ function Stg() {
  * @returns {boolean} True if the reference is allowed, false otherwise.
  */
 function isCfg(reference) {
+	if (!mModules) {
+        console.warn("[CDE] Module manager not loaded yet", reference);
+        return false;
+    }
 	return mModules.getSettings()?.isCfg(reference);
 }
 
@@ -329,7 +337,7 @@ function onSettingsChange(reference) {
 		console.log("[CDE] Storage cleared!");
 	}
 
-	return () => { return value};
+	return () => { return value };
 }
 
 /**

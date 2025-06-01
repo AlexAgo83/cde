@@ -110,9 +110,6 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     mSettings.init(this, settings);
     mSettings.setOnSettingsChange(onSettingsChange);
     mSettings.createSettings();
-    if (mSettings.isDebug()) {
-        console.log("[CDE] Warning: debug mode allowed");
-    }
     
     // Core modules initialization
     mUtils.init(this);
@@ -127,8 +124,17 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     mPages.init(this);
 }
 
+/**
+ * Placeholder function for future extension.
+ * @param {*} ctx - The context object.
+ */
 export async function onViewLoad(ctx) {
+    // Loading settings...
     mSettings.loadAllSettings();
+    if (mSettings.isDebug()) {
+        console.log("[CDE] Warning: debug mode allowed");
+    }
+
     mViewer.load(ctx);
     mPages.triggerObservers(isCfg(Stg().ETA_DISPLAY));
 }

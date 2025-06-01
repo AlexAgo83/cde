@@ -227,6 +227,9 @@ function openExportUI(forceCollect = false) {
                             const sections = mods.getSettings().getLoadedSections()
                             const section = sections[Stg().AUTO_EXPORT_ONWINDOW.section];
                             section.set(Stg().AUTO_EXPORT_ONWINDOW.key, isChecked);
+                            if (mods.getSettings().isDebug()) {
+                                console.log("[CDE] Set section change: ", Stg().AUTO_EXPORT_ONWINDOW.key, isChecked);
+                            }
                         });
                     }
 

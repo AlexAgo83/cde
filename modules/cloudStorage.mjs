@@ -4,6 +4,7 @@
 // @ts-check
 // cloudStorage.mjs
 
+const CS_SETTINGS = "cs_settings_";
 const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
 const CS_CURRENT_SKILL_DATA = "cs_current_skill_data";
 
@@ -46,7 +47,7 @@ export function getCurrentMonsterData() {
 	}
 }
 export function setCurrentMonsterData(monsterData)  {
-	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, monsterData);
+	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, JSON.stringify(monsterData));
 }
 export function removeCurrentMonsterData() {
 	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
@@ -62,7 +63,7 @@ export function getCurrentSkillData() {
 	}
 }
 export function setCurrentSkillData(skillData)  {
-	cloudStorage?.setItem(CS_CURRENT_SKILL_DATA, skillData);
+	cloudStorage?.setItem(CS_CURRENT_SKILL_DATA, JSON.stringify(skillData));
 }
 export function removeCurrentSkillData() {
 	cloudStorage?.removeItem(CS_CURRENT_SKILL_DATA);
@@ -75,13 +76,32 @@ export function clearStorage() {
 	}
 }
 
+
 export function saveSetting(reference, value) {
+	if (!reference || !reference.section || !reference.key) {
+		console.error("[CDE] Invalid settings reference:", reference);
+		return null;
+	}
+	const key = CS_SETTINGS + reference.key;
     const toStore = typeof value === "string" ? value : JSON.stringify(value);
-    cloudStorage?.setItem(reference.key, toStore);
+    cloudStorage?.setItem(key, toStore);
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] saveSetting:"+key, toStore);
+	}
+	return toStore;
 }
+
 export function loadSetting(reference) {
-    const raw = cloudStorage?.getItem(reference.key);
+	if (!reference || !reference.section || !reference.key) {
+		console.error("[CDE] Invalid settings reference:", reference);
+		return null;
+	}
+	const key = CS_SETTINGS + reference.key;
+    const raw = cloudStorage?.getItem(key);
     try {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] loadSetting:"+key, raw);
+		}
         if (typeof raw !== "string") return raw;
         if (raw === "true") return true;
         if (raw === "false") return false;
@@ -89,7 +109,7 @@ export function loadSetting(reference) {
         if (raw.startsWith("{") || raw.startsWith("[")) return JSON.parse(raw);
         return raw;
     } catch {
-		console.log("[CDE] Can't parse settings", reference, raw);
+		console.error("[CDE] Can't parse settings", key, raw);
         return raw;
     }
 }
