@@ -48,7 +48,6 @@ function _Skill()  {  return Skill;  }
 function _CraftingSkill() { return CraftingSkill; }
 /* @ts-ignore Handle DEVMODE */
 function _Thieving() { return Thieving; }
-
 /* @ts-ignore Handle DEVMODE */
 function _CombatManager()  {  return CombatManager;  }
 
@@ -108,14 +107,14 @@ export function load(ctx) {
 const doWorker = (userPage, panel, localID) => {
     if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
-        panel.show(panel.onRefresh());
-    }
+        const updated = panel.onRefresh();
+        if (updated != null) panel.show(updated);
+    } else if (mods.getSettings().isDebug()) console.log("[CDE] worker can't execute refresh", panel);
 }
 
 /**
- * 
- * @param {*} ctx 
- * // Skill.onRecipeComplete
+ * Sets up hooks to refresh UI panels after certain in-game actions (combat, crafting, thieving).
+ * @param {*} ctx - The context object used to patch game methods.
  */
 export function worker(ctx) {
     // Worker UI refresh
@@ -251,9 +250,16 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
     return reference;
 }
 
+/**
+ * Registers a MutationObserver for a given panel and page, adding it to the references array.
+ * @param {*} references - Array to store observer references.
+ * @param {*} panel - The panel object containing container and onRefresh methods.
+ * @param {*} pageId - The CSS selector for the page container.
+ * @param {*} identifier - Unique identifier for the observer.
+ */
 function registerObserver(references, panel, pageId, identifier) {
     if (panel && typeof panel.container === "function" && typeof panel.onRefresh === "function") {
-        references.push(pageContainer('#combat-container', 'combat', panel.container, panel.onRefresh));
+        references.push(pageContainer(pageId, identifier, panel.container, panel.onRefresh));
     }
 }
 
@@ -304,8 +310,8 @@ export function triggerObservers(value) {
 }
 
 /**
- * 
- * @param {*} cb 
+ * Sets the collect callback function for all loaded panel submodules.
+ * @param {Function} cb - The callback function to be set for collection.
  */
 export function setCollectCb(cb) {
     getViews().forEach((m) => {

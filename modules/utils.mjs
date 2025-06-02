@@ -280,3 +280,27 @@ export function parseTimestamp(date) {
 export function getXpForLevel(level) {
 	return _exp().levelToXP(level);
 }
+
+/**
+ * 
+ * @param {*} value 
+ */
+export function showContainer(container, identity, value) {
+	if (value == null) {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] Refresh UI Skipped:"+identity);
+		}
+		return;
+	}
+	if (container && container.style) {
+		if (value)
+			container.style.display = "";
+		else
+			container.style.display = "none";
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] Refresh UI updated:"+value);
+		}
+	} else if (mods.getSettings().isDebug()) {
+		console.log("[CDE] Refresh UI aborted:", container);
+	}
+}

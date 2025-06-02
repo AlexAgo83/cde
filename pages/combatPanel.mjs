@@ -9,12 +9,13 @@ let parent = null;
 let summaryId = null;
 let identity = null;
 let etaData = null;
-let lastCraftTime = null;
+let lastCallTime = null;
 
 /**
- * 
- * @param {*} etaExtract 
- * @returns {{ currentActivity: any }}
+ * Extracts ETA (Estimated Time of Arrival) data for combat activities.
+ * @param {boolean} etaExtract - Whether to perform ETA extraction.
+ * @param {number} timeBuffer - Optional buffer time in ms for extraction.
+ * @returns {{ currentActivity: any }} An object containing the current activity data.
  */
 let extractETA = (etaExtract=true, timeBuffer=100) => {return {currentActivity: null}};
 
@@ -60,8 +61,8 @@ export function load(ctx) {
 }
 
 /**
- * 
- * @param {*} cb 
+ * Sets the callback function used to collect ETA data for this panel.
+ * @param {*} cb - Callback function that extracts ETA data.
  */
 export function setCollectCb(cb) {
     if (mods.getSettings().isDebug()) {
@@ -84,29 +85,26 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
 }
 
 /**
- * 
- * @param {*} value 
+ * Displays the given value in the panel container.
+ * @param {*} value - The HTML content or data to display in the panel.
  */
 export function show(value) {
-    if (parent && parent.style) {
-        if (value)
-            parent.style.display = "";
-        else
-            parent.style.display = "none";
-    }
+   mods.getUtils().showContainer(parent, identity, value);
 }
 
 /**
- * 
+ * Refreshes the Combat panel by updating the displayed ETA data.
+ * @returns {boolean|null} True if the panel was updated, null if skipped due to refresh throttling.
  */
 export const onRefresh = () => {
     const currTime = new Date();
     let updated = false;
-    if (lastCraftTime == null || lastCraftTime.getTime() + 1000 < currTime.getTime()) {
-        lastCraftTime = currTime;
+    if (lastCallTime == null || lastCallTime.getTime() + 25 < currTime.getTime()) {
+        lastCallTime = currTime;
     } else {
-        return updated;
+        return null;
     }
+    
     if (parent && typeof extractETA === "function" && isCfg(Stg().ETA_DISPLAY)) {
         
         const scan = extractETA(true, 100);
