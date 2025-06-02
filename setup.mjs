@@ -42,7 +42,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.55";
+const MOD_VERSION = "v1.9.56";
 
 // --- Module Imports ---
 let mModules = null;
@@ -85,7 +85,7 @@ function isCfg(reference) {
  * 
  * @returns {*} The collected export data.
  */
-export const implProcessCollectData = (extractEta=false, timeBuffer=50) => {
+export const doCollectData = (extractEta=false, timeBuffer=50) => {
 	const value = mModules.getExport().processCollectData(
 		onCombat, 
 		onNonCombat, 
@@ -376,7 +376,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	onCharacterLoaded(async (ctx) => {
 		mModules.onDataLoad(settings, characterStorage, onSettingsChange);
 		if (isCfg(Stg().AUTO_EXPORT_ONLOAD)) {
-			implProcessCollectData();
+			doCollectData();
 		}
 		console.info("[CDE] Data loaded !");
 	});
@@ -386,8 +386,8 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 		mModules.onViewLoad(ctx);
 		
 		// Override processCollectData callback (Viewer / Panel)
-		mModules.getViewer().getExportView().setCollectCb(implProcessCollectData);
-		mModules.getPages().setCollectCb(implProcessCollectData);
+		mModules.getViewer().getExportView().setCollectCb(doCollectData);
+		mModules.getPages().setCollectCb(doCollectData);
 
 		mModules.getPages().triggerObservers(isCfg(Stg().ETA_DISPLAY));
 		mModules.getPages().worker(ctx);
@@ -398,7 +398,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup API
 	api({
 		generate: () => {
-			return implProcessCollectData();
+			return doCollectData();
 		},
 		getModules: () => {
 			return mModules;

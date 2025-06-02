@@ -129,12 +129,14 @@ export function worker(ctx) {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Combat ended:", ...args);
         }
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
         
         const userPage = _game().openPage;
         if (userPage 
             && userPage.localID
             && userPage.containerID) {
             
+            if (!isCfg(Stg().ETA_COMBAT)) return;
             /* COMBAT */ doWorker(userPage, getCombatPanel(), "Combat");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
@@ -144,12 +146,14 @@ export function worker(ctx) {
        if (mods.getSettings().isDebug()) {
             console.log("[CDE] Craft ended:", ...args);
         }
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
 
         const userPage = _game().openPage;
         if (userPage 
             && userPage.localID
             && userPage.containerID) {
             
+            if (!isCfg(Stg().ETA_SKILLS)) return;
             /* Runecrafting */ doWorker(userPage, getRunecraftPanel(), "Runecrafting");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
@@ -159,12 +163,14 @@ export function worker(ctx) {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Thieving action finished", ...args);
         }
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
 
         const userPage = _game().openPage;
         if (userPage 
             && userPage.localID
             && userPage.containerID) {
             
+            if (!isCfg(Stg().ETA_SKILLS)) return;
             /* Thieving */ doWorker(userPage, getThievingPanel(), "Thieving");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
