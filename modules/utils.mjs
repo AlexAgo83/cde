@@ -236,10 +236,10 @@ export async function uploadToHastebin(text) {
 }
 
 /**
- * 
- * @param {*} currentLevel
- * @param {*} currentXp 
- * @returns 
+ * Calculates the mastery progress percentage towards the next level.
+ * @param {number} currentLevel - The current mastery level.
+ * @param {number} currentXp - The current mastery XP.
+ * @returns {{ nextLevel?: number, level?: number, percent: number }} An object with the next level and percent progress, or level 99 if maxed.
  */
 export function getMasteryProgressPercent(currentLevel, currentXp) {
 	if (currentXp >= 200000) return { level: 99, percent: 100 };
@@ -257,9 +257,9 @@ export function getMasteryProgressPercent(currentLevel, currentXp) {
 }
 
 /**
- * 
- * @param {*} date 
- * @returns 
+ * Formats a Date object as a compact timestamp string (YYYYMMDDHHmmss).
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted timestamp.
  */
 export function parseTimestamp(date) {
 	const localStamp = 
@@ -273,17 +273,19 @@ export function parseTimestamp(date) {
 }
 
 /**
- * 
- * @param {*} level 
- * @returns 
+ * Returns the XP required to reach a given level.
+ * @param {number} level - The level to get XP for.
+ * @returns {number} The XP required for the level.
  */
 export function getXpForLevel(level) {
 	return _exp().levelToXP(level);
 }
 
 /**
- * 
- * @param {*} value 
+ * Shows or hides a container element based on the value, and updates its display.
+ * @param {HTMLElement} container - The container element to show or hide.
+ * @param {string} identity - An identifier for debug logging.
+ * @param {*} value - The value to display; if falsy, the container is hidden.
  */
 export function showContainer(container, identity, value) {
 	if (value == null) {
@@ -293,10 +295,8 @@ export function showContainer(container, identity, value) {
 		return;
 	}
 	if (container && container.style) {
-		if (value)
-			container.style.display = "";
-		else
-			container.style.display = "none";
+		if (value) container.style.display = "";
+		else container.style.display = "none";
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] Refresh UI updated:"+value);
 		}

@@ -108,6 +108,7 @@ const doWorker = (userPage, panel, localID) => {
     if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
         const updated = panel.onRefresh();
+        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:result->"+updated);
         if (updated != null) panel.show(updated);
     } else if (mods.getSettings().isDebug()) console.log("[CDE] worker can't execute refresh", panel);
 }

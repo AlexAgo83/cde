@@ -99,7 +99,7 @@ export function show(value) {
 export const onRefresh = () => {
     let updated = false;
     const currTime = new Date();
-    if (lastCallTime == null || lastCallTime.getTime() + 25 < currTime.getTime()) {
+    if (lastCallTime == null || (lastCallTime.getTime() + 25) < currTime.getTime()) {
         lastCallTime = currTime;
     } else {
         if (mods.getSettings().isDebug()) console.log("[CDE] onRefresh skipped for: " + identity);
