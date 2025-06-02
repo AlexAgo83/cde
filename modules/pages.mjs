@@ -267,6 +267,7 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
     const reference = {
         observer: observer,
         identifier: identifier,
+        targetPage: targetPage,
         mutation: mutationCompute
     }
 
@@ -314,7 +315,16 @@ function initObservers(etaDisplay = false, connect = false) {
         }
         if (references && references.length > 0 && connect) {
             references.forEach((reference) => {
-                reference.observer.observe(document.body, { childList: true, subtree: true });
+                if (reference && reference.observer) {
+                    const targetObserver = reference.targetPage
+                        ? document.querySelector(reference.targetPage)
+                        : document.body;
+                    if (targetObserver) {
+                        reference.observer.observe(targetObserver, { childList: true, subtree: true });
+                    } else if (mods.getSettings().isDebug()) {
+                        console.log("[CDE] Could not find container for observer", reference.targetPage);
+                    }
+                }
             })
         }
     } else {
