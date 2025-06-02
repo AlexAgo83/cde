@@ -22,8 +22,7 @@ export function init(modules) {
     }
 }
 
-function _game() {
-	// @ts-ignore
+function _game() { // @ts-ignore
 	return game;
 }
 
@@ -43,10 +42,20 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+/**
+ * Checks if LZString compression is available and ready.
+ * @returns {boolean} True if LZString is loaded and ready, false otherwise.
+ */
 export function isLZStringReady() {
 	return isLoaded && mods.getLZString();
 }
 
+/**
+ * Reads and parses JSON data from localStorage for the given key.
+ * If LZString is available, decompresses the data first.
+ * @param {string} key - The localStorage key to read from.
+ * @returns {*} The parsed JSON object, or null if not found or invalid.
+ */
 function readFromStorage(key) {
 	try {
 		const raw = localStorage.getItem(key);
@@ -70,6 +79,12 @@ function readFromStorage(key) {
 		return null;
 	}
 }
+/**
+ * Saves JSON data to localStorage for the given key.
+ * If LZString is available, compresses the data first.
+ * @param {string} key - The localStorage key to write to.
+ * @param {*} jsonData - The data to save (will be stringified).
+ */
 function saveToStorage(key, jsonData) {
 	try {
 		let raw = JSON.stringify(jsonData);
@@ -86,27 +101,52 @@ function saveToStorage(key, jsonData) {
 		console.warn("[CDE] Failed to save export to storage:", err);
 	}
 }
-
+/**
+ * Returns the localStorage key for the last export for the current character.
+ * @returns {string} The export key.
+ */
 function getStorage_ExportKey() {
 	return CS_LAST_EXPORT+"_"+(mods.getUtils().sanitizeCharacterName(_game().characterName));
 }
+/**
+ * Loads the last export data for the current character from localStorage.
+ * @returns {*} The parsed export data, or null if not found.
+ */
 export function getLastExportFromStorage() {
 	return readFromStorage(getStorage_ExportKey());
 }
+/**
+ * Saves export data for the current character to localStorage.
+ * @param {*} jsonData - The export data to save.
+ */
 export function saveExportToStorage(jsonData) {
 	saveToStorage(getStorage_ExportKey(), jsonData);
 }
+/**
+ * Removes the last export data for the current character from localStorage.
+ */
 export function removeExportFromStorage() {
     localStorage.removeItem(getStorage_ExportKey());
 }
-
+/**
+ * Returns the localStorage key for the last changes for the current character.
+ * @returns {string} The changes key.
+ */
 function getStorage_ChangesKey() {
 	return CS_LAST_CHANGES+"_"+(mods.getUtils().sanitizeCharacterName(_game().characterName));
 }
+/**
+ * Loads the last changes data for the current character from localStorage.
+ * @returns {Map|*} The changes as a Map if possible, or the raw data.
+ */
 export function getChangesFromStorage() {
 	const raw = readFromStorage(getStorage_ChangesKey());
 	return Array.isArray(raw) ? new Map(raw) : raw;
 }
+/**
+ * Saves changes data for the current character to localStorage.
+ * @param {*} jsonData - The changes data to save (Map or serializable object).
+ */
 export function saveChangesToStorage(jsonData) {
 	let toStore = jsonData;
 	if (toStore instanceof Map) {
@@ -114,7 +154,9 @@ export function saveChangesToStorage(jsonData) {
 	}
 	saveToStorage(getStorage_ChangesKey(), toStore);
 }
-
+/**
+ * Clears all export and changes data for the current character from localStorage.
+ */
 export function clearStorage() {
 	localStorage.removeItem(getStorage_ExportKey());
 	localStorage.removeItem(getStorage_ChangesKey());

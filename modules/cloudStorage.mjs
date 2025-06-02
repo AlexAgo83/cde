@@ -37,6 +37,10 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+/**
+ * Retrieves the current monster data from cloud storage.
+ * @returns {Object|null} The current monster data object, or null if not found or invalid.
+ */
 export function getCurrentMonsterData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
@@ -46,13 +50,26 @@ export function getCurrentMonsterData() {
 		return null;
 	}
 }
+
+/**
+ * Saves the given monster data to cloud storage.
+ * @param {*} monsterData - The monster data object to store.
+ */
 export function setCurrentMonsterData(monsterData)  {
 	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, JSON.stringify(monsterData));
 }
+
+/**
+ * Removes the current monster data from cloud storage.
+ */
 export function removeCurrentMonsterData() {
 	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
 }
 
+/**
+ * Retrieves the current skill data from cloud storage.
+ * @returns {Object|null} The current skill data object, or null if not found or invalid.
+ */
 export function getCurrentSkillData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_SKILL_DATA);
@@ -62,13 +79,25 @@ export function getCurrentSkillData() {
 		return null;
 	}
 }
+
+/**
+ * Saves the given skill data to cloud storage.
+ * @param {*} skillData - The skill data object to store.
+ */
 export function setCurrentSkillData(skillData)  {
 	cloudStorage?.setItem(CS_CURRENT_SKILL_DATA, JSON.stringify(skillData));
 }
+
+/**
+ * Removes the current skill data from cloud storage.
+ */
 export function removeCurrentSkillData() {
 	cloudStorage?.removeItem(CS_CURRENT_SKILL_DATA);
 }
 
+/**
+ * Clears all data from cloud storage.
+ */
 export function clearStorage() {
 	cloudStorage.clear()
 	if (mods.getSettings().isDebug()) {
@@ -76,7 +105,12 @@ export function clearStorage() {
 	}
 }
 
-
+/**
+ * Saves a setting value to cloud storage.
+ * @param {*} reference - The settings reference object (must have section and key).
+ * @param {*} value - The value to store.
+ * @returns {string|null} The stored value as a string, or null if invalid reference.
+ */
 export function saveSetting(reference, value) {
 	if (!reference || !reference.section || !reference.key) {
 		console.error("[CDE] Invalid settings reference:", reference);
@@ -91,6 +125,11 @@ export function saveSetting(reference, value) {
 	return toStore;
 }
 
+/**
+ * Loads a setting value from cloud storage.
+ * @param {*} reference - The settings reference object (must have section and key).
+ * @returns {*} The loaded value, parsed as JSON/boolean/number if possible, or as a string.
+ */
 export function loadSetting(reference) {
 	if (!reference || !reference.section || !reference.key) {
 		console.error("[CDE] Invalid settings reference:", reference);
