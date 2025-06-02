@@ -44,7 +44,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.79";
+const MOD_VERSION = "v1.9.85";
 
 // --- Module Imports ---
 let mModules = null;
@@ -206,17 +206,36 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 	data.xpLeft = nextLevelXp > currentXp ? nextLevelXp - currentXp : 0;
 	data.nextLevelXp = nextLevelXp > currentXp ? nextLevelXp : 0;
 
+	// Request first record for skill data
 	let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
+	if (mModules.getSettings().isDebug()) {
+		console.log("[CDE] onActiveSkill:Read (instance/new) skill data", data);
+		console.log("[CDE] onActiveSkill:Read (saved/old) skill data", currentSkillData);
+	}
 	let skill = {};
 
 	if (currentSkillData) {
 		if (currentSkillData[skillId]) {
 			// Matching skill data entry
 			const current = currentSkillData[skillId];
-			if (current.startLevel != data.skillLevel) {
-				// Reset if level change
-				delete currentSkillData[skillId];
+
+			if (mModules.getSettings().isDebug()) {
+				console.log("[CDE] onActiveSkill:matching skill", current);
 			}
+
+			const isLvlChange = current.startLevel != data.skillLevel;
+			const isRecipeChange = current.startRecipe && (current.startRecipe !== data.recipe);
+
+			if (isLvlChange || isRecipeChange) {
+				// Reset if level or recipe change
+				if (mModules.getSettings().isDebug()) {
+					console.log("[CDE] onActiveSkill:reset on lvl or recipe change", current, data);
+				}
+				delete currentSkillData[skillId];
+			} 
+			// else if (mModules.getSettings().isDebug()) {
+			// 	console.log("[CDE] onActiveSkill:Continue...", current);
+			// }
 			let startDate = current.startTime;
 			if (!(startDate instanceof Date)) {
 				startDate = new Date(startDate);
@@ -225,6 +244,9 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 	} else {
 		// New data entry
 		currentSkillData = {};
+		if (mModules.getSettings().isDebug()) {
+			console.log("[CDE] onActiveSkill:new entry");
+		}
 	}
 
 	if (currentSkillData[skillId] == null) {
@@ -232,8 +254,13 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		skill.startXp = data.skillXp;
 		skill.startLevel = data.skillLevel;
 		skill.startTime = now;
+		skill.startRecipe = data.recipe;
 		
 		currentSkillData[skillId] = skill;
+		if (mModules.getSettings().isDebug()) {
+			console.log("[CDE] onActiveSkill:new current skill", skill);
+		}
+		// Print record for new skill data
 		mModules.getCloudStorage().setCurrentSkillData(currentSkillData)
 	}
 

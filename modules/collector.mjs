@@ -556,15 +556,21 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			const entry = {
 				activity: a.localID,
 			};
-			
 			const items = {};
 			const skillsToUpdate = []
+			
+			const selectedRecipe = a.selectedRecipe;
+			const selectedRecipeSkill = selectedRecipe?.skill
+
 			skills.forEach((skill) => {
 				const item = {
 					// idSkill: skill.localID,
 					skillXp: skill.xp,
 					skillNextLevelProgress: skill.nextLevelProgress,
 					skillLevel: skill.level
+				}
+				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
+					item.recipe = selectedRecipe.localID;
 				}
 				items[skill.localID] = item;
 				skillsToUpdate.push(skill.localID);
@@ -573,9 +579,10 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			onSkllsUpdate(skillsToUpdate, items);
 			entry.skills = items;
 
-			if (a.selectedRecipe?.product?.name || null) {
-				entry.recipre = a.selectedRecipe?.product?.name;
-			}
+			// if (a.selectedRecipe?.product?.name || null) {
+			// 	/** Recipe selector */ 
+			// 	entry.recipe = a.selectedRecipe?.product?.localID;
+			// }
 
 			if (a.localID === "Combat") { /** COMBAT SKILLS */
 				entry.attackType = player.attackType;
