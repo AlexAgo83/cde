@@ -40,9 +40,11 @@
 // Stage 22 - ETA - Recipe duration & PpH
 // Stage 23 - Display ETA Panel
 
+// === Plan to 2.X.X ===
+
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.74";
+const MOD_VERSION = "v1.9.75";
 
 // --- Module Imports ---
 let mModules = null;
