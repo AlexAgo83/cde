@@ -8,17 +8,47 @@ let mods = null;
 let subModules = [];
 let pageObservers = new Map();
 
+/** COMBAT PANEL */
 let combatPanel = null;
-let runecraftPanel = null;
-let thievingPanel = null;
-let magicPanel = null;
-let woodcuttingPanel = null;
 
 export function getCombatPanel() { return combatPanel; }
-export function getRunecraftPanel() { return runecraftPanel; }
-export function getThievingPanel() { return thievingPanel; }
-export function getMagicPanel() { return magicPanel; }
+
+/** SKILLS PANEL */
+let woodcuttingPanel = null;
+let fishingPanel = null;
+let firemakingPanel = null;
+let cookingPanel = null;
+let miningPanel = null;
+let smithingPanel = null;
+let thievingPanel = null;
+let fletchingPanel = null;
+let craftingPanel = null;
+let runecraftingPanel = null;
+let herblorePanel = null;
+let agilityPanel = null;
+let summoningPanel = null;
+let astrologyPanel = null;
+let magicPanel = null;
+let cartographyPanel = null;
+let archaeologyPanel = null;
+
 export function getWoodcuttingPanel() { return woodcuttingPanel; }
+export function getFishingPanel() { return fishingPanel; }
+export function getFiremakingPanel() { return firemakingPanel; }
+export function getCookingPanel() { return cookingPanel; }
+export function getMiningPanel() { return miningPanel; }
+export function getSmithingPanel() { return smithingPanel; }
+export function getThievingPanel() { return thievingPanel; }
+export function getFletchingPanel() { return fletchingPanel; }
+export function getCraftingPanel() { return craftingPanel; }
+export function getRunecraftingPanel() { return runecraftingPanel; }
+export function getHerblorePanel() { return herblorePanel; }
+export function getAgilityPanel() { return agilityPanel; }
+export function getSummoningPanel() { return summoningPanel; }
+export function getAstrologyPanel() { return astrologyPanel; }
+export function getMagicPanel() { return magicPanel; }
+export function getCartographyPanel() { return cartographyPanel; }
+export function getArchaeologyPanel() { return archaeologyPanel; }
 
 /**
  * Loads panel submodules for the pages manager.
@@ -29,11 +59,24 @@ export async function loadSubModule(ctx) {
   
     subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
   
-  const nonCombatPanel = await ctx.loadModule("pages/nonCombatPanel.mjs");
-  subModules.push(runecraftPanel = nonCombatPanel.createInstance("runecraft"));
-  subModules.push(thievingPanel = nonCombatPanel.createInstance("thieving"));
-  subModules.push(magicPanel = nonCombatPanel.createInstance("magic"));
-  subModules.push(woodcuttingPanel = nonCombatPanel.createInstance("woodcutting"));
+    const nonCombatPanel = await ctx.loadModule("pages/nonCombatPanel.mjs");
+    subModules.push(woodcuttingPanel = nonCombatPanel.createInstance("woodcutting"));
+    subModules.push(fishingPanel = nonCombatPanel.createInstance("fishing"));
+    subModules.push(firemakingPanel = nonCombatPanel.createInstance("firemaking"));
+    subModules.push(cookingPanel = nonCombatPanel.createInstance("cooking"));
+    subModules.push(miningPanel = nonCombatPanel.createInstance("mining"));
+    subModules.push(smithingPanel = nonCombatPanel.createInstance("smithing"));
+    subModules.push(thievingPanel = nonCombatPanel.createInstance("thieving"));
+    subModules.push(fletchingPanel = nonCombatPanel.createInstance("fletching"));
+    subModules.push(craftingPanel = nonCombatPanel.createInstance("crafting"));
+    subModules.push(runecraftingPanel = nonCombatPanel.createInstance("runecraft"));
+    subModules.push(herblorePanel = nonCombatPanel.createInstance("herblore"));
+    subModules.push(agilityPanel = nonCombatPanel.createInstance("agility"));
+    subModules.push(summoningPanel = nonCombatPanel.createInstance("summoning"));
+    subModules.push(astrologyPanel = nonCombatPanel.createInstance("astrology"));
+    subModules.push(magicPanel = nonCombatPanel.createInstance("magic"));
+    subModules.push(cartographyPanel = nonCombatPanel.createInstance("cartography"));
+    subModules.push(archaeologyPanel = nonCombatPanel.createInstance("archaeology"));
 }
 
 /**
@@ -56,11 +99,17 @@ function _Skill()  {  return Skill;  }
 /* @ts-ignore Handle DEVMODE */
 function _CraftingSkill() { return CraftingSkill; }
 /* @ts-ignore Handle DEVMODE */
+function _GatheringSkill() { return GatheringSkill; }
+/* @ts-ignore Handle DEVMODE */
 function _Thieving() { return Thieving; }
 /* @ts-ignore Handle DEVMODE */
 function _CombatManager()  {  return CombatManager;  }
 /* @ts-ignore Handle DEVMODE */
 function _AltMagic() { return AltMagic; }
+/* @ts-ignore Handle DEVMODE */
+function _Archaeology() { return Archaeology; }
+/* @ts-ignore Handle DEVMODE */
+function _Cartography() { return Cartography; }
 
 /**
  * Get the proxy-settings reference object.
@@ -135,7 +184,7 @@ const doWorker = (userPage, panel, localID) => {
  * @param {*} ctx - The context object used to patch game methods.
  */
 export function worker(ctx) {
-    // Worker UI refresh
+    /** COMBAT ONLY */
     ctx.patch(_CombatManager(), 'onEnemyDeath').after(function(...args) {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Enemy death rised:", ...args);
@@ -148,11 +197,12 @@ export function worker(ctx) {
             && userPage.containerID) {
             
             if (!isCfg(Stg().ETA_COMBAT)) return;
-            /* COMBAT */ doWorker(userPage, getCombatPanel(), "Combat");
+            /* COMBAT */        doWorker(userPage, getCombatPanel(), "Combat");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
 
+    /** ALL CRAFTING SKILL */
     ctx.patch(_CraftingSkill(), 'action').after(function(...args) {
        if (mods.getSettings().isDebug()) {
             console.log("[CDE] Craft action finished:", ...args);
@@ -165,12 +215,43 @@ export function worker(ctx) {
             && userPage.containerID) {
             
             if (!isCfg(Stg().ETA_SKILLS)) return;
-            /* Runecrafting */ doWorker(userPage, getRunecraftPanel(), "Runecrafting");
-            /* Woodcutting */ doWorker(userPage, getWoodcuttingPanel(), "Woodcutting");
+            
+            /* Firemaking */    doWorker(userPage, getFiremakingPanel(), "Firemaking");
+            /* Cooking */       doWorker(userPage, getCookingPanel(), "Cooking");
+            /* Smithing */      doWorker(userPage, getSmithingPanel(), "Smithing");
+            /* Fletching */     doWorker(userPage, getFletchingPanel(), "Fletching");
+            /* Crafting */      doWorker(userPage, getCraftingPanel(), "Crafting");
+            /* Runecrafting */  doWorker(userPage, getRunecraftingPanel(), "Runecrafting");
+            /* Herblore */      doWorker(userPage, getHerblorePanel(), "Herblore");
+            /* Summoning */     doWorker(userPage, getSummoningPanel(), "Summoning");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
 
+    /** SPECIFIC GATHERING SKILL */
+    ctx.patch(_GatheringSkill(), 'action').after(function(...args) {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Gathering action finished:", ...args);
+        }
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
+
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            
+            if (!isCfg(Stg().ETA_SKILLS)) return;
+
+            /* Woodcutting */   doWorker(userPage, getWoodcuttingPanel(), "Woodcutting");
+            /* Fishing */       doWorker(userPage, getFishingPanel(), "Fishing");
+            /* Mining */        doWorker(userPage, getMiningPanel(), "Mining");
+            /* Agility */       doWorker(userPage, getAgilityPanel(), "Agility");
+            /* Astrology */     doWorker(userPage, getAstrologyPanel(), "Astrology");
+
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
+    });
+
+    /** SPECIFIC ALT MAGIC */
     ctx.patch(_AltMagic(), 'action').after(function(...args) {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] AltMagic action finished:", ...args);
@@ -183,11 +264,12 @@ export function worker(ctx) {
             && userPage.containerID) {
             
             if (!isCfg(Stg().ETA_SKILLS)) return;
-            /* AltMagic */ doWorker(userPage, getMagicPanel(), "Magic");
+            /* AltMagic */      doWorker(userPage, getMagicPanel(), "Magic");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
 
+    /** SPECIFIC THIEVING */
     ctx.patch(_Thieving(), 'action').after(function(...args) {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Thieving action finished:", ...args);
@@ -200,7 +282,43 @@ export function worker(ctx) {
             && userPage.containerID) {
             
             if (!isCfg(Stg().ETA_SKILLS)) return;
-            /* Thieving */ doWorker(userPage, getThievingPanel(), "Thieving");
+            /* Thieving */      doWorker(userPage, getThievingPanel(), "Thieving");
+
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
+    });
+
+    /** SPECIFIC ARCHAEOLOGY */
+    ctx.patch(_Archaeology(), 'action').after(function(...args) {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Achaeology action finished:", ...args);
+        }
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
+
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            
+            if (!isCfg(Stg().ETA_SKILLS)) return;
+            /* Archaeology */   doWorker(userPage, getArchaeologyPanel(), "Archaeology");
+
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
+    });
+
+    /** SPECIFIC CARTOGRAPHY */
+    ctx.patch(_Cartography(), 'action').after(function(...args) {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Cartography action finished:", ...args);
+        }
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
+
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            
+            if (!isCfg(Stg().ETA_SKILLS)) return;
+            /* Cartography */   doWorker(userPage, getCartographyPanel(), "Cartography");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
@@ -337,10 +455,23 @@ function initObservers(etaDisplay = false, connect = false) {
         const references = []
                 
         /* Combat */ registerObserver(references, getCombatPanel(), '#combat-container', 'combat');
-        /* Runecraft */ registerObserver(references, getRunecraftPanel(), '#runecrafting-container', 'runecraft');
-        /* AltMagic */ registerObserver(references, getMagicPanel(), '#magic-container', 'magic');
-        /* Thieving */ registerObserver(references, getThievingPanel(), '#thieving-container', 'thieving');
         /* Woodcutting */ registerObserver(references, getWoodcuttingPanel(), '#woodcutting-container', 'woodcutting');
+        /* Fishing */ registerObserver(references, getFishingPanel(), '#fishing-container', 'fishing');
+        /* Firemaking */ registerObserver(references, getFiremakingPanel(), '#firemaking-container', 'firemaking');
+        /* Cooking */ registerObserver(references, getCookingPanel(), '#cooking-container', 'cooking');
+        /* Mining */ registerObserver(references, getMiningPanel(), '#mining-container', 'mining');
+        /* Smithing */ registerObserver(references, getSmithingPanel(), '#smithing-container', 'smithing');
+        /* Thieving */ registerObserver(references, getThievingPanel(), '#thieving-container', 'thieving');
+        /* Fletching */ registerObserver(references, getFletchingPanel(), '#fletching-container', 'fletching');
+        /* Crafting */ registerObserver(references, getCraftingPanel(), '#crafting-container', 'crafting');
+        /* Runecraft */ registerObserver(references, getRunecraftingPanel(), '#runecrafting-container', 'runecraft');
+        /* Herblore */ registerObserver(references, getHerblorePanel(), '#herblore-container', 'herblore');
+        /* Agility */ registerObserver(references, getAgilityPanel(), '#agility-container', 'agility');
+        /* Summoning */ registerObserver(references, getSummoningPanel(), '#summoning-container', 'summoning');
+        /* Astrology */ registerObserver(references, getAstrologyPanel(), '#astrology-container', 'astrology');
+        /* Magic */ registerObserver(references, getMagicPanel(), '#magic-container', 'magic');
+        /* Cartography */ registerObserver(references, getCartographyPanel(), '#cartography-container', 'cartography');
+        /* Archaeology */ registerObserver(references, getArchaeologyPanel(), '#archaeology-container', 'archaeology');
 
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);
