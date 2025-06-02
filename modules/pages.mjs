@@ -180,148 +180,94 @@ const doWorker = (userPage, panel, localID) => {
 }
 
 /**
+ * Returns a function that executes the provided patch callback if the ETA display setting is enabled and the user page is valid.
+ * @param {Function} onPatch - The callback to execute when patching, receives userPage and additional arguments.
+ * @returns {Function} A function to be used as a patch handler.
+ */
+function patcher(onPatch=(userPatch,...args)=>{}) {
+    return (...args) => {
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            onPatch(userPage,...args);
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
+    }
+}
+
+/**
  * Sets up hooks to refresh UI panels after certain in-game actions (combat, crafting, thieving).
  * @param {*} ctx - The context object used to patch game methods.
  */
 export function worker(ctx) {
     /** COMBAT ONLY */
-    ctx.patch(_CombatManager(), 'onEnemyDeath').after(function(...args) {
+    ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Enemy death rised:", ...args);
+            console.log("[CDE] Enemy death rised:", args);
         }
-        if (!isCfg(Stg().ETA_DISPLAY)) return;
-        
-        const userPage = _game().openPage;
-        if (userPage 
-            && userPage.localID
-            && userPage.containerID) {
-            
-            if (!isCfg(Stg().ETA_COMBAT)) return;
-            /* COMBAT */        doWorker(userPage, getCombatPanel(), "Combat");
+        if (!isCfg(Stg().ETA_COMBAT)) return;
+        /* COMBAT */    doWorker(userPage, getCombatPanel(), "Combat");
+    }))
 
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
-    });
-
-    /** ALL CRAFTING SKILL */
-    ctx.patch(_CraftingSkill(), 'action').after(function(...args) {
-       if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Craft action finished:", ...args);
-        }
-        if (!isCfg(Stg().ETA_DISPLAY)) return;
-
-        const userPage = _game().openPage;
-        if (userPage 
-            && userPage.localID
-            && userPage.containerID) {
-            
-            if (!isCfg(Stg().ETA_SKILLS)) return;
-            
-            /* Firemaking */    doWorker(userPage, getFiremakingPanel(), "Firemaking");
-            /* Cooking */       doWorker(userPage, getCookingPanel(), "Cooking");
-            /* Smithing */      doWorker(userPage, getSmithingPanel(), "Smithing");
-            /* Fletching */     doWorker(userPage, getFletchingPanel(), "Fletching");
-            /* Crafting */      doWorker(userPage, getCraftingPanel(), "Crafting");
-            /* Runecrafting */  doWorker(userPage, getRunecraftingPanel(), "Runecrafting");
-            /* Herblore */      doWorker(userPage, getHerblorePanel(), "Herblore");
-            /* Summoning */     doWorker(userPage, getSummoningPanel(), "Summoning");
-
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
-    });
-
-    /** SPECIFIC GATHERING SKILL */
-    ctx.patch(_GatheringSkill(), 'action').after(function(...args) {
+    ctx.patch(_CraftingSkill(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Gathering action finished:", ...args);
+            console.log("[CDE] Craft action finished:", args);
         }
-        if (!isCfg(Stg().ETA_DISPLAY)) return;
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Firemaking */    doWorker(userPage, getFiremakingPanel(), "Firemaking");
+        /* Cooking */       doWorker(userPage, getCookingPanel(), "Cooking");
+        /* Smithing */      doWorker(userPage, getSmithingPanel(), "Smithing");
+        /* Fletching */     doWorker(userPage, getFletchingPanel(), "Fletching");
+        /* Crafting */      doWorker(userPage, getCraftingPanel(), "Crafting");
+        /* Runecrafting */  doWorker(userPage, getRunecraftingPanel(), "Runecrafting");
+        /* Herblore */      doWorker(userPage, getHerblorePanel(), "Herblore");
+        /* Summoning */     doWorker(userPage, getSummoningPanel(), "Summoning");
+    }))
 
-        const userPage = _game().openPage;
-        if (userPage 
-            && userPage.localID
-            && userPage.containerID) {
-            
-            if (!isCfg(Stg().ETA_SKILLS)) return;
-
-            /* Woodcutting */   doWorker(userPage, getWoodcuttingPanel(), "Woodcutting");
-            /* Fishing */       doWorker(userPage, getFishingPanel(), "Fishing");
-            /* Mining */        doWorker(userPage, getMiningPanel(), "Mining");
-            /* Agility */       doWorker(userPage, getAgilityPanel(), "Agility");
-            /* Astrology */     doWorker(userPage, getAstrologyPanel(), "Astrology");
-
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
-    });
-
-    /** SPECIFIC ALT MAGIC */
-    ctx.patch(_AltMagic(), 'action').after(function(...args) {
+    ctx.patch(_GatheringSkill(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] AltMagic action finished:", ...args);
+            console.log("[CDE] Gathering action finished:", args);
         }
-        if (!isCfg(Stg().ETA_DISPLAY)) return;
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Woodcutting */   doWorker(userPage, getWoodcuttingPanel(), "Woodcutting");
+        /* Fishing */       doWorker(userPage, getFishingPanel(), "Fishing");
+        /* Mining */        doWorker(userPage, getMiningPanel(), "Mining");
+        /* Agility */       doWorker(userPage, getAgilityPanel(), "Agility");
+        /* Astrology */     doWorker(userPage, getAstrologyPanel(), "Astrology");
+    }));
 
-        const userPage = _game().openPage;
-        if (userPage 
-            && userPage.localID
-            && userPage.containerID) {
-            
-            if (!isCfg(Stg().ETA_SKILLS)) return;
-            /* AltMagic */      doWorker(userPage, getMagicPanel(), "Magic");
-
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
-    });
-
-    /** SPECIFIC THIEVING */
-    ctx.patch(_Thieving(), 'action').after(function(...args) {
+    ctx.patch(_AltMagic(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Thieving action finished:", ...args);
+            console.log("[CDE] AltMagic action finished:", args);
         }
-        if (!isCfg(Stg().ETA_DISPLAY)) return;
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* AltMagic */      doWorker(userPage, getMagicPanel(), "Magic");
+    }));
 
-        const userPage = _game().openPage;
-        if (userPage 
-            && userPage.localID
-            && userPage.containerID) {
-            
-            if (!isCfg(Stg().ETA_SKILLS)) return;
-            /* Thieving */      doWorker(userPage, getThievingPanel(), "Thieving");
-
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
-    });
-
-    /** SPECIFIC ARCHAEOLOGY */
-    ctx.patch(_Archaeology(), 'action').after(function(...args) {
+    ctx.patch(_Thieving(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Achaeology action finished:", ...args);
+            console.log("[CDE] Thieving action finished:", args);
         }
-        if (!isCfg(Stg().ETA_DISPLAY)) return;
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Thieving */      doWorker(userPage, getThievingPanel(), "Thieving");
+    }));
 
-        const userPage = _game().openPage;
-        if (userPage 
-            && userPage.localID
-            && userPage.containerID) {
-            
-            if (!isCfg(Stg().ETA_SKILLS)) return;
-            /* Archaeology */   doWorker(userPage, getArchaeologyPanel(), "Archaeology");
-
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
-    });
-
-    /** SPECIFIC CARTOGRAPHY */
-    ctx.patch(_Cartography(), 'action').after(function(...args) {
+    ctx.patch(_Archaeology(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Cartography action finished:", ...args);
+            console.log("[CDE] Archaeology action finished:", args);
         }
-        if (!isCfg(Stg().ETA_DISPLAY)) return;
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Archaeology */   doWorker(userPage, getArchaeologyPanel(), "Archaeology");
+    }));
 
-        const userPage = _game().openPage;
-        if (userPage 
-            && userPage.localID
-            && userPage.containerID) {
-            
-            if (!isCfg(Stg().ETA_SKILLS)) return;
-            /* Cartography */   doWorker(userPage, getCartographyPanel(), "Cartography");
-
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
-    });
+    ctx.patch(_Cartography(), 'action').after(patcher((userPage,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Cartography action finished:", args);
+        }
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Cartography */   doWorker(userPage, getCartographyPanel(), "Cartography");
+    }));
 }
 
 /**

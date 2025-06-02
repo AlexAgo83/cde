@@ -42,7 +42,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.70";
+const MOD_VERSION = "v1.9.71";
 
 // --- Module Imports ---
 let mModules = null;
