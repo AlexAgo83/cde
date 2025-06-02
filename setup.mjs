@@ -44,7 +44,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.86";
+const MOD_VERSION = "v1.9.89";
 
 // --- Module Imports ---
 let mModules = null;
@@ -220,7 +220,9 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			const current = currentSkillData[skillId];
 
 			const isSameLevel = current.startLevel === data.skillLevel;
-			const isSameRecipe = current.startRecipe === data.recipe;
+			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
+				? current.startRecipe === data.recipe
+				: true;
 			if (isSameLevel && isSameRecipe) {
 				if (mModules.getSettings().isDebug())
 					console.log("[CDE] onActiveSkill:matching skill", current);
@@ -304,7 +306,10 @@ function onSkillsUpdate(identifiers) {
 		let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
 		if (currentSkillData) {
 			const properties = Object.keys(currentSkillData);
-			properties.forEach(p => {
+			if (mModules.getSettings().isDebug) {
+				console.log("[CDE] onSkillsUpdate:", identifiers, properties);
+			}
+			properties?.forEach(p => {
 				if (!identifiers.has(p)) {
 					delete currentSkillData[p];
 					console.log("[CDE] remove unused skillData.", p);
