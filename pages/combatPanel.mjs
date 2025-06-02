@@ -118,11 +118,8 @@ export const onRefresh = () => {
             && scan !== null 
             && Object.prototype.hasOwnProperty.call(scan, "currentActivity")
         ) {
-            /** @type {{ currentActivity: any }} */
-            const scanWithActivity = scan;
-            const activities = scanWithActivity.currentActivity;
-
             /* Focus on Activity (only): Combat */
+            const activities = scan?.currentActivity;
             if (
                 activities 
                 && typeof activities === "object" 
@@ -146,8 +143,11 @@ export const onRefresh = () => {
                     _game().skills?.registeredObjects.forEach((skill) => {
                         if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
                             const current = skills[skill.localID];
+                            const progression = typeof current.skillNextLevelProgress === "number"
+                                ? Math.round(current.skillNextLevelProgress).toString()
+                                : "N/A";
                             result.push(
-                                `&nbsp;&nbsp;<span class="skill-label">${skill.name}:</span> <span class="skill-value">${current.timeToNextLevelStr}</span>`
+                                `&nbsp;&nbsp;<span class="skill-label">[</span><span class="skill-value">${progression}%</span><span class="skill-label">] ${skill.name}: </span><span class="skill-value">${current.timeToNextLevelStr ?? "N/A"}</span>`
                             );
                         }
                     });

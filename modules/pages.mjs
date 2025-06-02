@@ -28,7 +28,7 @@ let herblorePanel = null;
 let agilityPanel = null;
 let summoningPanel = null;
 let astrologyPanel = null;
-let magicPanel = null;
+let altMagicPanel = null;
 let cartographyPanel = null;
 let archaeologyPanel = null;
 
@@ -46,7 +46,7 @@ export function getHerblorePanel() { return herblorePanel; }
 export function getAgilityPanel() { return agilityPanel; }
 export function getSummoningPanel() { return summoningPanel; }
 export function getAstrologyPanel() { return astrologyPanel; }
-export function getMagicPanel() { return magicPanel; }
+export function getAltMagicPanel() { return altMagicPanel; }
 export function getCartographyPanel() { return cartographyPanel; }
 export function getArchaeologyPanel() { return archaeologyPanel; }
 
@@ -74,7 +74,7 @@ export async function loadSubModule(ctx) {
     subModules.push(agilityPanel = nonCombatPanel.createInstance("agility"));
     subModules.push(summoningPanel = nonCombatPanel.createInstance("summoning"));
     subModules.push(astrologyPanel = nonCombatPanel.createInstance("astrology"));
-    subModules.push(magicPanel = nonCombatPanel.createInstance("magic"));
+    subModules.push(altMagicPanel = nonCombatPanel.createInstance("altmagic"));
     subModules.push(cartographyPanel = nonCombatPanel.createInstance("cartography"));
     subModules.push(archaeologyPanel = nonCombatPanel.createInstance("archaeology"));
 }
@@ -166,19 +166,24 @@ export function load(ctx) {
 /**
  * Handles refreshing and updating a UI panel for a given user page and panel.
  * @param {*} userPage - The current user page object.
+ * @param {boolean} isCombat
+ * @param {*} activeAction
  * @param {*} panel - The panel object to refresh.
  * @param {*} localID - A string identifier for logging/debugging.
  * @returns {boolean} updated
  */
-function doWorker(userPage, activeAction, panel, localID) {
+function doWorker(userPage, isCombat, activeAction, panel, localID) {
     let updated = false;
     if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:run:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
+        let patchedLoginID = localID;
+
         /** Matching screen */
         const isNotActionPage = userPage && (userPage.localID !== localID);
-        const isNotActiveAction = activeAction && (activeAction.localID !== localID);
+        if (localID === "AltMagic" && !isCombat) patchedLoginID = "Magic";
+        const isNotActiveAction = activeAction && (activeAction.localID !== patchedLoginID);
         if (isNotActionPage || isNotActiveAction) {
-            if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:");
+            if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:"+localID);
             panel.show(false); 
             return updated;
         }
@@ -195,15 +200,16 @@ function doWorker(userPage, activeAction, panel, localID) {
  * @param {Function} onPatch - The callback to execute when patching, receives userPage and additional arguments.
  * @returns {Function} A function to be used as a patch handler.
  */
-function patcher(onPatch=(userPage, activeAction, ...args)=>{}) {
+function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
     return (...args) => {
         if (!isCfg(Stg().ETA_DISPLAY)) return;
         const userPage = _game().openPage;
+        const isCombat = _game()?.combat?.isActive ?? false;
         const activeAction = _game().activeAction;
         if (userPage 
             && userPage.localID
             && userPage.containerID) {
-            onPatch(userPage, activeAction, ...args);
+            onPatch(userPage, isCombat, activeAction, ...args);
         } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Unable to access the active page", userPage);
     }
 }
@@ -214,71 +220,71 @@ function patcher(onPatch=(userPage, activeAction, ...args)=>{}) {
  */
 export function worker(ctx) {
     /** COMBAT ONLY */
-    ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage, activeAction,...args) => {
+    ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Enemy death rised:", args);
         }
         if (!isCfg(Stg().ETA_COMBAT)) return;
-        /* COMBAT */        doWorker(userPage, activeAction, getCombatPanel(), "Combat");
+        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
     }))
 
-    ctx.patch(_CraftingSkill(), 'action').after(patcher((userPage, activeAction,...args) => {
+    ctx.patch(_CraftingSkill(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Craft action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Firemaking */    doWorker(userPage, activeAction, getFiremakingPanel(), "Firemaking");
-        /* Cooking */       doWorker(userPage, activeAction, getCookingPanel(), "Cooking");
-        /* Smithing */      doWorker(userPage, activeAction, getSmithingPanel(), "Smithing");
-        /* Fletching */     doWorker(userPage, activeAction, getFletchingPanel(), "Fletching");
-        /* Crafting */      doWorker(userPage, activeAction, getCraftingPanel(), "Crafting");
-        /* Runecrafting */  doWorker(userPage, activeAction, getRunecraftingPanel(), "Runecrafting");
-        /* Herblore */      doWorker(userPage, activeAction, getHerblorePanel(), "Herblore");
-        /* Summoning */     doWorker(userPage, activeAction, getSummoningPanel(), "Summoning");
+        /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
+        /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
+        /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
+        /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
+        /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
+        /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
+        /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
+        /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
     }))
 
-    ctx.patch(_GatheringSkill(), 'action').after(patcher((userPage, activeAction,...args) => {
+    ctx.patch(_GatheringSkill(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Gathering action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Woodcutting */   doWorker(userPage, activeAction, getWoodcuttingPanel(), "Woodcutting");
-        /* Fishing */       doWorker(userPage, activeAction, getFishingPanel(), "Fishing");
-        /* Mining */        doWorker(userPage, activeAction, getMiningPanel(), "Mining");
-        /* Agility */       doWorker(userPage, activeAction, getAgilityPanel(), "Agility");
-        /* Astrology */     doWorker(userPage, activeAction, getAstrologyPanel(), "Astrology");
+        /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
+        /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
+        /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
+        /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
+        /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
     }));
 
-    ctx.patch(_AltMagic(), 'action').after(patcher((userPage, activeAction,...args) => {
+    ctx.patch(_AltMagic(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:AltMagic action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* AltMagic */      doWorker(userPage, activeAction, getMagicPanel(), "Magic");
+        /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
     }));
 
-    ctx.patch(_Thieving(), 'action').after(patcher((userPage, activeAction,...args) => {
+    ctx.patch(_Thieving(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Thieving action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Thieving */      doWorker(userPage, activeAction, getThievingPanel(), "Thieving");
+        /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
     }));
 
-    ctx.patch(_Archaeology(), 'action').after(patcher((userPage, activeAction,...args) => {
+    ctx.patch(_Archaeology(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Archaeology action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Archaeology */   doWorker(userPage, activeAction, getArchaeologyPanel(), "Archaeology");
+        /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
     }));
 
-    ctx.patch(_Cartography(), 'action').after(patcher((userPage, activeAction,...args) => {
+    ctx.patch(_Cartography(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Cartography action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Cartography */   doWorker(userPage, activeAction, getCartographyPanel(), "Cartography");
+        /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
     }));
 }
 
@@ -427,7 +433,7 @@ function initObservers(etaDisplay = false, connect = false) {
         /* Agility */ registerObserver(references, getAgilityPanel(), '#agility-container', 'agility');
         /* Summoning */ registerObserver(references, getSummoningPanel(), '#summoning-container', 'summoning');
         /* Astrology */ registerObserver(references, getAstrologyPanel(), '#astrology-container', 'astrology');
-        /* Magic */ registerObserver(references, getMagicPanel(), '#magic-container', 'magic');
+        /* Magic */ registerObserver(references, getAltMagicPanel(), '#magic-container', 'magic');
         /* Cartography */ registerObserver(references, getCartographyPanel(), '#cartography-container', 'cartography');
         /* Archaeology */ registerObserver(references, getArchaeologyPanel(), '#archaeology-container', 'archaeology');
 

@@ -144,9 +144,10 @@ export function createInstance(innerType) {
                                         const currentSkill = skills[activeSkill.localID];
                                         const diffTimeStr = currentSkill.diffTimeStr;
                                         const time = currentSkill.timeToNextLevelStr;
+                                        // ${activeSkill.localID}
                                         result.push(
                                             `<div class="cde-generic-panel">
-                                                <span class="skill-label">Time to Next Level (${activeSkill.localID}):</span>
+                                                <span class="skill-label">Time to Next Level:</span>
                                                 <span class="skill-value vph">${time ?? "N/A"}</span>
                                             </div>
                                             <div class="cde-generic-panel">

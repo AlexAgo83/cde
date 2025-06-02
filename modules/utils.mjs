@@ -43,14 +43,18 @@ function isCfg(reference) {
  */
 export function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
   const parts = [];
+  if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}min`);
-  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  // If less thant a day
+  if (hours === 0 && days === 0 && (seconds > 0 || parts.length === 0)) parts.push(`${seconds}s`);
 
   return parts.join(' ');
 }

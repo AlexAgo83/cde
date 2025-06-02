@@ -44,7 +44,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.75";
+const MOD_VERSION = "v1.9.78";
 
 // --- Module Imports ---
 let mModules = null;
@@ -221,12 +221,9 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			if (!(startDate instanceof Date)) {
 				startDate = new Date(startDate);
 			}
-			// if (now.getTime() - startDate.getTime() > 3600000) {
-			// 	// Reset if time exceed 1H
-			// 	delete currentSkillData[skillId];
-			// }
 		}
 	} else {
+		// New data entry
 		currentSkillData = {};
 	}
 
@@ -245,6 +242,7 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		&& data.xpLeft > 0
 		&& currentSkillData
 		&& currentSkillData[skillId]) {
+
 		// UPDATING ETA ...
 		const current = currentSkillData[skillId];
 		let startDate = current.startTime;
