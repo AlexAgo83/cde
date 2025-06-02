@@ -44,7 +44,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.85";
+const MOD_VERSION = "v1.9.86";
 
 // --- Module Imports ---
 let mModules = null;
@@ -219,23 +219,19 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			// Matching skill data entry
 			const current = currentSkillData[skillId];
 
-			if (mModules.getSettings().isDebug()) {
-				console.log("[CDE] onActiveSkill:matching skill", current);
-			}
-
-			const isLvlChange = current.startLevel != data.skillLevel;
-			const isRecipeChange = current.startRecipe && (current.startRecipe !== data.recipe);
-
-			if (isLvlChange || isRecipeChange) {
+			const isSameLevel = current.startLevel === data.skillLevel;
+			const isSameRecipe = current.startRecipe === data.recipe;
+			if (isSameLevel && isSameRecipe) {
+				if (mModules.getSettings().isDebug())
+					console.log("[CDE] onActiveSkill:matching skill", current);
+		 	} else {
 				// Reset if level or recipe change
 				if (mModules.getSettings().isDebug()) {
 					console.log("[CDE] onActiveSkill:reset on lvl or recipe change", current, data);
 				}
 				delete currentSkillData[skillId];
-			} 
-			// else if (mModules.getSettings().isDebug()) {
-			// 	console.log("[CDE] onActiveSkill:Continue...", current);
-			// }
+			}
+			
 			let startDate = current.startTime;
 			if (!(startDate instanceof Date)) {
 				startDate = new Date(startDate);
