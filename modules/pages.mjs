@@ -104,6 +104,12 @@ export function load(ctx) {
     });
 }
 
+/**
+ * Handles refreshing and updating a UI panel for a given user page and panel.
+ * @param {*} userPage - The current user page object.
+ * @param {*} panel - The panel object to refresh.
+ * @param {*} localID - A string identifier for logging/debugging.
+ */
 const doWorker = (userPage, panel, localID) => {
     if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
