@@ -156,7 +156,6 @@ export function load(ctx) {
     if (mods?.getSettings().isDebug()) {
         console.log("[CDE] Loading pages", getViews());
     }
-
     getViews().forEach((m) => {
         if (m && typeof m.load === "function")
             m.load(ctx);
@@ -169,14 +168,24 @@ export function load(ctx) {
  * @param {*} userPage - The current user page object.
  * @param {*} panel - The panel object to refresh.
  * @param {*} localID - A string identifier for logging/debugging.
+ * @returns {boolean} updated
  */
-const doWorker = (userPage, panel, localID) => {
-    if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:"+localID, userPage);
+function doWorker(userPage, panel, localID) {
+    let updated = false;
+    if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:run:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
-        const updated = panel.onRefresh();
+        /** Matching screen */
+        if (userPage && userPage.localID !== localID) {
+            if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:");
+            panel.show(false); 
+            return updated;
+        }
+        /** Refresh & update visibility */
+        updated = panel.onRefresh();
         if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:"+localID+"->"+updated);
         if (updated != null) panel.show(updated);
-    } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker can't execute refresh:"+localID, panel);
+    } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Can't execute refresh:"+localID, panel);
+    return updated;
 }
 
 /**
@@ -184,7 +193,7 @@ const doWorker = (userPage, panel, localID) => {
  * @param {Function} onPatch - The callback to execute when patching, receives userPage and additional arguments.
  * @returns {Function} A function to be used as a patch handler.
  */
-function patcher(onPatch=(userPatch,...args)=>{}) {
+function patcher(onPatch=(userPage,...args)=>{}) {
     return (...args) => {
         if (!isCfg(Stg().ETA_DISPLAY)) return;
         const userPage = _game().openPage;
@@ -192,7 +201,7 @@ function patcher(onPatch=(userPatch,...args)=>{}) {
             && userPage.localID
             && userPage.containerID) {
             onPatch(userPage,...args);
-        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Unable to access the active page", userPage);
     }
 }
 
@@ -204,7 +213,7 @@ export function worker(ctx) {
     /** COMBAT ONLY */
     ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Enemy death rised:", args);
+            console.log("[CDE] doWorker:Enemy death rised:", args);
         }
         if (!isCfg(Stg().ETA_COMBAT)) return;
         /* COMBAT */    doWorker(userPage, getCombatPanel(), "Combat");
@@ -212,7 +221,7 @@ export function worker(ctx) {
 
     ctx.patch(_CraftingSkill(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Craft action finished:", args);
+            console.log("[CDE] doWorker:Craft action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Firemaking */    doWorker(userPage, getFiremakingPanel(), "Firemaking");
@@ -227,7 +236,7 @@ export function worker(ctx) {
 
     ctx.patch(_GatheringSkill(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Gathering action finished:", args);
+            console.log("[CDE] doWorker:Gathering action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Woodcutting */   doWorker(userPage, getWoodcuttingPanel(), "Woodcutting");
@@ -239,7 +248,7 @@ export function worker(ctx) {
 
     ctx.patch(_AltMagic(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] AltMagic action finished:", args);
+            console.log("[CDE] doWorker:AltMagic action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* AltMagic */      doWorker(userPage, getMagicPanel(), "Magic");
@@ -247,7 +256,7 @@ export function worker(ctx) {
 
     ctx.patch(_Thieving(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Thieving action finished:", args);
+            console.log("[CDE] doWorker:Thieving action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Thieving */      doWorker(userPage, getThievingPanel(), "Thieving");
@@ -255,7 +264,7 @@ export function worker(ctx) {
 
     ctx.patch(_Archaeology(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Archaeology action finished:", args);
+            console.log("[CDE] doWorker:Archaeology action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Archaeology */   doWorker(userPage, getArchaeologyPanel(), "Archaeology");
@@ -263,7 +272,7 @@ export function worker(ctx) {
 
     ctx.patch(_Cartography(), 'action').after(patcher((userPage,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Cartography action finished:", args);
+            console.log("[CDE] doWorker:Cartography action finished:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Cartography */   doWorker(userPage, getCartographyPanel(), "Cartography");
