@@ -12,11 +12,13 @@ let combatPanel = null;
 let runecraftPanel = null;
 let thievingPanel = null;
 let magicPanel = null;
+let woodcuttingPanel = null;
 
 export function getCombatPanel() { return combatPanel; }
 export function getRunecraftPanel() { return runecraftPanel; }
 export function getThievingPanel() { return thievingPanel; }
 export function getMagicPanel() { return magicPanel; }
+export function getWoodcuttingPanel() { return woodcuttingPanel; }
 
 /**
  * Loads panel submodules for the pages manager.
@@ -24,11 +26,14 @@ export function getMagicPanel() { return magicPanel; }
  * @param {*} ctx - The context object used to load submodules.
  */
 export async function loadSubModule(ctx) {
-  subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
+  
+    subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
+  
   const nonCombatPanel = await ctx.loadModule("pages/nonCombatPanel.mjs");
   subModules.push(runecraftPanel = nonCombatPanel.createInstance("runecraft"));
   subModules.push(thievingPanel = nonCombatPanel.createInstance("thieving"));
   subModules.push(magicPanel = nonCombatPanel.createInstance("magic"));
+  subModules.push(woodcuttingPanel = nonCombatPanel.createInstance("woodcutting"));
 }
 
 /**
@@ -161,6 +166,7 @@ export function worker(ctx) {
             
             if (!isCfg(Stg().ETA_SKILLS)) return;
             /* Runecrafting */ doWorker(userPage, getRunecraftPanel(), "Runecrafting");
+            /* Woodcutting */ doWorker(userPage, getWoodcuttingPanel(), "Woodcutting");
 
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
@@ -330,10 +336,11 @@ function initObservers(etaDisplay = false, connect = false) {
     if (etaDisplay) {
         const references = []
                 
-        /* Combat */ registerObserver(references, getCombatPanel(), '#combat-container', 'combat')
-        /* Runecraft */ registerObserver(references, getRunecraftPanel(), '#runecrafting-container', 'runecraft')
-        /* AltMagic */ registerObserver(references, getMagicPanel(), '#magic-container', 'magic')
-        /* Thieving */ registerObserver(references, getThievingPanel(), '#thieving-container', 'thieving')
+        /* Combat */ registerObserver(references, getCombatPanel(), '#combat-container', 'combat');
+        /* Runecraft */ registerObserver(references, getRunecraftPanel(), '#runecrafting-container', 'runecraft');
+        /* AltMagic */ registerObserver(references, getMagicPanel(), '#magic-container', 'magic');
+        /* Thieving */ registerObserver(references, getThievingPanel(), '#thieving-container', 'thieving');
+        /* Woodcutting */ registerObserver(references, getWoodcuttingPanel(), '#woodcutting-container', 'woodcutting');
 
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Observers initialized", references);
