@@ -220,8 +220,16 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         throw new Error("Modules not initialized. Call init(modules) before using pageContainer.");
     }
     if (pageObservers && pageObservers.has(targetPage)) {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] matching existing panel for targetPage:", targetPage);
+        }
         return pageObservers.get(targetPage);
     }
+
+    const mutationCompute = {};
+    mutationCompute.container = null;
+    mutationCompute.corePanel = null;
+
     const observer = new MutationObserver(() => {
         const container = document.querySelector(targetPage);
         if (!container) return;
@@ -239,6 +247,9 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
             corePanel.addEventListener("click", onRefresh);
         }
 
+        mutationCompute.container = container;
+        mutationCompute.corePanel = corePanel;
+
         const rowDeck = container.querySelector('.row-deck');
         if (rowDeck) {
             if (mods.getSettings().isDebug()) {
@@ -252,10 +263,13 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
             container.prepend(corePanel);
         }
     });
+
     const reference = {
         observer: observer,
-        identifier: identifier
+        identifier: identifier,
+        mutation: mutationCompute
     }
+
     pageObservers.set(targetPage, reference);
     if (mods.getSettings().isDebug()) {
         console.log("[CDE] New observer registered", reference);
@@ -272,7 +286,13 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
  */
 function registerObserver(references, panel, pageId, identifier) {
     if (panel && typeof panel.container === "function" && typeof panel.onRefresh === "function") {
-        references.push(pageContainer(pageId, identifier, panel.container, panel.onRefresh));
+        const reference = pageContainer(pageId, identifier, panel.container, panel.onRefresh);
+        if (reference != null) {
+            references.push(reference);
+            if (mods.getSettings().isDebug()) {
+                console.log("[CDE] Register new Observer, identifier:" + identifier + " pageId:" + pageId, reference);
+            }
+        }
     }
 }
 
