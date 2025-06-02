@@ -79,21 +79,18 @@ function isCfg(reference) {
 
 /**
  * Process and collect data for export.
- * This function gathers combat, non-combat, and skill data, updating the current monster and skill data,
- * and calculating relevant statistics such as kill count, time difference, Kills per Hour (KpH), and XP per Hour (XPh).
- * It also updates the export metadata with the current module version.
- * 
- * @description
  * This function is called to collect data when the game starts or when the export UI is opened.
  * It uses the `mModules.getExport().processCollectData` method to handle the data collection.
- * The `onCombat`, `onNonCombat`, `onActiveSkill`, and `onSkllsUpdate` callbacks are used to process respective events.
+ * The `onCombat`, `onNonCombat`, `onActiveSkill`, and `onSkillsUpdate` callbacks are used to process respective events.
+ * 
+ * @returns {*} The collected export data.
  */
 export const implProcessCollectData = (extractEta=false, timeBuffer=50) => {
 	const value = mModules.getExport().processCollectData(
 		onCombat, 
 		onNonCombat, 
 		onActiveSkill,
-		onSkllsUpdate,
+		onSkillsUpdate,
 		extractEta,
 		timeBuffer,
 		(meta) => {
@@ -114,7 +111,7 @@ export const implProcessCollectData = (extractEta=false, timeBuffer=50) => {
  * If the current monster data matches the entry, it updates the statistics accordingly.
  * @param {object} activity 
  * @param {object} entry 
- * @param {Date} syncDate
+ * @param {Date} [syncDate=new Date()] - The timestamp for the event.
  */
 function onCombat(activity, entry, syncDate=new Date()) {
 	const currentMonsterData = mModules.getCloudStorage().getCurrentMonsterData();
@@ -279,7 +276,7 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
  * Cleans up skill tracking data for skills that are no longer active.
  * @param {Set<string>} identifiers - The set of currently active skill identifiers.
  */
-function onSkllsUpdate(identifiers) {
+function onSkillsUpdate(identifiers) {
 	if (identifiers && identifiers.size > 0) {
 		let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
 		if (currentSkillData) {
@@ -363,9 +360,9 @@ function onSettingsChange(reference) {
  * @param {Object} context.settings - The settings object for the mod.
  * @param {Object} context.api - The API registration function.
  * @param {Object} context.characterStorage - The character storage object.
- * @param {Function} context.onModsLoaded - Callback for when mods are loaded.
- * @param {Function} context.onCharacterLoaded - Callback for when the character is loaded.
- * @param {Function} context.onInterfaceReady - Callback for when the interface is ready.
+ * @param {function(Object): Promise<void>} context.onModsLoaded - Called when all mods are loaded, receives the context.
+ * @param {function(Object): Promise<void>} context.onCharacterLoaded - Called when the character is loaded, receives the context.
+ * @param {function(Object): Promise<void>} context.onInterfaceReady - Called when the interface is ready, receives the context.
  */
 export function setup({settings, api, characterStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
 	// Setup OnModsLoaded
@@ -376,7 +373,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	});
 
 	// Setup OnCharacterLoaded
-	onCharacterLoaded(async () => {
+	onCharacterLoaded(async (ctx) => {
 		mModules.onDataLoad(settings, characterStorage, onSettingsChange);
 		if (isCfg(Stg().AUTO_EXPORT_ONLOAD)) {
 			implProcessCollectData();
