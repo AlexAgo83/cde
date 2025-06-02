@@ -11,10 +11,12 @@ let pageObservers = new Map();
 let combatPanel = null;
 let runecraftPanel = null;
 let thievingPanel = null;
+let magicPanel = null;
 
 export function getCombatPanel() { return combatPanel; }
 export function getRunecraftPanel() { return runecraftPanel; }
 export function getThievingPanel() { return thievingPanel; }
+export function getMagicPanel() { return magicPanel; }
 
 /**
  * Loads panel submodules for the pages manager.
@@ -23,8 +25,10 @@ export function getThievingPanel() { return thievingPanel; }
  */
 export async function loadSubModule(ctx) {
   subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
-  subModules.push(runecraftPanel = await ctx.loadModule("pages/nonCombatPanel.mjs"));
-  subModules.push(thievingPanel = await ctx.loadModule("pages/nonCombatPanel.mjs"));
+  const nonCombatPanel = await ctx.loadModule("pages/nonCombatPanel.mjs");
+  subModules.push(runecraftPanel = nonCombatPanel.createInstance("runecraft"));
+  subModules.push(thievingPanel = nonCombatPanel.createInstance("thieving"));
+  subModules.push(magicPanel = nonCombatPanel.createInstance("magic"));
 }
 
 /**
@@ -50,6 +54,8 @@ function _CraftingSkill() { return CraftingSkill; }
 function _Thieving() { return Thieving; }
 /* @ts-ignore Handle DEVMODE */
 function _CombatManager()  {  return CombatManager;  }
+/* @ts-ignore Handle DEVMODE */
+function _AltMagic() { return AltMagic; }
 
 /**
  * Get the proxy-settings reference object.
@@ -114,9 +120,9 @@ const doWorker = (userPage, panel, localID) => {
     if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
         const updated = panel.onRefresh();
-        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:result->"+updated);
+        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:"+localID+"->"+updated);
         if (updated != null) panel.show(updated);
-    } else if (mods.getSettings().isDebug()) console.log("[CDE] worker can't execute refresh", panel);
+    } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker can't execute refresh:"+localID, panel);
 }
 
 /**
@@ -127,7 +133,7 @@ export function worker(ctx) {
     // Worker UI refresh
     ctx.patch(_CombatManager(), 'onEnemyDeath').after(function(...args) {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Combat ended:", ...args);
+            console.log("[CDE] Enemy death rised:", ...args);
         }
         if (!isCfg(Stg().ETA_DISPLAY)) return;
         
@@ -144,7 +150,7 @@ export function worker(ctx) {
 
     ctx.patch(_CraftingSkill(), 'action').after(function(...args) {
        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Craft ended:", ...args);
+            console.log("[CDE] Craft action finished:", ...args);
         }
         if (!isCfg(Stg().ETA_DISPLAY)) return;
 
@@ -159,9 +165,26 @@ export function worker(ctx) {
         } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
     });
 
+    ctx.patch(_AltMagic(), 'action').after(function(...args) {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] AltMagic action finished:", ...args);
+        }
+        if (!isCfg(Stg().ETA_DISPLAY)) return;
+
+        const userPage = _game().openPage;
+        if (userPage 
+            && userPage.localID
+            && userPage.containerID) {
+            
+            if (!isCfg(Stg().ETA_SKILLS)) return;
+            /* AltMagic */ doWorker(userPage, getMagicPanel(), "Magic");
+
+        } else if (mods.getSettings().isDebug()) console.log("[CDE] Unable to access the active page", userPage);
+    });
+
     ctx.patch(_Thieving(), 'action').after(function(...args) {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] Thieving action finished", ...args);
+            console.log("[CDE] Thieving action finished:", ...args);
         }
         if (!isCfg(Stg().ETA_DISPLAY)) return;
 
@@ -243,6 +266,7 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         corePanel.classList.add("cde-eta-header");
         corePanel.innerHTML = viewPanel(corePanel, summaryId, identifier);
         corePanel.style.display = "none";
+
         if (typeof onRefresh === "function") {
             corePanel.addEventListener("click", onRefresh);
         }
@@ -308,6 +332,7 @@ function initObservers(etaDisplay = false, connect = false) {
                 
         /* Combat */ registerObserver(references, getCombatPanel(), '#combat-container', 'combat')
         /* Runecraft */ registerObserver(references, getRunecraftPanel(), '#runecrafting-container', 'runecraft')
+        /* AltMagic */ registerObserver(references, getMagicPanel(), '#magic-container', 'magic')
         /* Thieving */ registerObserver(references, getThievingPanel(), '#thieving-container', 'thieving')
 
         if (mods.getSettings().isDebug()) {
@@ -316,9 +341,10 @@ function initObservers(etaDisplay = false, connect = false) {
         if (references && references.length > 0 && connect) {
             references.forEach((reference) => {
                 if (reference && reference.observer) {
-                    const targetObserver = reference.targetPage
-                        ? document.querySelector(reference.targetPage)
-                        : document.body;
+                    const targetObserver = document.body;
+                    // const targetObserver = reference.targetPage
+                    //     ? document.querySelector(reference.targetPage)
+                    //     : document.body;
                     if (targetObserver) {
                         reference.observer.observe(targetObserver, { childList: true, subtree: true });
                     } else if (mods.getSettings().isDebug()) {
