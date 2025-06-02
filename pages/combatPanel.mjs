@@ -122,7 +122,7 @@ export const onRefresh = () => {
             const scanWithActivity = scan;
             const activities = scanWithActivity.currentActivity;
 
-            /* Activity: Combat */
+            /* Focus on Activity (only): Combat */
             if (
                 activities 
                 && typeof activities === "object" 

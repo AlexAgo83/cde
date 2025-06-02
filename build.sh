@@ -29,6 +29,9 @@ zip -r "$ZIP_NAME" . \
   -x ".gitignore" \
   -x ".git/*" \
   -x ".git/**" \
+  -x ".vscode" \
+  -x ".vscode/*" \
+  -x ".vscode/**" \
   -x ".DS_Store"
 
 echo "✅ Archive created: $ZIP_NAME"

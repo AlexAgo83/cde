@@ -125,6 +125,7 @@ export const onRefresh = () => {
             const result = [];
 
             _game().skills?.registeredObjects.forEach((skill) => {
+                /* Focus on Activities (only): Non-Combat */
                 if (!skill.isCombat && Object.prototype.hasOwnProperty.call(activities, skill.localID)) {
                     const activity = activities[skill.localID];
                     if (Object.prototype.hasOwnProperty.call(activity, "skills")) {

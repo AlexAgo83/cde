@@ -38,6 +38,7 @@
 // === Plan to 1.9.X ===
 // Stage 21 - ETA - Combat duration & KpH
 // Stage 22 - ETA - Recipe duration & PpH
+// Stage 23 - Display ETA Panel
 
 
 // --- Configuration ---
