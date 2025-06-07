@@ -6,7 +6,7 @@
 
 const CS_SETTINGS = "cs_settings_";
 const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
-const CS_CURRENT_SKILL_DATA = "cs_current_skill_data";
+const CS_CURRENT_ACTIVITY_DATA = "cs_current_activity_data";
 
 let mods = null;
 let cloudStorage = null;
@@ -67,32 +67,32 @@ export function removeCurrentMonsterData() {
 }
 
 /**
- * Retrieves the current skill data from cloud storage.
- * @returns {Object|null} The current skill data object, or null if not found or invalid.
+ * Retrieves the current activity data from cloud storage.
+ * @returns {Object|null} The current activity data object, or null if not found or invalid.
  */
-export function getCurrentSkillData() {
+export function getCurrentActivityData() {
 	try {
-		const raw = cloudStorage?.getItem(CS_CURRENT_SKILL_DATA);
+		const raw = cloudStorage?.getItem(CS_CURRENT_ACTIVITY_DATA);
 		return typeof raw === "string" ? JSON.parse(raw) : raw;
 	} catch (e) {
-		console.warn("[CDE] Invalid skill data in characterStorage");
+		console.warn("[CDE] Invalid activity data in characterStorage");
 		return null;
 	}
 }
 
 /**
- * Saves the given skill data to cloud storage.
- * @param {*} skillData - The skill data object to store.
+ * Saves the given activity data to cloud storage.
+ * @param {*} activityData - The activity data object to store.
  */
-export function setCurrentSkillData(skillData)  {
-	cloudStorage?.setItem(CS_CURRENT_SKILL_DATA, JSON.stringify(skillData));
+export function setCurrentActivityData(activityData)  {
+	cloudStorage?.setItem(CS_CURRENT_ACTIVITY_DATA, JSON.stringify(activityData));
 }
 
 /**
- * Removes the current skill data from cloud storage.
+ * Removes the current activity data from cloud storage.
  */
-export function removeCurrentSkillData() {
-	cloudStorage?.removeItem(CS_CURRENT_SKILL_DATA);
+export function removeCurrentActivityData() {
+	cloudStorage?.removeItem(CS_CURRENT_ACTIVITY_DATA);
 }
 
 /**

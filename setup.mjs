@@ -275,17 +275,17 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 	}
 
 	// Request first record for skill data
-	let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
+	let currentActivityData = mModules.getCloudStorage().getCurrentActivityData();
 	if (mModules.getSettings().isDebug()) {
 		console.log("[CDE] onActiveSkill:Read (instance/new) skill data", data);
-		console.log("[CDE] onActiveSkill:Read (saved/old) skill data", currentSkillData);
+		console.log("[CDE] onActiveSkill:Read (saved/old) skill data", currentActivityData);
 	}
 	let skill = {};
 
-	if (currentSkillData) {
-		if (currentSkillData[skillId]) {
+	if (currentActivityData) {
+		if (currentActivityData[skillId]) {
 			// Matching skill data entry
-			const current = currentSkillData[skillId];
+			const current = currentActivityData[skillId];
 
 			const isSameLevel = current.startLevel === data.skillLevel;
 			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
@@ -303,7 +303,7 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 				if (mModules.getSettings().isDebug()) {
 					console.log("[CDE] onActiveSkill:reset on lvl or recipe change", current, data);
 				}
-				delete currentSkillData[skillId];
+				delete currentActivityData[skillId];
 			}
 			
 			let startDate = current.startTime;
@@ -313,13 +313,13 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		}
 	} else {
 		// New data entry
-		currentSkillData = {};
+		currentActivityData = {};
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] onActiveSkill:new entry");
 		}
 	}
 
-	if (currentSkillData[skillId] == null) {
+	if (currentActivityData[skillId] == null) {
 		// New skill data records
 		skill.startTime = now;
 		skill.startXp = data.skillXp;
@@ -328,23 +328,23 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		skill.startRecipeXp = data.recipeXp;
 		skill.startRecipeLevel = data.recipeLevel;
 		
-		currentSkillData[skillId] = skill;
+		currentActivityData[skillId] = skill;
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] onActiveSkill:new current skill", skill);
 		}
 
 		// Print record for new skill data
-		mModules.getCloudStorage().setCurrentSkillData(currentSkillData)
+		mModules.getCloudStorage().setCurrentActivityData(currentActivityData)
 	}
 
 	// ETA Check Skill Progression
 	if (isCfg(Stg().ETA_SKILLS) 
 		&& data.xpLeft > 0
-		&& currentSkillData
-		&& currentSkillData[skillId]) {
+		&& currentActivityData
+		&& currentActivityData[skillId]) {
 
 		// UPDATING ETA ...
-		const current = currentSkillData[skillId];
+		const current = currentActivityData[skillId];
 		let startDate = current.startTime;
 		if (!(startDate instanceof Date)) {
 			startDate = new Date(startDate);
@@ -396,16 +396,16 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
  */
 function onSkillsUpdate(identifiers) {
 	if (identifiers && identifiers.size > 0) {
-		let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
-		if (currentSkillData) {
-			const properties = Object.keys(currentSkillData);
+		let currentActivityData = mModules.getCloudStorage().getCurrentActivityData();
+		if (currentActivityData) {
+			const properties = Object.keys(currentActivityData);
 			if (mModules.getSettings().isDebug) {
 				console.log("[CDE] onSkillsUpdate:", identifiers, properties);
 			}
 			properties?.forEach(p => {
 				if (!identifiers.has(p)) {
-					delete currentSkillData[p];
-					console.log("[CDE] remove unused skillData.", p);
+					delete currentActivityData[p];
+					console.log("[CDE] remove unused activity data.", p);
 				}
 			});
 		}
