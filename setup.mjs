@@ -44,7 +44,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.95";
+const MOD_VERSION = "v1.9.99";
 
 // --- Module Imports ---
 let mModules = null;
@@ -205,6 +205,9 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 	let predictNextLevels = [];
 	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
 		predictNextLevels = mModules.getUtils().parseNextLevels(currLevel, maxLevel);
+		if (mModules.getSettings().isDebug()) {
+			console.log("[ETA] ETA - Level predict (max:"+maxLevel+")", predictNextLevels);
+		}
 	}
 
 	const currentXp = data.skillXp;
@@ -221,7 +224,7 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 				xpCap: xpCap,
 				xpDiff: xpCap - currentXp
 			};
-			data.predictLevels.set(cap, predictItem);
+			if (cap <= maxLevel) data.predictLevels.set(cap, predictItem);
 		});
 	}
 

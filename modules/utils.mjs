@@ -330,28 +330,28 @@ export function showContainer(container, identity, value) {
  * @example
  * parseNextLevels(9); // Returns [99, 10]
  */
-export function parseNextLevels(currLevel, levelCap=120) {
+export function parseNextLevels(currLevel, levelCap = 120) {
 	const levels = [];
 	const nextLevel = currLevel + 1;
 	const standardProgression = nextLevel < 99;
 	const dlcProgression = nextLevel < 120 && !standardProgression;
 
 	if (dlcProgression) {
-		if (nextLevel < 120) levels.push(120);
-		if (nextLevel < 110) levels.push(110);
+		if (nextLevel < 120 && 120 <= levelCap) levels.push(120);
+		if (nextLevel < 110 && 110 <= levelCap) levels.push(110);
 	} else if (standardProgression) {
-		if (nextLevel < 99) levels.push(99);
+		if (nextLevel < 99 && 99 <= levelCap) levels.push(99);
 
-		if (nextLevel < 90 && nextLevel >= 80) levels.push(90);
-		if (nextLevel < 80 && nextLevel >= 70) levels.push(80);
-		if (nextLevel < 70 && nextLevel >= 60) levels.push(70);
-		if (nextLevel < 60 && nextLevel >= 50) levels.push(60);
-		if (nextLevel < 50 && nextLevel >= 40) levels.push(50);
-		if (nextLevel < 40 && nextLevel >= 30) levels.push(40);
-		if (nextLevel < 30 && nextLevel >= 20) levels.push(30);
-		if (nextLevel < 20 && nextLevel >= 10) levels.push(20);
-		if (nextLevel < 10 && nextLevel >= 1) levels.push(10);
+		if (nextLevel < 90 && nextLevel >= 80 && 90 <= levelCap) levels.push(90);
+		if (nextLevel < 80 && nextLevel >= 70 && 80 <= levelCap) levels.push(80);
+		if (nextLevel < 70 && nextLevel >= 60 && 70 <= levelCap) levels.push(70);
+		if (nextLevel < 60 && nextLevel >= 50 && 60 <= levelCap) levels.push(60);
+		if (nextLevel < 50 && nextLevel >= 40 && 50 <= levelCap) levels.push(50);
+		if (nextLevel < 40 && nextLevel >= 30 && 40 <= levelCap) levels.push(40);
+		if (nextLevel < 30 && nextLevel >= 20 && 30 <= levelCap) levels.push(30);
+		if (nextLevel < 20 && nextLevel >= 10 && 20 <= levelCap) levels.push(20);
+		if (nextLevel < 10 && nextLevel >= 1 && 10 <= levelCap) levels.push(10);
 	}
-	
+
 	return levels;
 }

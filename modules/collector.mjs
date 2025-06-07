@@ -563,12 +563,16 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			const selectedRecipeSkill = selectedRecipe?.skill
 
 			skills.forEach((skill) => {
+
+				const maxLevelCap = skill.maxLevelCap;
+				const currentLevelCap = skill.currentLevelCap;
+
 				const item = {
 					// idSkill: skill.localID,
 					skillXp: skill.xp,
 					skillNextLevelProgress: skill.nextLevelProgress,
 					skillLevel: skill.level,
-					skillMaxLevel: skill.maxLevelCap
+					skillMaxLevel: currentLevelCap < maxLevelCap ? currentLevelCap : maxLevelCap
 				}
 				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
 					item.recipe = selectedRecipe.localID;

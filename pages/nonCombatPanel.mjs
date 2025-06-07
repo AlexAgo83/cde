@@ -144,6 +144,19 @@ export function createInstance(innerType) {
                                         const currentSkill = skills[activeSkill.localID];
                                         const diffTimeStr = currentSkill.diffTimeStr;
                                         const time = currentSkill.timeToNextLevelStr;
+
+                                        // Next level
+                                        let nextLevel = ``;
+                                        if (currentSkill.skillLevel+1 <= currentSkill.skillMaxLevel) {
+                                            nextLevel += `<div class="cde-generic-panel">
+                                                <span class="skill-label">Time to </span>
+                                                <span class="skill-value vph">${currentSkill.skillLevel+1}</span>
+                                                <span class="skill-label"> : </span>
+                                                <span class="skill-value vph">${time ?? "N/A"}</span>
+                                            </div>`;
+                                        }
+
+                                        // Levels cap
                                         let levelCap = ``;
                                         if (currentSkill.predictLevels?.size > 0) {
                                             [...currentSkill.predictLevels.entries()].reverse().forEach(([level, value]) => {
@@ -156,13 +169,7 @@ export function createInstance(innerType) {
                                             });
                                         }
                                         result.push(
-                                            `<div class="cde-generic-panel">
-                                                <span class="skill-label">Time to </span>
-                                                <span class="skill-value vph">${currentSkill.skillLevel+1}</span>
-                                                <span class="skill-label"> : </span>
-                                                <span class="skill-value vph">${time ?? "N/A"}</span>
-                                            </div>
-                                            ${levelCap}
+                                            `${nextLevel}${levelCap}
                                             <div class="cde-generic-panel">
                                                 <span class="skill-label">Craft Duration:</span>
                                                 <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>
