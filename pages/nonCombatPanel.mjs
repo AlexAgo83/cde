@@ -171,7 +171,7 @@ export function createInstance(innerType) {
                                         result.push(
                                             `${nextLevel}${levelCap}
                                             <div class="cde-generic-panel">
-                                                <span class="skill-label">Craft Duration:</span>
+                                                <span class="skill-label">Craft Duration :</span>
                                                 <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>
                                             </div>`
                                         );
