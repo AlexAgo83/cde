@@ -48,7 +48,7 @@
 // Stage 25 - ETA - Recipe Queue & bank
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.24";
+const MOD_VERSION = "v2.0.25";
 
 // --- Module Imports ---
 let mModules = null;

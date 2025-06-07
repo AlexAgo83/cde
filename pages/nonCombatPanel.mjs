@@ -148,7 +148,7 @@ export function createInstance(innerType) {
                                         const currentSkill = skills[activeSkill.localID];
 
                                         const diffTime = currentSkill.diffTime;
-                                        const diffTimeStr = mods.getUtils().formatDuration(diffTime * 1000, "vph-fade");
+                                        const diffTimeStr = mods.getUtils().formatDuration(diffTime, "vph-fade");
                                         // const diffTimeStr = currentSkill.diffTimeStr;
                                         // const time = currentSkill.timeToNextLevelStr;
                                         const secondsToNextLevel = currentSkill.secondsToNextLevel;
