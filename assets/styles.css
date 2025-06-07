@@ -330,12 +330,8 @@
   color: #fff;
 }
 
-.cde-eta-generic .vph {
-  color: #8fff8f;
-}
-
 .cde-eta-generic .duration {
-  color: #8fcaff;
+  color: #f4ff8f;
 }
 
 .cde-eta-generic .skill-label {
@@ -344,6 +340,21 @@
 
 .cde-eta-generic .skill-value {
   color: #fff;
+}
+
+.cde-eta-generic .vph {
+  color: #8fff8f;
+}
+
+.cde-eta-generic .vph-skill {
+  color: #8feaff;
+}
+
+.cde-eta-generic .vph-mastery {
+  color: #ff8f8f;
+}
+.cde-eta-generic .vph-fade {
+  color: #fdfdfd7e;
 }
 
 .cde-generic-panel .cde-generic-list  {

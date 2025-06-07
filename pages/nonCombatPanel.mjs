@@ -130,53 +130,72 @@ export function createInstance(innerType) {
 
                     /* ETA - Non-Combat */
                     const result = [];
+                    const resultFooter = [];
                     const lazySkills = [];
 
                     self._game().skills?.registeredObjects.forEach((skill) => {
+                        
                         /* Focus on Activities (only): Non-Combat */
                         if (Object.prototype.hasOwnProperty.call(activities, skill.localID)) {
+
                             const activity = activities[skill.localID];
                             if (Object.prototype.hasOwnProperty.call(activity, "skills")) {
+
                                 // Parse Skills
                                 const skills = activity.skills;
                                 self._game().skills?.registeredObjects.forEach((activeSkill) => {
                                     if (Object.prototype.hasOwnProperty.call(skills, activeSkill.localID)) {
                                         const currentSkill = skills[activeSkill.localID];
                                         const diffTimeStr = currentSkill.diffTimeStr;
-                                        const time = currentSkill.timeToNextLevelStr;
+                                        // const time = currentSkill.timeToNextLevelStr;
+                                        const secondsToNextLevel = currentSkill.secondsToNextLevel;
+                                        const time = mods.getUtils().formatDuration(secondsToNextLevel, true);
 
-                                        // Next level
-                                        let nextLevel = ``;
-                                        if (currentSkill.skillLevel+1 <= currentSkill.skillMaxLevel) {
-                                            nextLevel += `<div class="cde-generic-panel">
-                                                <span class="skill-label">Time to </span>
-                                                <span class="skill-value vph">${currentSkill.skillLevel+1}</span>
-                                                <span class="skill-label"> : </span>
-                                                <span class="skill-value vph">${time ?? "N/A"}</span>
-                                            </div>`;
-                                        }
-
-                                        // Levels cap
-                                        let levelCap = ``;
-                                        if (currentSkill.predictLevels?.size > 0) {
-                                            [...currentSkill.predictLevels.entries()].reverse().forEach(([level, value]) => {
-                                                levelCap += `<div class="cde-generic-panel">
-                                                <span class="skill-label"> ... to </span>
-                                                <span class="skill-value vph">${level}</span>
-                                                <span class="skill-label"> : </span>
-                                                <span class="skill-value vph">${value.timeToCapStr ?? "N/A"}</span>
-                                            </div>`;
-                                            });
-                                        }
-                                        result.push(
-                                            `${nextLevel}${levelCap}
-                                            <div class="cde-generic-panel">
+                                        resultFooter.push(
+                                            `<div class="cde-generic-panel">
                                                 <span class="skill-label">Craft Duration :</span>
                                                 <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>
                                             </div>`
                                         );
-                                        lazySkills.push(activeSkill.localID);
-                                        updated = true;
+
+                                        /** Next level */
+                                        if (currentSkill.skillLevel+1 <= currentSkill.skillMaxLevel) {
+                                            const nextLevel = 
+                                                `<div class="cde-generic-panel">
+                                                    <span class="skill-label">(</span>
+                                                    <span class="skill-value vph-skill">Skill</span>
+                                                    <span class="skill-label">) Time to </span>
+                                                    <span class="skill-value vph-skill">${currentSkill.skillLevel+1}</span>
+                                                    <span class="skill-label"> : </span>
+                                                    <span class="skill-value vph-skill">${time ?? "N/A"}</span>
+                                                </div>`;
+                                            result.push(nextLevel);
+                                            updated = true;
+
+                                            /** Next Levels & cap */
+                                            if (currentSkill.predictLevels?.size > 0) {
+                                                if (mods.getSettings().isDebug()) {
+                                                    console.log("[CDE] nonCombatPanel:onRefresh:predictLevels", currentSkill.predictLevels);
+                                                }
+                                                let levelCap = ``;
+                                                [...currentSkill.predictLevels.entries()].reverse().forEach(([level, value]) => {
+                                                    const seconds = value.secondsToCap;
+                                                    if (seconds && seconds > 0) {
+                                                        const timeToCapStr = mods.getUtils().formatDuration(seconds * 1000, true);
+                                                        levelCap += 
+                                                            `<div class="cde-generic-panel">
+                                                                <span class="skill-label"> ... to </span>
+                                                                <span class="skill-value vph-skill">${level}</span>
+                                                                <span class="skill-label"> : </span>
+                                                                <span class="skill-value vph-skill">${timeToCapStr ?? "N/A"}</span>
+                                                            </div>`;
+                                                    }
+                                                });
+                                                result.push(levelCap);
+                                                updated = true;
+                                                lazySkills.push(skill.localID);
+                                            }
+                                        }   
                                     }
                                 });
                             }
@@ -188,25 +207,53 @@ export function createInstance(innerType) {
                                 // Parse Mastery
                                 const masteries = activity.recipeQueue;
                                 Object.keys(masteries)?.forEach((key) => {
-				                    const m = masteries[key];
+				                    
+                                    const m = masteries[key];
                                     const parentSkillID = m.skillID;
+
                                     if (lazySkills.includes(parentSkillID)) {
-                                        const nextLvlStr = m?.timeToNextLvlStr;
-                                        if (nextLvlStr) {
+                                        // Next mastery level
+                                        const seconds = m?.secondsToNextLvl;
+                                        if (seconds && isFinite(seconds)) {
+                                            const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, true);
                                             result.push(
                                                 `<div class="cde-generic-panel">
-                                                    <span class="skill-label">Next mastery in : </span>
-                                                    <span class="skill-value duration">${nextLvlStr ?? "N/A"}</span>
+                                                    <span class="skill-label">(</span>
+                                                    <span class="skill-value vph-mastery">Mastery</span>
+                                                    <span class="skill-label">) Time to </span>
+                                                    <span class="skill-value vph-mastery">${m?.masteryNextLvl ?? "N/A"}</span>
+                                                    <span class="skill-label"> : </span>
+                                                    <span class="skill-value vph-mastery">${nextLvlStr ?? "N/A"}</span>
                                                 </div>`
                                             );
                                             updated = true;
-                                        }
+
+                                            // Predict next masteries level
+                                            const predictLevels = m?.predictLevels;
+                                            if (predictLevels && predictLevels.size > 0) {
+                                                [...predictLevels.entries()].reverse().forEach(([level, value]) => {
+                                                    const secondsToCap = value?.secondsToCap;
+                                                    if (secondsToCap && isFinite(secondsToCap)) {
+                                                        const timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, true);
+                                                        result.push(
+                                                            `<div class="cde-generic-panel">
+                                                                <span class="skill-label"> ... to </span>
+                                                                <span class="skill-value vph-mastery">${level}</span>
+                                                                <span class="skill-label"> : (less than) </span>
+                                                                <span class="skill-value vph-mastery">${timeToCapStr ?? "N/A"}</span>
+                                                            </div>`
+                                                        );
+                                                        updated = true;
+                                                    }
+                                                });
+                                            }  
+                                        } 
                                     }
                                 });
                             }
                         }
                     });
-                    etaData = `<div class="cde-generic-list">${result.join("")}</div>`;
+                    etaData = `<div class="cde-generic-list">${result.join("")}${resultFooter.join("")}</div>`;
                 }
                 parent.innerHTML = self.container(parent, summaryId, identity);
             }

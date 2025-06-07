@@ -41,22 +41,25 @@ function isCfg(reference) {
  * @param {number} ms - The duration in milliseconds.
  * @returns {string} The formatted duration string.
  */
-export function formatDuration(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+export function formatDuration(ms, pattern=false) {
+	const totalSeconds = Math.floor(ms / 1000);
+	const days = Math.floor(totalSeconds / 86400);
+	const hours = Math.floor((totalSeconds % 86400) / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
 
-  const parts = [];
-  if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-  if (hours > 0) parts.push(`${hours}h`);
-  if (minutes > 0) parts.push(`${minutes}min`);
+	const bOn = pattern ? `<span class="skill-value vph-fade">` : "";
+	const bOff = pattern ? `</span>` : "";
 
-  // If less thant a day
-  if (hours === 0 && days === 0 && (seconds > 0 || parts.length === 0)) parts.push(`${seconds}s`);
+	const parts = [];
+	if (days > 0) parts.push(`${days}${bOn}day${days > 1 ? 's' : ''}${bOff}`);
+	if (hours > 0) parts.push(`${hours}${bOn}h${bOff}`);
+	if (minutes > 0) parts.push(`${minutes}${bOn}m${bOff}`);
 
-  return parts.join(' ');
+	// If less thant a day
+	if (hours === 0 && days === 0 && (seconds > 0 || parts.length === 0)) parts.push(`${seconds}${bOn}s${bOff}`);
+
+	return parts.join(' ');
 }
 
 /**
