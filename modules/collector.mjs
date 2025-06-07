@@ -568,7 +568,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				const currentLevelCap = skill.currentLevelCap;
 
 				const item = {
-					// idSkill: skill.localID,
+					skillID: skill.localID,
 					skillXp: skill.xp,
 					skillNextLevelProgress: skill.nextLevelProgress,
 					skillLevel: skill.level,
@@ -576,6 +576,10 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				}
 				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
 					item.recipe = selectedRecipe.localID;
+					item.recipeMaxLevel = skill.masteryLevelCap;
+					const mastery = a.actionMastery?.get(a.selectedRecipe);
+					item.recipeXp = mastery?.xp;
+					item.recipeLevel = mastery?.level;
 				}
 				items[skill.localID] = item;
 				skillsToUpdate.push(skill.localID);
@@ -612,9 +616,12 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						const masteryPercent = mods.getUtils().getMasteryProgressPercent(
 							mastery.level,
 							mastery.nextLevelProgress)?.percent;
+						item.skillID = a.localID;
+						item.masteryID = key.localID;
 						item.maxteryXp = mastery.xp;
 						item.maxteryNextLevelProgress = masteryPercent;
 						item.masteryLevel = mastery.level;
+						item.masteryMaxLevel = key.skill?.masteryLevelCap;
 						queue[key.localID] = item;
 					}
 				});

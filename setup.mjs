@@ -40,11 +40,11 @@
 // Stage 22 - ETA - Recipe duration & PpH
 // Stage 23 - Display ETA Panel
 
-// === Plan to 2.X.X ===
-
+// === Plan to 2.0.0 ===
+// Stage 23 - ETA - Mastery
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.99";
+const MOD_VERSION = "v2.0.1";
 
 // --- Module Imports ---
 let mModules = null;
@@ -185,6 +185,56 @@ function onNonCombat(activity, entry, syncDate=new Date()) {
 			console.log("[CDE] Clear activity trace", entry.monster);
 		}
 	}
+
+	if (isCfg(Stg().ETA_MASTERY_PREDICT)) {
+		const masteries = entry.recipeQueue;
+		if (mModules.getSettings().isDebug()) {
+			console.log("[CDE] onNonCombat:Read (instance/new) entry", entry);
+			console.log("[CDE] onNonCombat:Read (mastery) entry.recipeQueue", masteries);
+		}
+		
+		// MASTERIES PREDICT
+		Object.keys(masteries)?.forEach((key) => {
+			const m = masteries[key];
+
+			const skillEntry = entry.skills ? entry.skills[m.skillID] : null;
+			const currMph = skillEntry?.mph ?? 1;
+			const currMasteryLvl = m.masteryLevel;
+			const currMasteryMaxLvl = m.masteryMaxLevel;
+			const currMasteryXP = m.maxteryXp;
+
+			// ETA - Next mastery lvl
+			m.masteryNextLvl = currMasteryLvl + 1;
+			m.masteryNextLvlXp = mModules.getUtils().getXpForLevel(m.masteryNextLvl);
+			m.masteryNextXpDiff = m.masteryNextLvlXp - currMasteryXP;
+			m.secondsToNextLvl = +(m.masteryNextXpDiff / (currMph / 3600)).toFixed(0);
+			m.timeToNextLvlStr = mModules.getUtils().formatDuration(m.secondsToNextLvl * 1000);
+
+			// ETA - Predict next masteries lvl
+			m.predictLevels = new Map();
+			const prdArr = mModules.getUtils().parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
+			if (mModules.getSettings().isDebug()) {
+				console.log("[CDE] ETA Mastery Predicts for ("+currMasteryLvl+"/"+currMasteryMaxLvl+")", prdArr, m);
+			}
+			prdArr?.forEach((item) => {
+				const xpCap = mModules.getUtils().getXpForLevel(item);
+
+				const value = {
+					xpCap: xpCap,
+					xpDiff: xpCap - currMasteryXP
+				};
+
+				const secondsToCapLevel = value.xpDiff / (currMph / 3600);
+				value.secondsToCap = +secondsToCapLevel.toFixed(0);
+				value.timeToCapStr = mModules.getUtils().formatDuration(value.secondsToCap * 1000);
+
+				m.predictLevels.set(item, value);
+			});
+			if (mModules.getSettings().isDebug()) {
+				console.log("[CDE] ETA Mastery Predict entries", m);
+			}
+		});
+	}
 }
 
 /**
@@ -202,14 +252,6 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 	const nextLevel = currLevel+1;
 	const maxLevel = data.skillMaxLevel;
 
-	let predictNextLevels = [];
-	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
-		predictNextLevels = mModules.getUtils().parseNextLevels(currLevel, maxLevel);
-		if (mModules.getSettings().isDebug()) {
-			console.log("[ETA] ETA - Level predict (max:"+maxLevel+")", predictNextLevels);
-		}
-	}
-
 	const currentXp = data.skillXp;
 	const nextLevelXp = mModules.getUtils().getXpForLevel(nextLevel);
 	
@@ -218,6 +260,10 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 
 	data.predictLevels = new Map();
 	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
+		let predictNextLevels = mModules.getUtils().parseNextLevels(currLevel, maxLevel);
+		if (mModules.getSettings().isDebug()) {
+			console.log("[ETA] ETA - Level predict (max:"+maxLevel+")", predictNextLevels);
+		}
 		predictNextLevels.forEach((cap) => {
 			const xpCap = mModules.getUtils().getXpForLevel(cap);
 			const predictItem = {
@@ -245,7 +291,11 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
 				? current.startRecipe === data.recipe
 				: true;
-			if (isSameLevel && isSameRecipe) {
+			const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.startRecipeLevel !== "undefined")
+				? current.startRecipeLevel === data.startRecipeLevel
+				: true;
+
+			if (isSameLevel && (isSameRecipe && isSameRecipeLevel)) {
 				if (mModules.getSettings().isDebug())
 					console.log("[CDE] onActiveSkill:matching skill", current);
 		 	} else {
@@ -271,15 +321,18 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 
 	if (currentSkillData[skillId] == null) {
 		// New skill data records
+		skill.startTime = now;
 		skill.startXp = data.skillXp;
 		skill.startLevel = data.skillLevel;
-		skill.startTime = now;
 		skill.startRecipe = data.recipe;
+		skill.startRecipeXp = data.recipeXp;
+		skill.startRecipeLevel = data.recipeLevel;
 		
 		currentSkillData[skillId] = skill;
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] onActiveSkill:new current skill", skill);
 		}
+
 		// Print record for new skill data
 		mModules.getCloudStorage().setCurrentSkillData(currentSkillData)
 	}
@@ -299,6 +352,7 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 		data.diffTime = now.getTime() - startDate.getTime();
 		data.diffTimeStr = mModules.getUtils().formatDuration(data.diffTime);
 		data.diffXp = data.skillXp - current.startXp;
+		data.diffRecipeXp = data.recipeXp - current.startRecipeXp;
 		
 		// XP per Hour
 		if (data.diffTime > 0) {
@@ -307,6 +361,15 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			);
 		} else {
 			data.xph = "NaN";
+		}
+
+		// Mastery per Hour
+		if (data.diffTime > 0) {
+			data.mph = Math.round(
+				(data.diffRecipeXp / (data.diffTime / 3600000)) || 0
+			);
+		} else {
+			data.mph = "NaN";
 		}
 
 		// Time before next level

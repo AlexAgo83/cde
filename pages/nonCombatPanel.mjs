@@ -130,10 +130,10 @@ export function createInstance(innerType) {
 
                     /* ETA - Non-Combat */
                     const result = [];
+                    const lazySkills = [];
 
                     self._game().skills?.registeredObjects.forEach((skill) => {
                         /* Focus on Activities (only): Non-Combat */
-                        // !skill.isCombat && 
                         if (Object.prototype.hasOwnProperty.call(activities, skill.localID)) {
                             const activity = activities[skill.localID];
                             if (Object.prototype.hasOwnProperty.call(activity, "skills")) {
@@ -175,13 +175,34 @@ export function createInstance(innerType) {
                                                 <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>
                                             </div>`
                                         );
+                                        lazySkills.push(activeSkill.localID);
                                         updated = true;
                                     }
                                 });
                             }
                             if (Object.prototype.hasOwnProperty.call(activity, "recipeQueue")) {
+                                if (mods.getSettings().isDebug()) {
+                                    console.log("[CDE] nonCombatPanel:onRefresh:recipeQueue", activity, lazySkills);
+                                }
+
                                 // Parse Mastery
-                                // const recipeQueue = activity.recipeQueue;
+                                const masteries = activity.recipeQueue;
+                                Object.keys(masteries)?.forEach((key) => {
+				                    const m = masteries[key];
+                                    const parentSkillID = m.skillID;
+                                    if (lazySkills.includes(parentSkillID)) {
+                                        const nextLvlStr = m?.timeToNextLvlStr;
+                                        if (nextLvlStr) {
+                                            result.push(
+                                                `<div class="cde-generic-panel">
+                                                    <span class="skill-label">Next mastery in : </span>
+                                                    <span class="skill-value duration">${nextLvlStr ?? "N/A"}</span>
+                                                </div>`
+                                            );
+                                            updated = true;
+                                        }
+                                    }
+                                });
                             }
                         }
                     });

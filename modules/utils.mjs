@@ -355,3 +355,39 @@ export function parseNextLevels(currLevel, levelCap = 120) {
 
 	return levels;
 }
+
+/**
+ * Returns an array of upcoming mastery milestones based on the current mastery level,
+ * up to the provided mastery cap.
+ *
+ * This function identifies standard mastery thresholds (e.g., 10, 20, 30, ..., 99)
+ * that are relevant to the current progression. It only includes milestones that are:
+ * - strictly above the current mastery level
+ * - less than or equal to the masteryCap
+ *
+ * @param {number} currMasteryLvl - The current mastery level (0 to 99).
+ * @param {number} [masteryLvlCap=99] - The maximum level to consider for milestones.
+ * @returns {number[]} An array of mastery level milestones to target next.
+ *
+ * @example
+ * parseNextMasteries(57) // returns [60, 99]
+ * parseNextMasteries(85, 90) // returns [90]
+ * parseNextMasteries(95, 95) // returns []
+ */
+export function parseNextMasteries(currMasteryLvl, masteryLvlCap = 99) {
+	const masteries = [];
+	const nextLevel = currMasteryLvl + 1;
+
+	if (nextLevel < 99 && 99 <= masteryLvlCap) masteries.push(99);
+	if (nextLevel < 90 && nextLevel >= 80 && 90 <= masteryLvlCap) masteries.push(90);
+	if (nextLevel < 80 && nextLevel >= 70 && 80 <= masteryLvlCap) masteries.push(80);
+	if (nextLevel < 70 && nextLevel >= 60 && 70 <= masteryLvlCap) masteries.push(70);
+	if (nextLevel < 60 && nextLevel >= 50 && 60 <= masteryLvlCap) masteries.push(60);
+	if (nextLevel < 50 && nextLevel >= 40 && 50 <= masteryLvlCap) masteries.push(50);
+	if (nextLevel < 40 && nextLevel >= 30 && 40 <= masteryLvlCap) masteries.push(40);
+	if (nextLevel < 30 && nextLevel >= 20 && 30 <= masteryLvlCap) masteries.push(30);
+	if (nextLevel < 20 && nextLevel >= 10 && 20 <= masteryLvlCap) masteries.push(20);
+	if (nextLevel < 10 && nextLevel >= 1 && 10 <= masteryLvlCap) masteries.push(10);
+
+	return masteries;
+}

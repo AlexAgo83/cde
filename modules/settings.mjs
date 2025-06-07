@@ -212,6 +212,15 @@ export const SettingsReference = {
 		hint: "Toggle to enable ETA prediction for upcoming level-ups.",
 		toggle: true
 	},
+	// ETA
+	ETA_MASTERY_PREDICT: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-mastery-predict",
+		label: "Predict ETA for Next Mastery Levels",
+		hint: "Toggle to enable ETA prediction for upcoming mastery level-ups.",
+		toggle: true
+	},
 	ETA_COMBAT: {
 		section: Sections.ETA,
 		type: "switch",
