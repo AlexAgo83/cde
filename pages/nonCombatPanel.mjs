@@ -146,30 +146,39 @@ export function createInstance(innerType) {
                                 self._game().skills?.registeredObjects.forEach((activeSkill) => {
                                     if (Object.prototype.hasOwnProperty.call(skills, activeSkill.localID)) {
                                         const currentSkill = skills[activeSkill.localID];
-                                        const diffTimeStr = currentSkill.diffTimeStr;
+
+                                        const diffTime = currentSkill.diffTime;
+                                        const diffTimeStr = mods.getUtils().formatDuration(diffTime * 1000, "vph-fade");
+                                        // const diffTimeStr = currentSkill.diffTimeStr;
                                         // const time = currentSkill.timeToNextLevelStr;
                                         const secondsToNextLevel = currentSkill.secondsToNextLevel;
-                                        const time = mods.getUtils().formatDuration(secondsToNextLevel, true);
+                                        const timeSkill = mods.getUtils().formatDuration(secondsToNextLevel * 1000, "vph-skill-fade");
 
                                         resultFooter.push(
                                             `<div class="cde-generic-panel">
                                                 <span class="skill-label">Craft Duration :</span>
-                                                <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>
+                                                <span class="skill-value vph">${diffTimeStr ?? "N/A"}</span>
                                             </div>`
                                         );
 
                                         /** Next level */
                                         if (currentSkill.skillLevel+1 <= currentSkill.skillMaxLevel) {
-                                            const nextLevel = 
+                                            const skillID = currentSkill.skillID;
+                                            result.push(
                                                 `<div class="cde-generic-panel">
-                                                    <span class="skill-label">(</span>
-                                                    <span class="skill-value vph-skill">Skill</span>
-                                                    <span class="skill-label">) Time to </span>
+                                                    <span class="skill-label">〔</span>
+                                                    <span class="skill-value vph-skill">${skillID ?? "N/A"}</span>
+                                                    <span class="skill-label">〕</span>
+                                                </div>`
+                                            );
+                                            result.push(
+                                                `<div class="cde-generic-panel">
+                                                    <span class="skill-label"> ... to </span>
                                                     <span class="skill-value vph-skill">${currentSkill.skillLevel+1}</span>
-                                                    <span class="skill-label"> : </span>
-                                                    <span class="skill-value vph-skill">${time ?? "N/A"}</span>
-                                                </div>`;
-                                            result.push(nextLevel);
+                                                    <span class="skill-label"> ➜ </span>
+                                                    <span class="skill-value vph vph-skill">${timeSkill ?? "N/A"}</span>
+                                                </div>`
+                                            );
                                             updated = true;
 
                                             /** Next Levels & cap */
@@ -181,13 +190,13 @@ export function createInstance(innerType) {
                                                 [...currentSkill.predictLevels.entries()].reverse().forEach(([level, value]) => {
                                                     const seconds = value.secondsToCap;
                                                     if (seconds && seconds > 0) {
-                                                        const timeToCapStr = mods.getUtils().formatDuration(seconds * 1000, true);
+                                                        const timeToCapStr = mods.getUtils().formatDuration(seconds * 1000, "vph-skill-fade");
                                                         levelCap += 
                                                             `<div class="cde-generic-panel">
                                                                 <span class="skill-label"> ... to </span>
                                                                 <span class="skill-value vph-skill">${level}</span>
-                                                                <span class="skill-label"> : </span>
-                                                                <span class="skill-value vph-skill">${timeToCapStr ?? "N/A"}</span>
+                                                                <span class="skill-label"> ➜ </span>
+                                                                <span class="skill-value vph vph-skill">${timeToCapStr ?? "N/A"}</span>
                                                             </div>`;
                                                     }
                                                 });
@@ -215,15 +224,21 @@ export function createInstance(innerType) {
                                         // Next mastery level
                                         const seconds = m?.secondsToNextLvl;
                                         if (seconds && isFinite(seconds)) {
-                                            const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, true);
+                                            const masteryID = m?.masteryID;
+                                            const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
                                             result.push(
                                                 `<div class="cde-generic-panel">
-                                                    <span class="skill-label">(</span>
-                                                    <span class="skill-value vph-mastery">Mastery</span>
-                                                    <span class="skill-label">) Time to </span>
+                                                    <span class="skill-label">〔</span>
+                                                    <span class="skill-value vph-mastery">${masteryID ?? "N/A"}</span>
+                                                    <span class="skill-label">〕</span>
+                                                </div>`
+                                            );
+                                            result.push(
+                                                `<div class="cde-generic-panel">
+                                                    <span class="skill-label"> ... to </span>
                                                     <span class="skill-value vph-mastery">${m?.masteryNextLvl ?? "N/A"}</span>
-                                                    <span class="skill-label"> : </span>
-                                                    <span class="skill-value vph-mastery">${nextLvlStr ?? "N/A"}</span>
+                                                    <span class="skill-label"> ➜ </span>
+                                                    <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
                                                 </div>`
                                             );
                                             updated = true;
@@ -234,13 +249,13 @@ export function createInstance(innerType) {
                                                 [...predictLevels.entries()].reverse().forEach(([level, value]) => {
                                                     const secondsToCap = value?.secondsToCap;
                                                     if (secondsToCap && isFinite(secondsToCap)) {
-                                                        const timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, true);
+                                                        const timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, "vph-mastery-fade");
                                                         result.push(
                                                             `<div class="cde-generic-panel">
                                                                 <span class="skill-label"> ... to </span>
                                                                 <span class="skill-value vph-mastery">${level}</span>
-                                                                <span class="skill-label"> : (less than) </span>
-                                                                <span class="skill-value vph-mastery">${timeToCapStr ?? "N/A"}</span>
+                                                                <span class="skill-label"> ➜ (less than) </span>
+                                                                <span class="skill-value vph vph-mastery">${timeToCapStr ?? "N/A"}</span>
                                                             </div>`
                                                         );
                                                         updated = true;

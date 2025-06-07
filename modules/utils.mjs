@@ -41,14 +41,14 @@ function isCfg(reference) {
  * @param {number} ms - The duration in milliseconds.
  * @returns {string} The formatted duration string.
  */
-export function formatDuration(ms, pattern=false) {
+export function formatDuration(ms, pattern=null) {
 	const totalSeconds = Math.floor(ms / 1000);
 	const days = Math.floor(totalSeconds / 86400);
 	const hours = Math.floor((totalSeconds % 86400) / 3600);
 	const minutes = Math.floor((totalSeconds % 3600) / 60);
 	const seconds = totalSeconds % 60;
 
-	const bOn = pattern ? `<span class="skill-value vph-fade">` : "";
+	const bOn = pattern ? `<span class="skill-value ${pattern}">` : "";
 	const bOff = pattern ? `</span>` : "";
 
 	const parts = [];

@@ -129,30 +129,49 @@ export const onRefresh = () => {
                 const activity = activities.Combat;
                 
                 const kph = activity.monster?.kph;
-                const time = activity.monster?.diffTimeStr;
+                // const time = activity.monster?.diffTimeStr;
+                const seconds = activity.monster?.diffTime;
+                const time = mods.getUtils().formatDuration(seconds * 1000, "vph-combat-fade");
                 const result = [];
                 
                 result.push(
-                    `<b>Kills per Hour:</b> <span class="vph">${kph ?? "N/A"}</span>`,
-                    `<b>Fight Duration:</b> <span class="duration">${time ?? "N/A"}</span>`
+                    `<div class="cde-generic-panel">
+                        <span class="vph vph-label">Kills per Hour ➜ </span>
+                        <span class="vph vph-combat">${kph ?? "N/A"}</span></div>
+                        <span class="vph vph-label">Fight Duration ➜ </span>
+                        <span class="vph vph-combat">${time ?? "N/A"}</span>
+                    </div>`
                 );
 
                 if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
                     const skills = activity.skills;
-                    result.push(`<b>Time to Next Level:</b>`);
+                    const labelTime = 
+                        `<div class="cde-generic-panel">
+                            <span class="vph vph-label">Time to Next Level:</span>
+                        </div>`;
+                    result.push(labelTime);
                     _game().skills?.registeredObjects.forEach((skill) => {
                         if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
                             const current = skills[skill.localID];
                             const progression = typeof current.skillNextLevelProgress === "number"
                                 ? Math.round(current.skillNextLevelProgress).toString()
                                 : "N/A";
+                            const seconds = current.secondsToNextLevel;
+                            const timeToNextLevelStr = mods.getUtils().formatDuration(seconds * 1000, "vph-skill-fade");
                             result.push(
-                                `&nbsp;&nbsp;<span class="skill-label">[</span><span class="skill-value">${progression}%</span><span class="skill-label">] ${skill.name}: </span><span class="skill-value">${current.timeToNextLevelStr ?? "N/A"}</span>`
+                                `<div class="cde-generic-panel">
+                                    <span class="skill-label">&nbsp;&nbsp;[</span>
+                                    <span class="skill-value vph-skill">${progression}%</span>
+                                    <span class="skill-label">] </span>
+                                    <span class="skill-value vph-skill">${skill.name}</span>
+                                    <span class="skill-label"> ➜ </span>
+                                    <span class="skill-value vph-skill">${timeToNextLevelStr ?? "N/A"}</span>
+                                </div>`
                             );
                         }
                     });
                 }
-                etaData = result.join("<br>");
+                etaData = `<div class="cde-generic-panel">${result.join("")}</div>`;
                 updated = true;
             }
         }

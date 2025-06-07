@@ -44,7 +44,7 @@
 // Stage 23 - ETA - Mastery
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.10";
+const MOD_VERSION = "v2.0.21";
 
 // --- Module Imports ---
 let mModules = null;

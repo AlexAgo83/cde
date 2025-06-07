@@ -187,6 +187,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
             panel.show(false); 
             return updated;
         }
+        
         /** Refresh & update visibility */
         updated = panel.onRefresh();
         if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:"+localID+"->"+updated);

@@ -321,7 +321,7 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   font-family: inherit;
-  font-size: 16px;
+  font-size: 14px;
   width: 100%;
   max-width: 100%;
 }
@@ -329,34 +329,61 @@
 .cde-eta-generic b {
   color: #fff;
 }
-
-.cde-eta-generic .duration {
+.duration {
   color: #f4ff8f;
 }
-
-.cde-eta-generic .skill-label {
+.skill-label {
   color: #ffd700;
 }
-
-.cde-eta-generic .skill-value {
+.skill-value {
   color: #fff;
 }
 
-.cde-eta-generic .vph {
-  color: #8fff8f;
+/**
+ * Value vph & duration field
+ */
+.vph {
+  color: #ff8f8f;
+  font-family: inherit;
+  font-size: 14px;
+}
+.vph-fade {
+  color: #ff8f8f87;
 }
 
-.cde-eta-generic .vph-skill {
-  color: #8feaff;
-}
-
-.cde-eta-generic .vph-mastery {
+/**
+ * Combat
+ */
+.vph-combat {
   color: #ff8f8f;
 }
-.cde-eta-generic .vph-fade {
-  color: #fdfdfd7e;
+.vph-combat-fade {
+  color: #ff8f8f87;
 }
 
-.cde-generic-panel .cde-generic-list  {
-  margin-bottom: 8px;
+/**
+ * Skill
+ */
+.vph-skill {
+  color: #8feaff;
+}
+.vph-skill-fade {
+  color: #8feaff87;
+}
+
+/**
+ * Mastery
+ */
+.vph-mastery {
+  color: #ff8f8f;
+}
+.vph-mastery-fade {
+  color: #ff8f8f87;
+}
+
+/**
+ * Generic List
+ */
+.cde-generic-list  {
+  margin-bottom: 2px;
 }
