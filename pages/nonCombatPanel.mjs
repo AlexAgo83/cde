@@ -144,12 +144,25 @@ export function createInstance(innerType) {
                                         const currentSkill = skills[activeSkill.localID];
                                         const diffTimeStr = currentSkill.diffTimeStr;
                                         const time = currentSkill.timeToNextLevelStr;
-                                        // ${activeSkill.localID}
+                                        let levelCap = ``;
+                                        if (currentSkill.predictLevels?.size > 0) {
+                                            [...currentSkill.predictLevels.entries()].reverse().forEach(([level, value]) => {
+                                                levelCap += `<div class="cde-generic-panel">
+                                                <span class="skill-label"> ... to </span>
+                                                <span class="skill-value vph">${level}</span>
+                                                <span class="skill-label"> : </span>
+                                                <span class="skill-value vph">${value.timeToCapStr ?? "N/A"}</span>
+                                            </div>`;
+                                            });
+                                        }
                                         result.push(
                                             `<div class="cde-generic-panel">
-                                                <span class="skill-label">Time to Next Level:</span>
+                                                <span class="skill-label">Time to </span>
+                                                <span class="skill-value vph">${currentSkill.skillLevel+1}</span>
+                                                <span class="skill-label"> : </span>
                                                 <span class="skill-value vph">${time ?? "N/A"}</span>
                                             </div>
+                                            ${levelCap}
                                             <div class="cde-generic-panel">
                                                 <span class="skill-label">Craft Duration:</span>
                                                 <span class="skill-value duration">${diffTimeStr ?? "N/A"}</span>

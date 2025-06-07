@@ -201,7 +201,16 @@ export const SettingsReference = {
 		key: "eta-display",
 		label: "Display ETA on Available Pages",
 		hint: "Toggle to show the ETA section on any available page.",
-		toggle: false
+		toggle: true
+	},
+	// ETA
+	ETA_LEVEL_PREDICT: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-level-predict",
+		label: "Predict ETA for Next Levels",
+		hint: "Toggle to enable ETA prediction for upcoming level-ups.",
+		toggle: true
 	},
 	ETA_COMBAT: {
 		section: Sections.ETA,

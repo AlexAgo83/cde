@@ -44,7 +44,7 @@
 
 
 // --- Configuration ---
-const MOD_VERSION = "v1.9.89";
+const MOD_VERSION = "v1.9.95";
 
 // --- Module Imports ---
 let mModules = null;
@@ -198,13 +198,32 @@ function onNonCombat(activity, entry, syncDate=new Date()) {
 function onActiveSkill(skillId, data, syncDate=new Date()) {
 	const now = syncDate;
 
-	const nextLevel = data.skillLevel+1;
+	const currLevel = data.skillLevel;
+	const nextLevel = currLevel+1;
+	const maxLevel = data.skillMaxLevel;
+
+	let predictNextLevels = [];
+	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
+		predictNextLevels = mModules.getUtils().parseNextLevels(currLevel, maxLevel);
+	}
 
 	const currentXp = data.skillXp;
 	const nextLevelXp = mModules.getUtils().getXpForLevel(nextLevel);
 	
 	data.xpLeft = nextLevelXp > currentXp ? nextLevelXp - currentXp : 0;
 	data.nextLevelXp = nextLevelXp > currentXp ? nextLevelXp : 0;
+
+	data.predictLevels = new Map();
+	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
+		predictNextLevels.forEach((cap) => {
+			const xpCap = mModules.getUtils().getXpForLevel(cap);
+			const predictItem = {
+				xpCap: xpCap,
+				xpDiff: xpCap - currentXp
+			};
+			data.predictLevels.set(cap, predictItem);
+		});
+	}
 
 	// Request first record for skill data
 	let currentSkillData = mModules.getCloudStorage().getCurrentSkillData();
@@ -292,6 +311,14 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			const secondsToNextLevel = data.xpLeft / (data.xph / 3600);
 			data.secondsToNextLevel = +secondsToNextLevel.toFixed(0);
 			data.timeToNextLevelStr = mModules.getUtils().formatDuration(data.secondsToNextLevel * 1000);
+		}
+
+		if (isCfg(Stg().ETA_LEVEL_PREDICT) && data.predictLevels?.size > 0) {
+			data.predictLevels.forEach((value) => {
+				const secondsToCapLevel = value.xpDiff / (data.xph / 3600);
+				value.secondsToCap = +secondsToCapLevel.toFixed(0);
+				value.timeToCapStr = mModules.getUtils().formatDuration(value.secondsToCap * 1000);
+			});
 		}
 	}
 }

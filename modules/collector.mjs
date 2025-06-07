@@ -567,7 +567,8 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					// idSkill: skill.localID,
 					skillXp: skill.xp,
 					skillNextLevelProgress: skill.nextLevelProgress,
-					skillLevel: skill.level
+					skillLevel: skill.level,
+					skillMaxLevel: skill.maxLevelCap
 				}
 				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
 					item.recipe = selectedRecipe.localID;

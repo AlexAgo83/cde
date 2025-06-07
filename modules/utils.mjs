@@ -308,3 +308,50 @@ export function showContainer(container, identity, value) {
 		console.log("[CDE] Refresh UI aborted:", container);
 	}
 }
+
+/**
+ * Returns a list of upcoming milestone levels based on the current level.
+ *
+ * This function helps determine which significant level breakpoints
+ * (like 10, 20, 30...99, 110, 120) are still ahead of the current level.
+ * It distinguishes between standard progression (max level 99) and DLC progression (max level 120).
+ *
+ * @param {number} currLevel - The current level of the skill or character.
+ * @param {number} [levelCap=120] - The maximum level achievable (default is 120).
+ * @returns {number[]} An array of milestone levels greater than the current level,
+ *                     ordered from highest to lowest priority.
+ *
+ * @example
+ * parseNextLevels(85); // Returns [99, 90]
+ *
+ * @example
+ * parseNextLevels(105); // Returns [120, 110]
+ *
+ * @example
+ * parseNextLevels(9); // Returns [99, 10]
+ */
+export function parseNextLevels(currLevel, levelCap=120) {
+	const levels = [];
+	const nextLevel = currLevel + 1;
+	const standardProgression = nextLevel < 99;
+	const dlcProgression = nextLevel < 120 && !standardProgression;
+
+	if (dlcProgression) {
+		if (nextLevel < 120) levels.push(120);
+		if (nextLevel < 110) levels.push(110);
+	} else if (standardProgression) {
+		if (nextLevel < 99) levels.push(99);
+
+		if (nextLevel < 90 && nextLevel >= 80) levels.push(90);
+		if (nextLevel < 80 && nextLevel >= 70) levels.push(80);
+		if (nextLevel < 70 && nextLevel >= 60) levels.push(70);
+		if (nextLevel < 60 && nextLevel >= 50) levels.push(60);
+		if (nextLevel < 50 && nextLevel >= 40) levels.push(50);
+		if (nextLevel < 40 && nextLevel >= 30) levels.push(40);
+		if (nextLevel < 30 && nextLevel >= 20) levels.push(30);
+		if (nextLevel < 20 && nextLevel >= 10) levels.push(20);
+		if (nextLevel < 10 && nextLevel >= 1) levels.push(10);
+	}
+	
+	return levels;
+}
