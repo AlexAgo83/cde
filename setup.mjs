@@ -42,9 +42,13 @@
 
 // === Plan to 2.0.0 ===
 // Stage 23 - ETA - Mastery
+// Stage 24 - ETA - Next Skill & Mastery Levels
+
+// === Plan to 2.1.0 ===
+// Stage 25 - ETA - Recipe Queue & bank
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.22";
+const MOD_VERSION = "v2.0.24";
 
 // --- Module Imports ---
 let mModules = null;

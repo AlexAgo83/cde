@@ -357,7 +357,11 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         corePanel.style.display = "none";
 
         if (typeof onRefresh === "function") {
-            corePanel.addEventListener("click", onRefresh);
+            corePanel.addEventListener("click", (...args) => {
+                mods.getCloudStorage().removeCurrentMonsterData();
+                mods.getCloudStorage().removeCurrentActivityData();                
+                return onRefresh(...args);
+            });
         }
 
         mutationCompute.container = container;
