@@ -355,10 +355,10 @@
  * Combat
  */
 .vph-combat {
-  color: #ff8f8f;
+  color: #ffa97e;
 }
 .vph-combat-fade {
-  color: #ff8f8f87;
+  color: #ffa97e87;
 }
 
 /**
@@ -386,4 +386,11 @@
  */
 .cde-generic-list  {
   margin-bottom: 2px;
+}
+
+.skill-media {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  margin: 0 4px;
 }

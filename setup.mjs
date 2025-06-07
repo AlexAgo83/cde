@@ -48,7 +48,7 @@
 // Stage 25 - ETA - Recipe Queue & bank
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.25";
+const MOD_VERSION = "v2.0.47";
 
 // --- Module Imports ---
 let mModules = null;
@@ -204,8 +204,10 @@ function onNonCombat(activity, entry, syncDate=new Date()) {
 		}
 		
 		// MASTERIES PREDICT
+		const masteriesToRemove = [];
 		Object.keys(masteries)?.forEach((key) => {
 			const m = masteries[key];
+			if (!m.active) return;
 
 			const skillEntry = entry.skills ? entry.skills[m.skillID] : null;
 			const currMph = skillEntry?.mph ?? 1;
@@ -301,9 +303,14 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
 				? current.startRecipe === data.recipe
 				: true;
-			const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.startRecipeLevel !== "undefined")
-				? current.startRecipeLevel === data.startRecipeLevel
+			const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.recipeLevel !== "undefined")
+				? current.startRecipeLevel === data.recipeLevel
 				: true;
+
+			if (mModules.getSettings().isDebug()) {
+				console.log("[CDE] onActiveSkill:recipe diff", isSameRecipe, data.recipe, current.startRecipe);
+				console.log("[CDE] onActiveSkill:recipe level diff", isSameRecipeLevel, data.recipeLevel, current.startRecipeLevel);
+			}
 
 			if (isSameLevel && (isSameRecipe && isSameRecipeLevel)) {
 				if (mModules.getSettings().isDebug())

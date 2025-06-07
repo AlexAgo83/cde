@@ -146,7 +146,6 @@ export function createInstance(innerType) {
                                 self._game().skills?.registeredObjects.forEach((activeSkill) => {
                                     if (Object.prototype.hasOwnProperty.call(skills, activeSkill.localID)) {
                                         const currentSkill = skills[activeSkill.localID];
-
                                         const diffTime = currentSkill.diffTime;
                                         const diffTimeStr = mods.getUtils().formatDuration(diffTime, "vph-fade");
                                         // const diffTimeStr = currentSkill.diffTimeStr;
@@ -164,11 +163,12 @@ export function createInstance(innerType) {
                                         /** Next level */
                                         if (currentSkill.skillLevel+1 <= currentSkill.skillMaxLevel) {
                                             const skillID = currentSkill.skillID;
+                                            const skillLabel = activeSkill.name;
+                                            const skillMedia = activeSkill.media;
                                             result.push(
                                                 `<div class="cde-generic-panel">
-                                                    <span class="skill-label">〔</span>
-                                                    <span class="skill-value vph-skill">${skillID ?? "N/A"}</span>
-                                                    <span class="skill-label">〕</span>
+                                                    ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : '<span class="skill-media"></span>'}
+                                                    <span class="skill-value vph-skill">${skillLabel ?? "N/A"}</span>
                                                 </div>`
                                             );
                                             result.push(
@@ -220,17 +220,18 @@ export function createInstance(innerType) {
                                     const m = masteries[key];
                                     const parentSkillID = m.skillID;
 
-                                    if (lazySkills.includes(parentSkillID)) {
+                                    if (m.active && lazySkills.includes(parentSkillID)) {
                                         // Next mastery level
                                         const seconds = m?.secondsToNextLvl;
                                         if (seconds && isFinite(seconds)) {
                                             const masteryID = m?.masteryID;
+                                            const masteryMedia = m?.masteryMedia;
+                                            const masteryLabel = m?.masteryLabel;
                                             const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
                                             result.push(
                                                 `<div class="cde-generic-panel">
-                                                    <span class="skill-label">〔</span>
-                                                    <span class="skill-value vph-mastery">${masteryID ?? "N/A"}</span>
-                                                    <span class="skill-label">〕</span>
+                                                    ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : '<span class="skill-media"></span>'}
+                                                    <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>
                                                 </div>`
                                             );
                                             result.push(

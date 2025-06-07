@@ -358,6 +358,7 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
 
         if (typeof onRefresh === "function") {
             corePanel.addEventListener("click", (...args) => {
+                mods.getExport().resetExportData()
                 mods.getCloudStorage().removeCurrentMonsterData();
                 mods.getCloudStorage().removeCurrentActivityData();                
                 return onRefresh(...args);

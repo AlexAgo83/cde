@@ -131,14 +131,14 @@ export const onRefresh = () => {
                 const kph = activity.monster?.kph;
                 // const time = activity.monster?.diffTimeStr;
                 const seconds = activity.monster?.diffTime;
-                const time = mods.getUtils().formatDuration(seconds * 1000, "vph-combat-fade");
+                const time = mods.getUtils().formatDuration(seconds, "vph-combat-fade");
                 const result = [];
                 
                 result.push(
                     `<div class="cde-generic-panel">
-                        <span class="vph vph-label">Kills per Hour ➜ </span>
+                        <span class="skill-label">Kills per Hour ➜ </span>
                         <span class="vph vph-combat">${kph ?? "N/A"}</span></div>
-                        <span class="vph vph-label">Fight Duration ➜ </span>
+                        <span class="skill-label">Fight Duration ➜ </span>
                         <span class="vph vph-combat">${time ?? "N/A"}</span>
                     </div>`
                 );
@@ -147,9 +147,10 @@ export const onRefresh = () => {
                     const skills = activity.skills;
                     const labelTime = 
                         `<div class="cde-generic-panel">
-                            <span class="vph vph-label">Time to Next Level:</span>
+                            <span class="skill-label">Time to Next Level:</span>
                         </div>`;
-                    result.push(labelTime);
+                    
+                    const resultSkills = [];
                     _game().skills?.registeredObjects.forEach((skill) => {
                         if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
                             const current = skills[skill.localID];
@@ -157,19 +158,29 @@ export const onRefresh = () => {
                                 ? Math.round(current.skillNextLevelProgress).toString()
                                 : "N/A";
                             const seconds = current.secondsToNextLevel;
-                            const timeToNextLevelStr = mods.getUtils().formatDuration(seconds * 1000, "vph-skill-fade");
-                            result.push(
-                                `<div class="cde-generic-panel">
-                                    <span class="skill-label">&nbsp;&nbsp;[</span>
-                                    <span class="skill-value vph-skill">${progression}%</span>
-                                    <span class="skill-label">] </span>
-                                    <span class="skill-value vph-skill">${skill.name}</span>
-                                    <span class="skill-label"> ➜ </span>
-                                    <span class="skill-value vph-skill">${timeToNextLevelStr ?? "N/A"}</span>
-                                </div>`
-                            );
+                            if (seconds && seconds > 0) {
+                                const timeToNextLevelStr = mods.getUtils().formatDuration(seconds * 1000, "vph-skill-fade");
+                                const skillMedia = skill.media;
+                                resultSkills.push(
+                                    `<div class="cde-generic-panel">
+                                        <span class="skill-label">&nbsp;&nbsp;[</span>
+                                        <span class="skill-value vph-skill">${progression}%</span>
+                                        <span class="skill-label">] </span>
+                                        ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : '<span class="skill-media"></span>'}
+                                        <span class="skill-value vph-skill">${skill.name}</span>
+                                        <span class="skill-label"> ➜ </span>
+                                        <span class="skill-value vph-skill">${timeToNextLevelStr ?? "N/A"}</span>
+                                    </div>`
+                                );
+                            }
                         }
                     });
+
+                    /* If there are any active skills */
+                    if (resultSkills.length > 0) {
+                        result.push(labelTime);
+                        result.push(...resultSkills);
+                    }
                 }
                 etaData = `<div class="cde-generic-panel">${result.join("")}</div>`;
                 updated = true;

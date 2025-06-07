@@ -541,12 +541,12 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 
 	const actions = _game().activeActions;
 	if (mods.getSettings().isDebug()) {
-		console.log("[CDE] Current actions: ", actions);
+		console.log("[CDE] collectCurrentActivity:currentActions: ", actions);
 	}
 
 	const skills = _game().activeAction?.activeSkills;
 	if (mods.getSettings().isDebug()) {
-		console.log("[CDE] Current skills: ", skills);
+		console.log("[CDE] collectCurrentActivity:currentSkills: ", skills);
 	}
 
 	// ETA - Mode 2
@@ -559,8 +559,14 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			const items = {};
 			const skillsToUpdate = []
 			
-			const selectedRecipe = a.selectedRecipe;
-			const selectedRecipeSkill = selectedRecipe?.skill
+			let selectedRecipe = a.selectedRecipe;
+			let selectedRecipeSkill = selectedRecipe?.skill
+
+			/* Thieving */
+			if (!selectedRecipe && a.currentNPC) {
+				selectedRecipe = a.currentNPC;
+				selectedRecipeSkill = a;
+			}
 
 			skills.forEach((skill) => {
 
@@ -575,14 +581,29 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					skillMaxLevel: currentLevelCap < maxLevelCap ? currentLevelCap : maxLevelCap
 				}
 				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
-					item.recipe = selectedRecipe.localID;
-					item.recipeMaxLevel = skill.masteryLevelCap;
-					const mastery = a.actionMastery?.get(a.selectedRecipe);
+					let recipeID =selectedRecipe.localID;
+					let recipeMaxLvl = skill.masteryLevelCap;
+					let mastery = a.actionMastery?.get(a.selectedRecipe);
+
+					/* Thieving */
+					if (!mastery && a.currentNPC) {
+						recipeID = a.currentNPC.localID
+						mastery = _game().activeAction?.actionMastery?.get(a.currentNPC);
+						if (mods.getSettings().isDebug()) {
+							console.log("[CDE] collectCurrentActivity:thiving:customQueue: ", mastery);
+						}
+					}
+
+					item.recipe = recipeID;
+					item.recipeMaxLevel = recipeMaxLvl;
 					item.recipeXp = mastery?.xp;
 					item.recipeLevel = mastery?.level;
 				}
 				items[skill.localID] = item;
 				skillsToUpdate.push(skill.localID);
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] collectCurrentActivity:onActiveSkill: ", item);
+				}
 				onActiveSkill(skill.localID, item, syncDate);
 			});
 			
@@ -609,6 +630,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					console.log("[CDE] Update combat", entry);
 			} else { /** NON COMBAT SKILLS */
 				const queue = {};
+
 				a.acionItemQueryCache?.keys().forEach((key) => {
 					const mastery = a.actionMastery?.get(key);
 					const item = {};
@@ -618,13 +640,17 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 							mastery.nextLevelProgress)?.percent;
 						item.skillID = a.localID;
 						item.masteryID = key.localID;
+						item.active = selectedRecipe?.localID === item.masteryID && mastery.level < 99;
+						item.masteryLabel = key.name;
 						item.maxteryXp = mastery.xp;
+						item.masteryMedia = key.media;
 						item.maxteryNextLevelProgress = masteryPercent;
 						item.masteryLevel = mastery.level;
-						item.masteryMaxLevel = key.skill?.masteryLevelCap;
+						item.masteryMaxLevel = key.skill?.masteryLevelCap ?? 99;
 						queue[key.localID] = item;
-					}
-				});
+					}		
+				})
+
 				entry.recipeQueue = queue;
 				onNonCombat(a, entry, syncDate);
 				if (mods.getSettings().isDebug())
