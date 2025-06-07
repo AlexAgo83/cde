@@ -44,7 +44,7 @@
 // Stage 23 - ETA - Mastery
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.21";
+const MOD_VERSION = "v2.0.22";
 
 // --- Module Imports ---
 let mModules = null;
@@ -151,6 +151,11 @@ function onCombat(activity, entry, syncDate=new Date()) {
 				console.log("[CDE] Entry change detected", currentMonsterData);
 			}
 			
+			/* Soft cleanup */
+			if (mModules.getCloudStorage().getCurrentActivityData()) {
+				mModules.getCloudStorage().removeCurrentActivityData();
+			}
+
 			/* New current monster */
 			entry.monster.id = entry.monster.id;
 			entry.monster.diffKillcount = 0;
@@ -180,6 +185,7 @@ function onCombat(activity, entry, syncDate=new Date()) {
 function onNonCombat(activity, entry, syncDate=new Date()) {
 	/* Reset current monster data memory */
 	if (mModules.getCloudStorage().getCurrentMonsterData()) {
+		/* Soft cleanup */
 		mModules.getCloudStorage().removeCurrentMonsterData();
 		if (mModules.getSettings().isDebug()) {
 			console.log("[CDE] Clear activity trace", entry.monster);
