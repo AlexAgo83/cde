@@ -223,6 +223,13 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			m.secondsToNextLvl = +(m.masteryNextXpDiff / (currMph / 3600)).toFixed(0);
 			m.timeToNextLvlStr = mods.getUtils().formatDuration(m.secondsToNextLvl * 1000);
 
+			// if (m.masteryNextLvlXp < m.masteryMaxLevel) {
+			// 	const lastXpNeeded = mods.getUtils().getXpForLevel(currMasteryLvl);
+			// 	const totalCost = m.masteryNextLvlXp - lastXpNeeded;
+			// 	const totalOwned = currMasteryXP - lastXpNeeded;
+			// 	m.progression = Math.floor(totalOwned / totalCost);
+			// }
+
 			// ETA - Predict next masteries lvl
 			m.predictLevels = new Map();
 			const prdArr = mods.getUtils().parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
@@ -250,34 +257,77 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 	}
 
     if (isCfg(Stg().ETA_CRAFT)) {
-        /* CRAFT from selectedRecipe */
-        const recipe = _game().activeAction?.selectedRecipe
-        const product = recipe?.product;
-        if (recipe && product) {
-            Object.keys(masteries)?.forEach((key) => {
-                const m = masteries[key];
-                if (!m.active) return; 
-                if (m.masteryID == recipe.localID) {
-                    /** Match recipe & product */
-                    m.productInBank = _game().bank.getQty(product);
-                }
-            });
-        }
-
-        /* CRAFT from selectedSpell */
-        const spell = _game().activeAction?.selectedSpell
+		const recipe = _game().activeAction?.selectedRecipe
+		const product = recipe?.product;
+		const spell = _game().activeAction?.selectedSpell
         const spellCast = spell?.produces;
-        if (spell && spellCast) {
-            Object.keys(masteries)?.forEach((key) => {
-                const m = masteries[key];
-                if (!m.active) return; 
-                if (m.masteryID == spell.localID) {
-                    /** Match recipe & product */
-                    m.productInBank = _game().bank.getQty(spellCast);
-                }
-            });
-        }
-    }
+
+		Object.keys(masteries)?.forEach((key) => {
+			const m = masteries[key];
+			if (!m.active) return; 
+			if (recipe && product && m.masteryID == recipe.localID) {
+				/** Match recipe & product */
+				trustRecipe(m, product, recipe);
+			}
+			if (spell && spellCast && m.masteryID == spell.localID) {
+				/** Match spellCast & spell */
+				trustRecipe(m, spellCast, spell);
+			}
+		});
+	}
+}
+
+function trustRecipe(mastery, itemResult, itemRecipe) {
+	/* Product in bank */
+	mastery.productInBank = _game().bank.getQty(itemResult);
+
+	/* Item costs in bank */
+	const itemCosts = [];
+	let lessActionItem = {};
+
+	const itemCostCb = (value) => {
+		const qteNeed = value.quantity;
+		const qteInBank = _game().bank.getQty(value.item);
+		/* Add item to itemCosts */
+		const item = {
+			itemID: value.item.localID,
+			itemLabel: value.item.name,
+			itemMedia: value.item.media,
+			itemQteNeed: qteNeed,
+			itemQteInBank: qteInBank,
+			itemQteActions: getMaxItems(qteInBank, qteNeed),
+			itemLessActions: false
+		}
+		itemCosts.push(item);
+		/* Find item with less actions */
+		if (lessActionItem && lessActionItem?.itemQteActions) {
+			if (item.itemQteActions < lessActionItem.itemQteActions) {
+				lessActionItem = item;
+			}
+		} else lessActionItem = item;
+	};
+	
+	itemRecipe?.itemCosts?.forEach(itemCostCb);
+	itemRecipe?.fixedItemCosts?.forEach(itemCostCb);
+	itemRecipe?.runesRequired?.forEach(itemCostCb);
+
+	/* Set itemLessActions */
+	if (lessActionItem) {
+		lessActionItem.itemLessActions = true;
+	}
+	mastery.itemCosts = itemCosts;
+	mastery.itemLessAction = lessActionItem;
+}
+/**
+ * 
+ * @param {*} itemInBank 
+ * @param {*} itemPerCast 
+ * @returns 
+ */
+function getMaxItems(itemInBank, itemPerCast) {
+  if (itemPerCast <= 0) return Infinity;
+  if (itemInBank <= 0) return 0;
+  return Math.floor(itemInBank / itemPerCast);
 }
 
 /**

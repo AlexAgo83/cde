@@ -163,7 +163,7 @@ export function createInstance(innerType) {
                                                 <span class="skill-label">Craft Duration :</span>
                                                 <span class="skill-value vph">${diffTimeStr ?? "N/A"}</span>
                                             </div>`
-                                        );
+                                        );  
 
                                         /** Next level */
                                         lazySkills.push(skill.localID);
@@ -171,6 +171,7 @@ export function createInstance(innerType) {
                                         const skillID = currentSkill.skillID;
                                         const skillLabel = activeSkill.name;
                                         const skillMedia = activeSkill.media;
+                                        const skillProgress = currentSkill.skillNextLevelProgress;
 
                                         result.push(
                                             `<div class="cde-generic-panel">
@@ -181,12 +182,20 @@ export function createInstance(innerType) {
                                         if (isMaxed) {
                                             updated = true;
                                         } else if (!isMaxed) {
+                                            let pSkillProgess = ``;
+                                            if (skillProgress) {
+                                                pSkillProgess += `<span class="skill-label">(</span>`;
+                                                pSkillProgess += `<span class="skill-value vph vph-tiny vph-skill">${skillProgress}?.toFixed(2)</span>`;
+                                                pSkillProgess += `<span class="skill-value vph vph-small vph-skill-fade">%</span>`;
+                                                pSkillProgess += `<span class="skill-label">)</span>`;
+                                            }
                                             result.push(
                                                 `<div class="cde-generic-panel">
                                                     <span class="skill-label"> • to </span>
                                                     <span class="skill-value vph-skill">${currentSkill.skillLevel+1}</span>
                                                     <span class="skill-label"> ➜ </span>
                                                     <span class="skill-value vph vph-skill">${timeSkill ?? "N/A"}</span>
+                                                    ${pSkillProgess}
                                                 </div>`
                                             );
                                             updated = true;
@@ -243,6 +252,9 @@ export function createInstance(innerType) {
                                         const masteryLabel = m?.masteryLabel;
                                         const nextMasteryLvl = m?.masteryLevel+1;
                                         const productCount = m?.productInBank;
+                                        const itemCosts = m?.itemCosts;
+                                        const lessActionItem = m?.itemLessAction;
+                                        const masteryProgress = m?.maxteryNextLevelProgress;
                                         
                                         if (masteryID) {
                                             let pcStr = ``;
@@ -256,6 +268,16 @@ export function createInstance(innerType) {
                                                     <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>${pcStr}
                                                 </div>`
                                             );
+                                            /** CRAFT */
+                                            if (this.isCfg(this.Stg().ETA_CRAFT) && itemCosts && lessActionItem) {
+                                                const actionLeft = lessActionItem.itemQteActions;
+                                                resultFooter.push(
+                                                    `<div class="cde-generic-panel">
+                                                        <span class="skill-label">Action left :</span>
+                                                        <span class="skill-value vph">${actionLeft ?? "N/A"}</span>
+                                                    </div>`
+                                                );
+                                            } 
                                             updated = true;
                                         }
                                         
@@ -265,6 +287,13 @@ export function createInstance(innerType) {
                                             }
                                         } else {
                                             if (nextMasteryLvl <= 99 && !isAltMagic && !isCartography) {
+                                                let pMasteryProgess = ``;
+                                                if (masteryProgress) {
+                                                    pMasteryProgess += `<span class="skill-label">(</span>`;
+                                                    pMasteryProgess += `<span class="skill-value vph vph-tiny vph-mastery">${masteryProgress}?.toFixed(2)</span>`;
+                                                    pMasteryProgess += `<span class="skill-value vph vph-small vph-mastery-fade">%</span>`;
+                                                    pMasteryProgess += `<span class="skill-label">)</span>`;
+                                                }
                                                 const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
                                                 result.push(
                                                     `<div class="cde-generic-panel">
@@ -272,6 +301,7 @@ export function createInstance(innerType) {
                                                         <span class="skill-value vph-mastery">${nextMasteryLvl ?? "N/A"}</span>
                                                         <span class="skill-label"> ➜ </span>
                                                         <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
+                                                        ${pMasteryProgess}
                                                     </div>`
                                                 );
                                                 updated = true;
