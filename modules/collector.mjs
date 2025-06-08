@@ -599,6 +599,10 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			}
 			// TODO: handle firemaking
 
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] collectCurrentActivity:selectedRecipe: ", selectedRecipe);
+			}
+
 			skills.forEach((skill) => {
 
 				const maxLevelCap = skill.maxLevelCap;
@@ -670,12 +674,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						const masteryPercent = mods.getUtils().getMasteryProgressPercent(
 							mastery.level,
 							mastery.nextLevelProgress)?.percent;							
-						let isActive = selectedRecipe?.localID === item.masteryID; /* active if selected */
-						isActive = isActive && mastery.level < 99; /* force-inactive if maxed */
-						// isActive = isActive || a.localID === "Woodcutting"; /* force-active if Woodcutting */
 						item.skillID = a.localID;
 						item.masteryID = key.localID;
-						item.active = isActive;
+						item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < 99;
 						item.masteryLabel = key.name;
 						item.maxteryXp = mastery.xp;
 						item.masteryMedia = key.media;
