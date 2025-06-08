@@ -107,6 +107,8 @@ function _CombatManager()  {  return CombatManager;  }
 /* @ts-ignore Handle DEVMODE */
 function _Player()  {  return Player;  }
 /* @ts-ignore Handle DEVMODE */
+function _Enemy()  {  return Enemy;  }
+/* @ts-ignore Handle DEVMODE */
 function _AltMagic() { return AltMagic; }
 /* @ts-ignore Handle DEVMODE */
 function _Archaeology() { return Archaeology; }
@@ -231,10 +233,19 @@ export function worker(ctx) {
         /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
     }))
 
-    /** COMBAT ONLY : Damage */
+    /** COMBAT ONLY : Player - Damage */
     ctx.patch(_Player(), 'damage').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Player doDamage:", args);
+            console.log("[CDE] doWorker:Player damage():", args);
+        }
+        if (!isCfg(Stg().ETA_COMBAT)) return;
+        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+    }))
+
+    /** COMBAT ONLY : Enemy - Damage */
+    ctx.patch(_Enemy(), 'damage').after(patcher((userPage, isCombat, activeAction,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:Enemy damage():", args);
         }
         if (!isCfg(Stg().ETA_COMBAT)) return;
         /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
@@ -370,8 +381,10 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
         if (typeof onRefresh === "function") {
             corePanel.addEventListener("click", (...args) => {
                 mods.getExport().resetExportData()
-                mods.getCloudStorage().removeCurrentMonsterData();
-                mods.getCloudStorage().removeCurrentActivityData();                
+                // mods.getCloudStorage().removeCurrentMonsterData();
+                // mods.getCloudStorage().removeCurrentActivityData();                
+                mods.getLocalStorage().clearStorage();
+		        mods.getCloudStorage().clearStorage();
                 return onRefresh(...args);
             });
         }

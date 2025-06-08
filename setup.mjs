@@ -49,17 +49,10 @@
 // Stage 26 - Live DPS
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.57";
+const MOD_VERSION = "v2.0.67";
 
 // --- Module Imports ---
 let mModules = null;
-
-/* @ts-ignore Handle DEVMODE */
-function _game()  {  return game;  }
-/* @ts-ignore Handle DEVMODE */
-function _ui() { return ui; }
-/* @ts-ignore Handle DEVMODE */
-function _Swal() { return Swal; }
 
 /**
  * Get the proxy-settings reference object.

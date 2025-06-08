@@ -14,6 +14,12 @@ export function init(modules) {
   mods = modules;
 }
 
+// --- MOCK ---
+function _game() {
+	// @ts-ignore
+	return game;
+}
+
 /**
  * Get the settings reference object.
  * @returns {Object} The settings reference object.
@@ -41,39 +47,73 @@ function isCfg(reference) {
  * @param {Date} [syncDate=new Date()] - The timestamp for the event.
  */
 export function onCombat(activity, entry, syncDate=new Date()) {
-	const currentMonsterData = mods.getCloudStorage().getCurrentMonsterData();
+	const savedMonsterData = mods.getCloudStorage().getCurrentMonsterData();
 	const now = syncDate;
 
 	if (isCfg(Stg().ETA_COMBAT) && entry.monster) {
-		if (currentMonsterData 
-			&& typeof currentMonsterData === 'object' 
-			&& currentMonsterData.id === entry.monster.id
-			&& currentMonsterData.startKillcount
-			&& currentMonsterData.startTime
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] onCombat:savedMonsterData", savedMonsterData);
+        }
+        
+		if (savedMonsterData 
+			&& typeof savedMonsterData === 'object' 
+			&& savedMonsterData.id === entry.monster.id
+			&& savedMonsterData.startKillcount
+			&& savedMonsterData.startTime
+            && savedMonsterData.startDmgDealt
+            && savedMonsterData.startDmgTaken
 		) {
-			/* Matching current monster */
-			entry.monster.startKillcount = currentMonsterData.startKillcount;
+            /* Matching current monster */
+            if (mods.getSettings().isDebug()) {
+                console.log("[CDE] onCombat:matchingCurrentMonster", entry.monster);
+            }
+			
+			entry.monster.startKillcount = savedMonsterData.startKillcount;
 			entry.monster.diffKillcount = entry.monster.killCount - entry.monster.startKillcount;
 
-			entry.monster.startTime = new Date(currentMonsterData.startTime);
-			entry.monster.diffTime = now.getTime() - entry.monster.startTime.getTime();
+            entry.monster.startDmgDealt = savedMonsterData.startDmgDealt;
+            entry.monster.startDmgTaken = savedMonsterData.startDmgTaken;
+            entry.monster.diffDmgDealt = 0;
+            entry.monster.diffDmgTaken = 0;
 
+            /* ETA Live DPS */
+            if (isCfg(Stg().ETA_LIVE_DPS)) {
+                entry.monster.diffDmgDealt = mods.getDisplayStats().getDamageDealt(_game().stats) - savedMonsterData.startDmgDealt;
+                entry.monster.diffDmgTaken = mods.getDisplayStats().getDamageTaken(_game().stats) - savedMonsterData.startDmgTaken;
+            }
+
+			entry.monster.startTime = new Date(savedMonsterData.startTime);
+			entry.monster.diffTime = now.getTime() - entry.monster.startTime.getTime();
 			entry.monster.diffTimeStr = mods.getUtils().formatDuration(entry.monster.diffTime);
+
 			if (entry.monster.diffTime > 0) {
+                /* Compute value metrics */
 				entry.monster.kph = Math.round(
 					(entry.monster.diffKillcount / (entry.monster.diffTime / 3600000)) || 0
 				);
+                if (isCfg(Stg().ETA_LIVE_DPS)) {
+                    const dpsDealtRaw = (entry.monster.diffDmgDealt / (entry.monster.diffTime / 1000)) || 0;
+                    const dpsTakenRaw = (entry.monster.diffDmgTaken / (entry.monster.diffTime / 1000)) || 0;
+                    entry.monster.dpsDealt = Math.round(dpsDealtRaw * 100) / 100;
+                    entry.monster.dpsTaken = Math.round(dpsTakenRaw * 100) / 100;
+                }
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] onCombat:computeMetrics", entry.monster);
+                }
 			} else {
 				entry.monster.kph = "NaN";
+                entry.monster.dpsDealt = "NaN";
+                entry.monster.dpsTaken = "NaN";
 			}
+
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] Matching current monster data", entry.monster);
 			}
 		} else {
-			if (currentMonsterData 
-				&& typeof currentMonsterData === 'object'
+			if (savedMonsterData 
+				&& typeof savedMonsterData === 'object'
 				&& mods.getSettings().isDebug()) {
-				console.log("[CDE] Entry change detected", currentMonsterData);
+				console.log("[CDE] Entry change detected", savedMonsterData);
 			}
 			
 			/* Soft cleanup */
@@ -87,8 +127,17 @@ export function onCombat(activity, entry, syncDate=new Date()) {
 			entry.monster.diffTime = 0;
 			entry.monster.diffTimeStr = "NaN";
 			entry.monster.kph = 0;
-			entry.monster.startKillcount = entry.monster.killCount;
+            entry.monster.dpsDealt = 0;
+            entry.monster.dpsTaken = 0;
+
+            /* Start Record */
 			entry.monster.startTime = now;
+			entry.monster.startKillcount = entry.monster.killCount;
+            entry.monster.startDmgDealt = mods.getDisplayStats().getDamageDealt(_game().stats);
+            entry.monster.startDmgTaken = mods.getDisplayStats().getDamageTaken(_game().stats);
+            entry.monster.diffDmgDealt = 0;
+            entry.monster.diffDmgTaken = 0;
+
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] Start activity trace", entry.monster);
 			}
@@ -224,6 +273,8 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
 				? current.startRecipe === data.recipe
 				: true;
+
+            /* RECIPE LEVEL TEST */
 			// const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.recipeLevel !== "undefined")
 			// 	? current.startRecipeLevel === data.recipeLevel
 			// 	: true;

@@ -240,6 +240,14 @@ export const SettingsReference = {
 		hint: "Toggle to show the estimated time remaining to complete your current skill activity, based on recent XP changes.",
 		toggle: true
 	},
+	ETA_LIVE_DPS: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-live-dps",
+		label: "Display Live DPS",
+		hint: "Toggle to show the estimated live dps, based on recent kills and efficiency.",
+		toggle: true
+	},
 
 	// ADVANCE
 	MOD_ENABLED: {

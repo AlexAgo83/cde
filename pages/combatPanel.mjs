@@ -129,15 +129,40 @@ export const onRefresh = () => {
                 const activity = activities.Combat;
                 
                 const kph = activity.monster?.kph;
-                // const time = activity.monster?.diffTimeStr;
+                const kCount = activity.monster?.killCount;
+                const dpsDealt = activity.monster?.dpsDealt?.toFixed(2);
+                const dpsTaken = activity.monster?.dpsTaken?.toFixed(2);
                 const seconds = activity.monster?.diffTime;
+                const media = activity.monster?.media;
                 const time = mods.getUtils().formatDuration(seconds, "vph-combat-fade");
                 const result = [];
                 
                 result.push(
                     `<div class="cde-generic-panel">
                         <span class="skill-label">Kills per Hour ➜ </span>
-                        <span class="vph vph-combat">${kph ?? "N/A"}</span></div>
+                        <span class="vph vph-combat">${kph ?? "N/A"}</span><span class="vph vph-combat-fade">k/h</span>
+                        <span class="skill-label">(</span>${
+                            media ? `<img class="skill-media" src="${media}" />` : '<span class="skill-media"></span>'
+                        }<span class="vph vph-combat-fade">x </span><span class="vph vph-combat">${kCount ?? "N/A"}</span>
+                        <span class="skill-label">)</span>
+                    </div>`
+                );
+                if (isCfg(Stg().ETA_LIVE_DPS)) {
+                    result.push(
+                        `<div class="cde-generic-panel">
+                            <span class="skill-label">DPS Dealt ➜ </span>
+                            <span class="vph vph-combat">${dpsDealt ?? "N/A"}</span><span class="vph vph-combat-fade">dmg/s</span>
+                        </div>`
+                    );
+                    result.push(
+                        `<div class="cde-generic-panel">
+                            <span class="skill-label">DPS Taken ➜ </span>
+                            <span class="vph vph-combat">${dpsTaken ?? "N/A"}</span><span class="vph vph-combat-fade">dmg/s</span>
+                        </div>`
+                    );
+                }
+                result.push(
+                    `<div class="cde-generic-panel">
                         <span class="skill-label">Fight Duration ➜ </span>
                         <span class="vph vph-combat">${time ?? "N/A"}</span>
                     </div>`

@@ -276,3 +276,21 @@ export function displayStatsAsObject(allStats, statType) {
 
   return result;
 }
+
+/**
+ * 
+ * @param {*} allStats 
+ * @returns 
+ */
+export function getDamageDealt(allStats) {
+  return allStats.Combat.get(7);
+}
+
+/**
+ * 
+ * @param {*} allStats 
+ * @returns 
+ */
+export function getDamageTaken(allStats) {
+  return allStats.Combat.get(8);
+}

@@ -551,6 +551,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 
 	// ETA - Mode 2
 	const syncDate = new Date();
+	/* For each actives actions */
 	actions?.registeredObjects?.forEach((a) => {
 		if (a.isActive) {
 			const entry = {
@@ -562,6 +563,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			let selectedRecipe = a.selectedRecipe;
 			let selectedRecipeSkill = selectedRecipe?.skill
 
+			/* Select active action skill as recipe */
 			/* Thieving */
 			if (!selectedRecipe && a.currentNPC) {
 				selectedRecipe = a.currentNPC;
@@ -603,6 +605,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				console.log("[CDE] collectCurrentActivity:selectedRecipe: ", selectedRecipe);
 			}
 
+			/* For each active action skill */
 			skills.forEach((skill) => {
 
 				const maxLevelCap = skill.maxLevelCap;
@@ -615,6 +618,8 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					skillLevel: skill.level,
 					skillMaxLevel: currentLevelCap < maxLevelCap ? currentLevelCap : maxLevelCap
 				}
+
+				/* If the skill is the selected recipe skill */
 				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
 
 					let recipeID = selectedRecipe.localID;
@@ -635,6 +640,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					item.recipeXp = mastery?.xp;
 					item.recipeLevel = mastery?.level;
 				}
+				
 				items[skill.localID] = item;
 				skillsToUpdate.push(skill.localID);
 				if (mods.getSettings().isDebug()) {
@@ -643,13 +649,11 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				onActiveSkill(skill.localID, item, syncDate);
 			});
 			
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] collectCurrentActivity:onSkillsUpdate: ", skillsToUpdate, items);
+			}
 			onSkillsUpdate(skillsToUpdate, items);
 			entry.skills = items;
-
-			// if (a.selectedRecipe?.product?.name || null) {
-			// 	/** Recipe selector */ 
-			// 	entry.recipe = a.selectedRecipe?.product?.localID;
-			// }
 
 			if (a.localID === "Combat") { /** COMBAT SKILLS */
 				entry.attackType = player.attackType;
@@ -658,8 +662,12 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					entry.monster = {
 						name: a.selectedMonster.name,
 						id: a.selectedMonster.localID,
-						killCount: stats.monsterKillCount(a.selectedMonster)
+						killCount: stats.monsterKillCount(a.selectedMonster),
+						media: a.selectedMonster.media
 					};
+				}
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] collectCurrentActivity:onCombat: ", entry, syncDate);
 				}
 				onCombat(a, entry, syncDate);
 				if (mods.getSettings().isDebug())
@@ -667,6 +675,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			} else { /** NON COMBAT SKILLS */
 				const queue = {};
 
+				/* For each active action mastery/recipe/spells */
 				a.acionItemQueryCache?.keys().forEach((key) => {
 					const mastery = a.actionMastery?.get(key);
 					const item = {};
@@ -688,6 +697,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				})
 
 				entry.recipeQueue = queue;
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] collectCurrentActivity:onNonCombat: ", entry, syncDate);
+				}
 				onNonCombat(a, entry, syncDate);
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update non-combat", entry);
