@@ -48,7 +48,7 @@
 // Stage 25 - ETA - Recipe Queue & bank
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.47";
+const MOD_VERSION = "v2.0.53";
 
 // --- Module Imports ---
 let mModules = null;
@@ -303,16 +303,18 @@ function onActiveSkill(skillId, data, syncDate=new Date()) {
 			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
 				? current.startRecipe === data.recipe
 				: true;
-			const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.recipeLevel !== "undefined")
-				? current.startRecipeLevel === data.recipeLevel
-				: true;
+			// const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.recipeLevel !== "undefined")
+			// 	? current.startRecipeLevel === data.recipeLevel
+			// 	: true;
 
 			if (mModules.getSettings().isDebug()) {
 				console.log("[CDE] onActiveSkill:recipe diff", isSameRecipe, data.recipe, current.startRecipe);
-				console.log("[CDE] onActiveSkill:recipe level diff", isSameRecipeLevel, data.recipeLevel, current.startRecipeLevel);
+				//console.log("[CDE] onActiveSkill:recipe level diff", isSameRecipeLevel, data.recipeLevel, current.startRecipeLevel);
 			}
 
-			if (isSameLevel && (isSameRecipe && isSameRecipeLevel)) {
+			if (isSameLevel && (isSameRecipe 
+			//	&& isSameRecipeLevel
+			)) {
 				if (mModules.getSettings().isDebug())
 					console.log("[CDE] onActiveSkill:matching skill", current);
 		 	} else {

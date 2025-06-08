@@ -568,6 +568,37 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				selectedRecipeSkill = a;
 			}
 
+			/* Mining */
+			if (!selectedRecipe && a.selectedRock) {
+				selectedRecipe = a.selectedRock;
+				selectedRecipeSkill = a;
+			}
+
+			/* Fishing */
+			if (!selectedRecipe && a.activeFish) {
+				selectedRecipe = a.activeFish;
+				selectedRecipeSkill = a;
+			}
+
+			/* Alt. Magic */
+			if (!selectedRecipe && a.selectedSpell) {
+				selectedRecipe = a.selectedSpell;
+				selectedRecipeSkill = a;
+			}
+
+			/* Fallback: Active Recipe */
+			if (!selectedRecipe && a.activeRecipe) {
+				selectedRecipe = a.activeRecipe;
+				selectedRecipeSkill = a;
+			} 
+
+			/* Fallback: Mastery Action */
+			if (!selectedRecipe && a.masteryAction) {
+				selectedRecipe = a.masteryAction;
+				selectedRecipeSkill = a;
+			}
+			// TODO: handle firemaking
+
 			skills.forEach((skill) => {
 
 				const maxLevelCap = skill.maxLevelCap;
@@ -581,16 +612,17 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					skillMaxLevel: currentLevelCap < maxLevelCap ? currentLevelCap : maxLevelCap
 				}
 				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
-					let recipeID =selectedRecipe.localID;
-					let recipeMaxLvl = skill.masteryLevelCap;
-					let mastery = a.actionMastery?.get(a.selectedRecipe);
 
-					/* Thieving */
-					if (!mastery && a.currentNPC) {
-						recipeID = a.currentNPC.localID
-						mastery = _game().activeAction?.actionMastery?.get(a.currentNPC);
+					let recipeID = selectedRecipe.localID;
+					let recipeMaxLvl = skill.masteryLevelCap;
+					let mastery = a.actionMastery?.get(selectedRecipe);
+
+					/* Custom: Thieving, Mining, ... */
+					if (!mastery && selectedRecipe) {
+						recipeID = selectedRecipe.localID
+						mastery = _game().activeAction?.actionMastery?.get(selectedRecipe);
 						if (mods.getSettings().isDebug()) {
-							console.log("[CDE] collectCurrentActivity:thiving:customQueue: ", mastery);
+							console.log("[CDE] collectCurrentActivity:XXX:customQueue: ", mastery);
 						}
 					}
 
@@ -637,10 +669,13 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					if (mastery) {
 						const masteryPercent = mods.getUtils().getMasteryProgressPercent(
 							mastery.level,
-							mastery.nextLevelProgress)?.percent;
+							mastery.nextLevelProgress)?.percent;							
+						let isActive = selectedRecipe?.localID === item.masteryID; /* active if selected */
+						isActive = isActive && mastery.level < 99; /* force-inactive if maxed */
+						// isActive = isActive || a.localID === "Woodcutting"; /* force-active if Woodcutting */
 						item.skillID = a.localID;
 						item.masteryID = key.localID;
-						item.active = selectedRecipe?.localID === item.masteryID && mastery.level < 99;
+						item.active = isActive;
 						item.masteryLabel = key.name;
 						item.maxteryXp = mastery.xp;
 						item.masteryMedia = key.media;
