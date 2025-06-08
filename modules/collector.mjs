@@ -648,6 +648,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					skillXp: skill.xp,
 					skillNextLevelProgress: skill.nextLevelProgress,
 					skillLevel: skill.level,
+					skillInterval: skill.currentActionInterval,
 					skillMaxLevel: currentLevelCap < maxLevelCap ? currentLevelCap : maxLevelCap
 				}
 
@@ -758,6 +759,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 							item.maxteryNextLevelProgress = masteryPercent;
 							item.masteryLevel = mastery.level;
 							item.masteryMaxLevel = key.skill?.masteryLevelCap ?? 99;
+							item.currentActionInterval = a.currentActionInterval;
 							queue[key.localID] = item;
 						}		
 					})
@@ -781,6 +783,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						item.maxteryNextLevelProgress = masteryPercent;
 						item.masteryLevel = mastery.level;
 						item.masteryMaxLevel = a.maxLevelCap;
+						item.currentActionInterval = a.currentActionInterval;
 						queue[a.localID] = item;
 					}	
 				/* (Specific Cartography) Parse Hex.POI as mastery */
@@ -803,6 +806,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						item.maxteryNextLevelProgress = masteryPercent;
 						item.masteryLevel = mastery.level;
 						item.masteryMaxLevel = a.maxLevelCap;
+						item.currentActionInterval = a.currentActionInterval;
 						queue[a.localID] = item;
 					}
 				}

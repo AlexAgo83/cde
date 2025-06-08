@@ -185,7 +185,7 @@ export function createInstance(innerType) {
                                             let pSkillProgess = ``;
                                             if (skillProgress) {
                                                 pSkillProgess += `<span class="skill-label">(</span>`;
-                                                pSkillProgess += `<span class="skill-value vph vph-tiny vph-skill">${skillProgress}?.toFixed(2)</span>`;
+                                                pSkillProgess += `<span class="skill-value vph vph-tiny vph-skill">${skillProgress?.toFixed(2)}</span>`;
                                                 pSkillProgess += `<span class="skill-value vph vph-small vph-skill-fade">%</span>`;
                                                 pSkillProgess += `<span class="skill-label">)</span>`;
                                             }
@@ -256,6 +256,7 @@ export function createInstance(innerType) {
                                         const lessActionItem = m?.itemLessAction;
                                         const masteryProgress = m?.maxteryNextLevelProgress;
                                         
+                                        
                                         if (masteryID) {
                                             let pcStr = ``;
                                             if (productCount && isFinite(productCount)) {
@@ -270,11 +271,20 @@ export function createInstance(innerType) {
                                             );
                                             /** CRAFT */
                                             if (this.isCfg(this.Stg().ETA_CRAFT) && itemCosts && lessActionItem) {
+                                                const actionInterval = m?.actionTimeMs;
+                                                let pActionInterval = ``;
+                                                if (actionInterval) {
+                                                    pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">more than </span>`;
+                                                    const inter = mods.getUtils().formatDuration(actionInterval, "vph-mastery-fade");
+                                                    pActionInterval += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
+                                                    pActionInterval += `<span class="skill-label">)</span>`;
+                                                }
                                                 const actionLeft = lessActionItem.itemQteActions;
                                                 resultFooter.push(
                                                     `<div class="cde-generic-panel">
                                                         <span class="skill-label">Action left :</span>
-                                                        <span class="skill-value vph">${actionLeft ?? "N/A"}</span>
+                                                        <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                        ${pActionInterval}
                                                     </div>`
                                                 );
                                             } 
@@ -290,7 +300,7 @@ export function createInstance(innerType) {
                                                 let pMasteryProgess = ``;
                                                 if (masteryProgress) {
                                                     pMasteryProgess += `<span class="skill-label">(</span>`;
-                                                    pMasteryProgess += `<span class="skill-value vph vph-tiny vph-mastery">${masteryProgress}?.toFixed(2)</span>`;
+                                                    pMasteryProgess += `<span class="skill-value vph vph-tiny vph-mastery">${masteryProgress?.toFixed(2)}</span>`;
                                                     pMasteryProgess += `<span class="skill-value vph vph-small vph-mastery-fade">%</span>`;
                                                     pMasteryProgess += `<span class="skill-label">)</span>`;
                                                 }

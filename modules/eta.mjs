@@ -210,6 +210,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			const m = masteries[key];
 			if (!m.active) return;
 
+			// Current values
 			const skillEntry = entry.skills ? entry.skills[m.skillID] : null;
 			const currMph = skillEntry?.mph ?? 1;
 			const currMasteryLvl = m.masteryLevel;
@@ -222,6 +223,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			m.masteryNextXpDiff = m.masteryNextLvlXp - currMasteryXP;
 			m.secondsToNextLvl = +(m.masteryNextXpDiff / (currMph / 3600)).toFixed(0);
 			m.timeToNextLvlStr = mods.getUtils().formatDuration(m.secondsToNextLvl * 1000);
+			m.currentActionInterval = activity?.actionInterval ?? 0;
 
 			// if (m.masteryNextLvlXp < m.masteryMaxLevel) {
 			// 	const lastXpNeeded = mods.getUtils().getXpForLevel(currMasteryLvl);
@@ -317,6 +319,11 @@ function trustRecipe(mastery, itemResult, itemRecipe) {
 	}
 	mastery.itemCosts = itemCosts;
 	mastery.itemLessAction = lessActionItem;
+
+	if (mastery.currentActionInterval > 0 && mastery.itemLessAction) {
+		const actionTimeMs = mastery.itemLessAction.itemQteActions * mastery.currentActionInterval;
+		mastery.actionTimeMs = actionTimeMs;
+	}
 }
 /**
  * 

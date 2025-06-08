@@ -42,7 +42,8 @@ function isCfg(reference) {
  * @returns {string} The formatted duration string.
  */
 export function formatDuration(ms, pattern=null) {
-	const totalSeconds = Math.floor(ms / 1000);
+	const msRender = ms/1000;
+	const totalSeconds = Math.floor(msRender);
 	const days = Math.floor(totalSeconds / 86400);
 	const hours = Math.floor((totalSeconds % 86400) / 3600);
 	const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -57,8 +58,13 @@ export function formatDuration(ms, pattern=null) {
 	if (minutes > 0) parts.push(`${minutes}${bOn}m${bOff}`);
 
 	// If less thant a day
-	if (hours === 0 && days === 0 && (seconds > 0 || parts.length === 0)) parts.push(`${seconds}${bOn}s${bOff}`);
-
+	if (hours === 0 && days === 0 && (seconds > 0 || parts.length === 0)) {
+		// if (seconds < 10) {
+		// 	parts.push(`${msRender}${bOn}s${bOff}`);
+		// } else {
+			parts.push(`${seconds}${bOn}s${bOff}`);
+		// }
+	}
 	return parts.join(' ');
 }
 
