@@ -105,6 +105,8 @@ function _Thieving() { return Thieving; }
 /* @ts-ignore Handle DEVMODE */
 function _CombatManager()  {  return CombatManager;  }
 /* @ts-ignore Handle DEVMODE */
+function _Player()  {  return Player;  }
+/* @ts-ignore Handle DEVMODE */
 function _AltMagic() { return AltMagic; }
 /* @ts-ignore Handle DEVMODE */
 function _Archaeology() { return Archaeology; }
@@ -220,10 +222,19 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
  * @param {*} ctx - The context object used to patch game methods.
  */
 export function worker(ctx) {
-    /** COMBAT ONLY */
+    /** COMBAT ONLY : Enemy Death */
     ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Enemy death rised:", args);
+        }
+        if (!isCfg(Stg().ETA_COMBAT)) return;
+        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+    }))
+
+    /** COMBAT ONLY : Damage */
+    ctx.patch(_Player(), 'damage').after(patcher((userPage, isCombat, activeAction,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:Player doDamage:", args);
         }
         if (!isCfg(Stg().ETA_COMBAT)) return;
         /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");

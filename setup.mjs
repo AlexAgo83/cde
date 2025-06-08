@@ -46,9 +46,10 @@
 
 // === Plan to 2.1.0 ===
 // Stage 25 - ETA - Recipe Queue & bank
+// Stage 26 - Live DPS
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.55";
+const MOD_VERSION = "v2.0.56";
 
 // --- Module Imports ---
 let mModules = null;
