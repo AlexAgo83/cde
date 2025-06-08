@@ -712,8 +712,17 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						name: a.selectedMonster.name,
 						id: a.selectedMonster.localID,
 						killCount: stats.monsterKillCount(a.selectedMonster),
-						media: a.selectedMonster.media
+						media: a.selectedMonster.media,
 					};
+					/* Record specific area */
+					if (a.selectedArea) {
+						entry.monster.area = {
+							areaID: a.selectedArea?.localID,
+							areaLabel: a.selectedArea?.name,
+							areaMedia: a.selectedArea?.media,
+							areaType: a.selectedArea?.category?.localID
+						}
+					}
 				}
 				
 				// entry.recipeQueue = queue;

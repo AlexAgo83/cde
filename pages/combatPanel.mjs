@@ -135,20 +135,22 @@ export const onRefresh = () => {
                 
                 const kph = activity.monster?.kph;
                 const kCount = activity.monster?.killCount;
-                const dpsDealt = activity.monster?.dpsDealt?.toFixed(2);
-                const dpsTaken = activity.monster?.dpsTaken?.toFixed(2);
+                const dpsDealt = activity.monster?.dpsDealt;
+                const dpsTaken = activity.monster?.dpsTaken;
                 const seconds = activity.monster?.diffTime;
                 const media = activity.monster?.media;
+                const areaMedia = activity.monster?.area?.areaMedia;
                 const time = mods.getUtils().formatDuration(seconds, "vph-combat-fade");
                 const result = [];
                 
                 result.push(
                     `<div class="cde-generic-panel">
-                        ${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : '<span class="skill-media"></span>'}
+                        ${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : `<span class="skill-media"></span>`}
                         <span class="skill-label">Kills per Hour ➜ </span>
                         <span class="vph vph-combat">${kph ?? "N/A"}</span><span class="vph vph-combat-fade">k/h</span>
                         <span class="skill-label">(</span>${
-                            media ? `<img class="skill-media" src="${media}" />` : '<span class="skill-media"></span>'
+                            (areaMedia ? `<img class="skill-media" src="${areaMedia}"/>`:`<span class="skill-media"></span>`)
+                            + (media ? `<img class="skill-media" src="${media}"/>`:`<span class="skill-media"></span>`)
                         }<span class="vph vph-combat-fade">x </span><span class="vph vph-combat">${kCount ?? "N/A"}</span>
                         <span class="skill-label">)</span>
                     </div>`
@@ -156,14 +158,14 @@ export const onRefresh = () => {
                 if (isCfg(Stg().ETA_LIVE_DPS)) {
                     result.push(
                         `<div class="cde-generic-panel">
-                            ${URL_COMBAT ? `<img class="skill-media" src="${URL_COMBAT}" />` : '<span class="skill-media"></span>'}
+                            ${URL_COMBAT ? `<img class="skill-media" src="${URL_COMBAT}" />` : `<span class="skill-media"></span>`}
                             <span class="skill-label">DPS Dealt ➜ </span>
                             <span class="vph vph-combat-dealt">${dpsDealt ?? "N/A"}</span><span class="vph vph-combat-dealt-fade">dmg/s</span>
                         </div>`
                     );
                     result.push(
                         `<div class="cde-generic-panel">
-                            ${URL_DEFENCE ? `<img class="skill-media" src="${URL_DEFENCE}" />` : '<span class="skill-media"></span>'}
+                            ${URL_DEFENCE ? `<img class="skill-media" src="${URL_DEFENCE}" />` : `<span class="skill-media"></span>`}
                             <span class="skill-label">DPS Taken ➜ </span>
                             <span class="vph vph-combat-taken">${dpsTaken ?? "N/A"}</span><span class="vph vph-combat-taken-fade">dmg/s</span>
                         </div>`
@@ -171,7 +173,7 @@ export const onRefresh = () => {
                 }
                 result.push(
                     `<div class="cde-generic-panel">
-                        ${URL_STATISTICS ? `<img class="skill-media" src="${URL_STATISTICS}" />` : '<span class="skill-media"></span>'}
+                        ${URL_STATISTICS ? `<img class="skill-media" src="${URL_STATISTICS}" />` : `<span class="skill-media"></span>`}
                         <span class="skill-label">Fight Duration ➜ </span>
                         <span class="vph vph-combat">${time ?? "N/A"}</span>
                     </div>`
@@ -197,7 +199,7 @@ export const onRefresh = () => {
                                 const skillMedia = skill.media;
                                 resultSkills.push(
                                     `<div class="cde-generic-panel">
-                                        ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : '<span class="skill-media"></span>'}
+                                        ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : `<span class="skill-media"></span>`}
                                         <span class="skill-value vph-skill">${skill.name}</span>
                                         <span class="skill-label"> ➜ </span>
                                         <span class="skill-value vph-skill">${timeToNextLevelStr ?? "N/A"}</span>
