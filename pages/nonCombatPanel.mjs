@@ -161,10 +161,12 @@ export function createInstance(innerType) {
                                         );
 
                                         /** Next level */
+                                        lazySkills.push(skill.localID);
                                         if (currentSkill.skillLevel+1 <= currentSkill.skillMaxLevel) {
                                             const skillID = currentSkill.skillID;
                                             const skillLabel = activeSkill.name;
                                             const skillMedia = activeSkill.media;
+
                                             result.push(
                                                 `<div class="cde-generic-panel">
                                                     ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : '<span class="skill-media"></span>'}
@@ -202,7 +204,6 @@ export function createInstance(innerType) {
                                                 });
                                                 result.push(levelCap);
                                                 updated = true;
-                                                lazySkills.push(skill.localID);
                                             }
                                         }   
                                     }
@@ -228,6 +229,7 @@ export function createInstance(innerType) {
                                             const masteryID = m?.masteryID;
                                             const masteryMedia = m?.masteryMedia;
                                             const masteryLabel = m?.masteryLabel;
+                                            const nextMasteryLvl = m?.masteryLevel+1;
                                             const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
                                             result.push(
                                                 `<div class="cde-generic-panel">
@@ -239,20 +241,12 @@ export function createInstance(innerType) {
                                                 result.push(
                                                     `<div class="cde-generic-panel">
                                                         <span class="skill-label"> ... to </span>
-                                                        <span class="skill-value vph-mastery">${m?.masteryLevel ?? "N/A"}</span>
+                                                        <span class="skill-value vph-mastery">${nextMasteryLvl ?? "N/A"}</span>
                                                         <span class="skill-label"> ➜ </span>
                                                         <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
                                                     </div>`
                                                 );
                                             }
-                                            result.push(
-                                                `<div class="cde-generic-panel">
-                                                    <span class="skill-label"> ... to </span>
-                                                    <span class="skill-value vph-mastery">${m?.masteryNextLvl ?? "N/A"}</span>
-                                                    <span class="skill-label"> ➜ </span>
-                                                    <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
-                                                </div>`
-                                            );
                                             updated = true;
 
                                             // Predict next masteries level
