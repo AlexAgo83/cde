@@ -134,6 +134,7 @@ export const onRefresh = () => {
                 const activity = activities.Combat;
                 
                 const kph = activity.monster?.kph;
+                const dCount = activity.monster?.area?.areaCompletion;
                 const kCount = activity.monster?.killCount;
                 const dpsDealt = activity.monster?.dpsDealt;
                 const dpsTaken = activity.monster?.dpsTaken;
@@ -143,18 +144,24 @@ export const onRefresh = () => {
                 const time = mods.getUtils().formatDuration(seconds, "vph-combat-fade");
                 const result = [];
                 
+                
+                let pKphStr = `${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : `<span class="skill-media"></span>`}`;
+                pKphStr += `<span class="skill-label">Kills per Hour ➜ </span>`;
+                if (!kph || kph === "NaN" || kph === 0) {
+                    pKphStr += `<span class="vph vph-tiny vph-combat-fade">Compute ⏱️</span>`;
+                } else {
+                    pKphStr += `<span class="vph vph-combat">${kph ?? "N/A"}</span><span class="vph vph-combat-fade">k/h</span>`;
+                }
+
+                let pMediaArea = `${(areaMedia ? `<img class="skill-media" src="${areaMedia}"/>`:`<span class="skill-media"></span>`)}`;
+                let pMediaMonster = `${(media ? `<img class="skill-media" src="${media}"/>`:`<span class="skill-media"></span>`)}`;
+                let pCountAreaStr = dCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${dCount}</span>`:``;
+                let pCountMonsterStr = kCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${kCount}</span>`:``;
+
                 result.push(
-                    `<div class="cde-generic-panel">
-                        ${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : `<span class="skill-media"></span>`}
-                        <span class="skill-label">Kills per Hour ➜ </span>
-                        <span class="vph vph-combat">${kph ?? "N/A"}</span><span class="vph vph-combat-fade">k/h</span>
-                        <span class="skill-label">(</span>${
-                            (areaMedia ? `<img class="skill-media" src="${areaMedia}"/>`:`<span class="skill-media"></span>`)
-                            + (media ? `<img class="skill-media" src="${media}"/>`:`<span class="skill-media"></span>`)
-                        }<span class="vph vph-combat-fade">x </span><span class="vph vph-combat">${kCount ?? "N/A"}</span>
-                        <span class="skill-label">)</span>
-                    </div>`
+                    `<div class="cde-generic-panel">${pKphStr}<span class="skill-label"> (</span>${pMediaArea}${pCountAreaStr}${pMediaMonster}${pCountMonsterStr}<span class="skill-label"> )</span></div>`
                 );
+
                 if (isCfg(Stg().ETA_LIVE_DPS)) {
                     result.push(
                         `<div class="cde-generic-panel">
@@ -201,6 +208,7 @@ export const onRefresh = () => {
                                     `<div class="cde-generic-panel">
                                         ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : `<span class="skill-media"></span>`}
                                         <span class="skill-value vph-skill">${skill.name}</span>
+                                        <span class="skill-value vph-tiny vph-skill-fade"> to ${skill.level+1}</span>
                                         <span class="skill-label"> ➜ </span>
                                         <span class="skill-value vph-skill">${timeToNextLevelStr ?? "N/A"}</span>
                                         <span class="skill-label">( </span><span class="skill-value vph-skill">${progression}</span><span class="skill-value vph-tiny vph-skill-fade">%</span><span class="skill-label"> )</span>

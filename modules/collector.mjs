@@ -719,6 +719,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						entry.monster.area = {
 							areaID: a.selectedArea?.localID,
 							areaLabel: a.selectedArea?.name,
+							areaCompletion: _game().combat?.getDungeonCompleteCount(a.selectedArea),
 							areaMedia: a.selectedArea?.media,
 							areaType: a.selectedArea?.category?.localID
 						}
