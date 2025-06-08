@@ -224,6 +224,7 @@ export function createInstance(innerType) {
                                         // Next mastery level
                                         const seconds = m?.secondsToNextLvl;
                                         if (seconds && isFinite(seconds)) {
+                                            const isAltMagic = m?.skillID === "Magic";
                                             const masteryID = m?.masteryID;
                                             const masteryMedia = m?.masteryMedia;
                                             const masteryLabel = m?.masteryLabel;
@@ -234,6 +235,16 @@ export function createInstance(innerType) {
                                                     <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>
                                                 </div>`
                                             );
+                                            if (!isAltMagic) {
+                                                result.push(
+                                                    `<div class="cde-generic-panel">
+                                                        <span class="skill-label"> ... to </span>
+                                                        <span class="skill-value vph-mastery">${m?.masteryLevel ?? "N/A"}</span>
+                                                        <span class="skill-label"> ➜ </span>
+                                                        <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
+                                                    </div>`
+                                                );
+                                            }
                                             result.push(
                                                 `<div class="cde-generic-panel">
                                                     <span class="skill-label"> ... to </span>
@@ -246,7 +257,7 @@ export function createInstance(innerType) {
 
                                             // Predict next masteries level
                                             const predictLevels = m?.predictLevels;
-                                            if (predictLevels && predictLevels.size > 0) {
+                                            if (!isAltMagic &&predictLevels && predictLevels.size > 0) {
                                                 [...predictLevels.entries()].reverse().forEach(([level, value]) => {
                                                     const secondsToCap = value?.secondsToCap;
                                                     if (secondsToCap && isFinite(secondsToCap)) {

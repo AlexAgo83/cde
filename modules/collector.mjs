@@ -19,6 +19,10 @@ function _game() {
 	// @ts-ignore
 	return game;
 }
+function _AltMagicSpell() {
+	// @ts-ignore
+	return AltMagicSpell;
+}
 
 /**
  * Get the settings reference object.
@@ -562,6 +566,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			
 			let selectedRecipe = a.selectedRecipe;
 			let selectedRecipeSkill = selectedRecipe?.skill
+			if (selectedRecipe && !selectedRecipeSkill) {
+				selectedRecipeSkill = a;
+			}
 
 			/* Select active action skill as recipe */
 			/* Thieving */
@@ -588,6 +595,12 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				selectedRecipeSkill = a;
 			}
 
+			/* Firemaking */
+			// if (!selectedRecipe && a.litBonfireRecipe) {
+			// 	selectedRecipe = a.litBonfireRecipe;
+			// 	selectedRecipeSkill = a;
+			// }
+
 			/* Fallback: Active Recipe */
 			if (!selectedRecipe && a.activeRecipe) {
 				selectedRecipe = a.activeRecipe;
@@ -599,7 +612,6 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				selectedRecipe = a.masteryAction;
 				selectedRecipeSkill = a;
 			}
-			// TODO: handle firemaking
 
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] collectCurrentActivity:selectedRecipe: ", selectedRecipe);
@@ -619,6 +631,10 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					skillMaxLevel: currentLevelCap < maxLevelCap ? currentLevelCap : maxLevelCap
 				}
 
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] collectCurrentActivity:matchRecipe: ", selectedRecipeSkill, skill);
+				}
+
 				/* If the skill is the selected recipe skill */
 				if (selectedRecipeSkill && skill.localID === selectedRecipeSkill.localID) {
 
@@ -628,10 +644,17 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 
 					/* Custom: Thieving, Mining, ... */
 					if (!mastery && selectedRecipe) {
-						recipeID = selectedRecipe.localID
-						mastery = _game().activeAction?.actionMastery?.get(selectedRecipe);
-						if (mods.getSettings().isDebug()) {
-							console.log("[CDE] collectCurrentActivity:XXX:customQueue: ", mastery);
+						if (selectedRecipe instanceof _AltMagicSpell()) {
+							mastery = a;
+							if (mods.getSettings().isDebug()) {
+								console.log("[CDE] collectCurrentActivity:altMagic:customQueue: ", mastery);
+							}	
+						} else {
+							recipeID = selectedRecipe.localID
+							mastery = _game().activeAction?.actionMastery?.get(selectedRecipe);
+							if (mods.getSettings().isDebug()) {
+								console.log("[CDE] collectCurrentActivity:Other:customQueue: ", mastery);
+							}	
 						}
 					}
 
@@ -656,6 +679,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			entry.skills = items;
 
 			if (a.localID === "Combat") { /** COMBAT SKILLS */
+				// const queue = {};
 				entry.attackType = player.attackType;
 				entry.area = { name: a.selectedArea?.name, id: a.selectedArea?.localID };
 				if (a.selectedMonster) {
@@ -666,6 +690,8 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						media: a.selectedMonster.media
 					};
 				}
+				
+				// entry.recipeQueue = queue;
 				if (mods.getSettings().isDebug()) {
 					console.log("[CDE] collectCurrentActivity:onCombat: ", entry, syncDate);
 				}
@@ -675,26 +701,48 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			} else { /** NON COMBAT SKILLS */
 				const queue = {};
 
-				/* For each active action mastery/recipe/spells */
-				a.acionItemQueryCache?.keys().forEach((key) => {
-					const mastery = a.actionMastery?.get(key);
+				/* Parse all action in query cache */
+				if (a.acionItemQueryCache && a.acionItemQueryCache.size > 0) {
+					/* For each active action mastery/recipe/spells */
+					a.acionItemQueryCache?.keys().forEach((key) => {
+						const mastery = a.actionMastery?.get(key);
+						const item = {};
+						if (mastery) {
+							const masteryPercent = mods.getUtils().getMasteryProgressPercent(
+								mastery.level,
+								mastery.nextLevelProgress)?.percent;							
+							item.skillID = a.localID;
+							item.masteryID = key.localID;
+							item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < 99;
+							item.masteryLabel = key.name;
+							item.maxteryXp = mastery.xp;
+							item.masteryMedia = key.media;
+							item.maxteryNextLevelProgress = masteryPercent;
+							item.masteryLevel = mastery.level;
+							item.masteryMaxLevel = key.skill?.masteryLevelCap ?? 99;
+							queue[key.localID] = item;
+						}		
+					})
+				/* (Specific AltMagic) Parse AltSpell as mastery */
+				} else if (a.localID == "Magic") {
+					const mastery = a;
 					const item = {};
-					if (mastery) {
-						const masteryPercent = mods.getUtils().getMasteryProgressPercent(
-							mastery.level,
-							mastery.nextLevelProgress)?.percent;							
-						item.skillID = a.localID;
-						item.masteryID = key.localID;
-						item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < 99;
-						item.masteryLabel = key.name;
-						item.maxteryXp = mastery.xp;
-						item.masteryMedia = key.media;
-						item.maxteryNextLevelProgress = masteryPercent;
-						item.masteryLevel = mastery.level;
-						item.masteryMaxLevel = key.skill?.masteryLevelCap ?? 99;
-						queue[key.localID] = item;
-					}		
-				})
+						if (mastery) {
+							const masteryPercent = mods.getUtils().getMasteryProgressPercent(
+								mastery.level,
+								mastery.nextLevelProgress)?.percent;							
+							item.skillID = a.localID;
+							item.masteryID = a.selectedSpell.localID;
+							item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < mastery.maxLevelCap;
+							item.masteryLabel = a.selectedSpell.name;
+							item.maxteryXp = mastery.xp;
+							item.masteryMedia = a.selectedSpell.media;
+							item.maxteryNextLevelProgress = masteryPercent;
+							item.masteryLevel = mastery.level;
+							item.masteryMaxLevel = a.maxLevelCap;
+							queue[a.localID] = item;
+						}	
+				}
 
 				entry.recipeQueue = queue;
 				if (mods.getSettings().isDebug()) {
