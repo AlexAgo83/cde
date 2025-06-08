@@ -146,7 +146,7 @@ export const onRefresh = () => {
                 
                 
                 let pKphStr = `${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : `<span class="skill-media"></span>`}`;
-                pKphStr += `<span class="skill-label">Kills per Hour ➜ </span>`;
+                pKphStr += `<span class="skill-label"> Kills per Hour ➜ </span>`;
                 if (!kph || kph === "NaN" || kph === 0) {
                     pKphStr += `<span class="vph vph-tiny vph-combat-fade">Compute ⏱️</span>`;
                 } else {
@@ -211,7 +211,7 @@ export const onRefresh = () => {
                                         <span class="skill-value vph-tiny vph-skill-fade"> to ${skill.level+1}</span>
                                         <span class="skill-label"> ➜ </span>
                                         <span class="skill-value vph-skill">${timeToNextLevelStr ?? "N/A"}</span>
-                                        <span class="skill-label">( </span><span class="skill-value vph-skill">${progression}</span><span class="skill-value vph-tiny vph-skill-fade">%</span><span class="skill-label"> )</span>
+                                        <span class="skill-label">( </span><span class="skill-value vph-tiny vph-skill">${progression}</span><span class="skill-value vph-small vph-skill-fade">%</span><span class="skill-label"> )</span>
                                     </div>`
                                 );
                             }

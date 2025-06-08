@@ -748,7 +748,8 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 								mastery.nextLevelProgress)?.percent;							
 							item.skillID = a.localID;
 							item.masteryID = key.localID;
-							item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < 99;
+							// item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < 99;
+							item.active = selectedRecipe?.localID === item.masteryID;
 							item.masteryLabel = key.name;
 							item.maxteryXp = mastery.xp;
 							item.masteryMedia = key.media;

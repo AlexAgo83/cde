@@ -350,6 +350,9 @@
 .vph-tiny {
   font-size: 12px;
 }
+.vph-small {
+  font-size: 10px;
+}
 .vph-fade {
   color: #ff8f8f87;
 }

@@ -143,6 +143,11 @@ export function createInstance(innerType) {
 
                                 // Parse Skills
                                 const skills = activity.skills;
+
+                                if (mods.getSettings().isDebug()) {
+                                    console.log("[CDE] nonCombatPanel:onRefresh:skills", skills);
+                                }
+
                                 self._game().skills?.registeredObjects.forEach((activeSkill) => {
                                     if (Object.prototype.hasOwnProperty.call(skills, activeSkill.localID)) {
                                         const currentSkill = skills[activeSkill.localID];
@@ -213,20 +218,23 @@ export function createInstance(innerType) {
                                 });
                             }
                             if (Object.prototype.hasOwnProperty.call(activity, "recipeQueue")) {
-                                if (mods.getSettings().isDebug()) {
-                                    console.log("[CDE] nonCombatPanel:onRefresh:recipeQueue", activity, lazySkills);
-                                }
-
                                 // Parse Mastery
                                 const masteries = activity.recipeQueue;
-                                Object.keys(masteries)?.forEach((key) => {
-				                    
+
+                                if (mods.getSettings().isDebug()) {
+                                    console.log("[CDE] nonCombatPanel:onRefresh:recipeQueue", masteries);
+                                }
+
+                                Object.keys(masteries)?.forEach((key) => {    
                                     const m = masteries[key];
                                     const parentSkillID = m.skillID;
 
                                     if (m.active && lazySkills.includes(parentSkillID)) {
+                                        if (mods.getSettings().isDebug()) {
+                                            console.log("[CDE] nonCombatPanel:onRefresh:mastery", m);
+                                        }
+
                                         // Next mastery level
-                                        
                                         const seconds = m?.secondsToNextLvl;
                                         const isAltMagic = m?.skillID === "Magic";
                                         const isCartography = m?.skillID === "Cartography";
@@ -234,53 +242,61 @@ export function createInstance(innerType) {
                                         const masteryMedia = m?.masteryMedia;
                                         const masteryLabel = m?.masteryLabel;
                                         const nextMasteryLvl = m?.masteryLevel+1;
+                                        const productCount = m?.productInBank;
                                         
                                         if (masteryID) {
+                                            let pcStr = ``;
+                                            if (productCount && isFinite(productCount)) {
+                                                pcStr = `<span class="skill-value vph-tiny vph-mastery-fade"> x</span>`;
+                                                pcStr += `<span class="skill-value vph-tiny vph-mastery">${productCount}</span>`;
+                                            }
                                             result.push(
                                                 `<div class="cde-generic-panel">
                                                     ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : '<span class="skill-media"></span>'}
-                                                    <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>
+                                                    <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>${pcStr}
                                                 </div>`
                                             );
+                                            updated = true;
                                         }
                                         
                                         if (!seconds || !isFinite(seconds)) {
-                                            return;
-                                        }
-                                        
-                                        const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
-                                        if (!isAltMagic && !isCartography) {
-                                            result.push(
-                                                `<div class="cde-generic-panel">
-                                                    <span class="skill-label"> • to </span>
-                                                    <span class="skill-value vph-mastery">${nextMasteryLvl ?? "N/A"}</span>
-                                                    <span class="skill-label"> ➜ </span>
-                                                    <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
-                                                </div>`
-                                            );
-                                        }
-                                        updated = true;
+                                            if (mods.getSettings().isDebug()) {
+                                                console.log("[CDE] nonCombatPanel:onRefresh:seconds is not finite", seconds);
+                                            }
+                                        } else {
+                                            if (nextMasteryLvl <= 99 && !isAltMagic && !isCartography) {
+                                                const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
+                                                result.push(
+                                                    `<div class="cde-generic-panel">
+                                                        <span class="skill-label"> • to </span>
+                                                        <span class="skill-value vph-mastery">${nextMasteryLvl ?? "N/A"}</span>
+                                                        <span class="skill-label"> ➜ </span>
+                                                        <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
+                                                    </div>`
+                                                );
+                                                updated = true;
+                                            }
 
-                                        // Predict next masteries level
-                                        const predictLevels = m?.predictLevels;
-                                        if (!isAltMagic && !isCartography &&predictLevels && predictLevels.size > 0) {
-                                            [...predictLevels.entries()].reverse().forEach(([level, value]) => {
-                                                const secondsToCap = value?.secondsToCap;
-                                                if (secondsToCap && isFinite(secondsToCap)) {
-                                                    const timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, "vph-mastery-fade");
-                                                    result.push(
-                                                        `<div class="cde-generic-panel">
-                                                            <span class="skill-label"> • to </span>
-                                                            <span class="skill-value vph-mastery">${level}</span>
-                                                            <span class="skill-label vph-tiny"> ➜ (less than) </span>
-                                                            <span class="skill-value vph vph-mastery">${timeToCapStr ?? "N/A"}</span>
-                                                        </div>`
-                                                    );
-                                                    updated = true;
-                                                }
-                                            });
-                                        }  
-                                        
+                                            // Predict next masteries level
+                                            const predictLevels = m?.predictLevels;
+                                            if (!isAltMagic && !isCartography && predictLevels && predictLevels.size > 0) {
+                                                [...predictLevels.entries()].reverse().forEach(([level, value]) => {
+                                                    const secondsToCap = value?.secondsToCap;
+                                                    if (secondsToCap && isFinite(secondsToCap)) {
+                                                        const timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, "vph-mastery-fade");
+                                                        result.push(
+                                                            `<div class="cde-generic-panel">
+                                                                <span class="skill-label"> • to </span>
+                                                                <span class="skill-value vph-mastery">${level}</span>
+                                                                <span class="skill-label vph-tiny"> ➜ (less than) </span>
+                                                                <span class="skill-value vph vph-mastery">${timeToCapStr ?? "N/A"}</span>
+                                                            </div>`
+                                                        );
+                                                        updated = true;
+                                                    }
+                                                });
+                                            }  
+                                        } 
                                     }
                                 });
                             }

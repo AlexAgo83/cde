@@ -240,6 +240,14 @@ export const SettingsReference = {
 		hint: "Toggle to show the estimated time remaining to complete your current skill activity, based on recent XP changes.",
 		toggle: true
 	},
+	ETA_CRAFT: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-craft",
+		label: "Display Craft",
+		hint: "Toggle to show the estimated craft metrics.",
+		toggle: true
+	},
 	ETA_LIVE_DPS: {
 		section: Sections.ETA,
 		type: "switch",

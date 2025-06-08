@@ -196,12 +196,13 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 		}
 	}
 
+    const masteries = entry.recipeQueue;
+    if (mods.getSettings().isDebug()) {
+        console.log("[CDE] onNonCombat:Read (instance/new) entry", entry);
+        console.log("[CDE] onNonCombat:Read (mastery) entry.recipeQueue", masteries);
+    }
+
 	if (isCfg(Stg().ETA_MASTERY_PREDICT)) {
-		const masteries = entry.recipeQueue;
-		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] onNonCombat:Read (instance/new) entry", entry);
-			console.log("[CDE] onNonCombat:Read (mastery) entry.recipeQueue", masteries);
-		}
 		
 		// MASTERIES PREDICT
 		const masteriesToRemove = [];
@@ -247,6 +248,36 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			}
 		});
 	}
+
+    if (isCfg(Stg().ETA_CRAFT)) {
+        /* CRAFT from selectedRecipe */
+        const recipe = _game().activeAction?.selectedRecipe
+        const product = recipe?.product;
+        if (recipe && product) {
+            Object.keys(masteries)?.forEach((key) => {
+                const m = masteries[key];
+                if (!m.active) return; 
+                if (m.masteryID == recipe.localID) {
+                    /** Match recipe & product */
+                    m.productInBank = _game().bank.getQty(product);
+                }
+            });
+        }
+
+        /* CRAFT from selectedSpell */
+        const spell = _game().activeAction?.selectedSpell
+        const spellCast = spell?.produces;
+        if (spell && spellCast) {
+            Object.keys(masteries)?.forEach((key) => {
+                const m = masteries[key];
+                if (!m.active) return; 
+                if (m.masteryID == spell.localID) {
+                    /** Match recipe & product */
+                    m.productInBank = _game().bank.getQty(spellCast);
+                }
+            });
+        }
+    }
 }
 
 /**
