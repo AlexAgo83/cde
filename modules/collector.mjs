@@ -23,6 +23,14 @@ function _AltMagicSpell() {
 	// @ts-ignore
 	return AltMagicSpell;
 }
+function _Hex() {
+	// @ts-ignore
+	return Hex;
+}
+function _PointOfInterest() {
+	// @ts-ignore
+	return PointOfInterest;
+}
 
 /**
  * Get the settings reference object.
@@ -595,6 +603,18 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				selectedRecipeSkill = a;
 			}
 
+			/* Archaeology */
+			if (!selectedRecipe && a.currentDigSite) {
+				selectedRecipe = a.currentDigSite;
+				selectedRecipeSkill = a;
+			}
+
+			/* Cartography */
+			if (!selectedRecipe && a.currentlySurveyedHex?.pointOfInterest) {
+				selectedRecipe = a.currentlySurveyedHex.pointOfInterest;
+				selectedRecipeSkill = a;
+			}
+
 			/* Firemaking */
 			// if (!selectedRecipe && a.litBonfireRecipe) {
 			// 	selectedRecipe = a.litBonfireRecipe;
@@ -649,9 +669,14 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 							if (mods.getSettings().isDebug()) {
 								console.log("[CDE] collectCurrentActivity:altMagic:customQueue: ", mastery);
 							}	
+						} else if (selectedRecipe instanceof _PointOfInterest()) {
+							mastery = a;
+							if (mods.getSettings().isDebug()) {
+								console.log("[CDE] collectCurrentActivity:Cartography:customQueue: ", mastery);
+							}
 						} else {
 							recipeID = selectedRecipe.localID
-							mastery = _game().activeAction?.actionMastery?.get(selectedRecipe);
+							mastery = a;
 							if (mods.getSettings().isDebug()) {
 								console.log("[CDE] collectCurrentActivity:Other:customQueue: ", mastery);
 							}	
@@ -742,6 +767,27 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 							item.masteryMaxLevel = a.maxLevelCap;
 							queue[a.localID] = item;
 						}	
+				/* (Specific Cartography) Parse Hex.POI as mastery */
+				} else if (a.localID == "Cartography") {
+					const mastery = a;
+					const hexPoi = mastery?.currentlySurveyedHex?.pointOfInterest;
+					const item = {};
+						if (hexPoi) {
+							const masteryPercent = mods.getUtils().getMasteryProgressPercent(
+								mastery.level,
+								mastery.nextLevelProgress)?.percent;	
+							
+							item.skillID = a.localID;
+							item.masteryID = hexPoi.localID;
+							item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < mastery.maxLevelCap;
+							item.masteryLabel = hexPoi.name;
+							item.maxteryXp = mastery.xp;
+							item.masteryMedia = hexPoi.media;
+							item.maxteryNextLevelProgress = masteryPercent;
+							item.masteryLevel = mastery.level;
+							item.masteryMaxLevel = a.maxLevelCap;
+							queue[a.localID] = item;
+						}
 				}
 
 				entry.recipeQueue = queue;
