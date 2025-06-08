@@ -11,6 +11,11 @@ let identity = null;
 let etaData = null;
 let lastCallTime = null;
 
+export const URL_COMPLETION = "https://cdn2-main.melvor.net/assets/media/main/completion_log.png";
+export const URL_COMBAT = "https://cdn2-main.melvor.net/assets/media/skills/combat/combat.png";
+export const URL_DEFENCE = "https://cdn2-main.melvor.net/assets/media/skills/defence/defence.png"
+export const URL_STATISTICS = "https://cdn2-main.melvor.net/assets/media/main/statistics_header.png";;
+
 /**
  * Extracts ETA (Estimated Time of Arrival) data for combat activities.
  * @param {boolean} etaExtract - Whether to perform ETA extraction.
@@ -139,6 +144,7 @@ export const onRefresh = () => {
                 
                 result.push(
                     `<div class="cde-generic-panel">
+                        ${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : '<span class="skill-media"></span>'}
                         <span class="skill-label">Kills per Hour ➜ </span>
                         <span class="vph vph-combat">${kph ?? "N/A"}</span><span class="vph vph-combat-fade">k/h</span>
                         <span class="skill-label">(</span>${
@@ -150,19 +156,22 @@ export const onRefresh = () => {
                 if (isCfg(Stg().ETA_LIVE_DPS)) {
                     result.push(
                         `<div class="cde-generic-panel">
+                            ${URL_COMBAT ? `<img class="skill-media" src="${URL_COMBAT}" />` : '<span class="skill-media"></span>'}
                             <span class="skill-label">DPS Dealt ➜ </span>
-                            <span class="vph vph-combat">${dpsDealt ?? "N/A"}</span><span class="vph vph-combat-fade">dmg/s</span>
+                            <span class="vph vph-combat-dealt">${dpsDealt ?? "N/A"}</span><span class="vph vph-combat-dealt-fade">dmg/s</span>
                         </div>`
                     );
                     result.push(
                         `<div class="cde-generic-panel">
+                            ${URL_DEFENCE ? `<img class="skill-media" src="${URL_DEFENCE}" />` : '<span class="skill-media"></span>'}
                             <span class="skill-label">DPS Taken ➜ </span>
-                            <span class="vph vph-combat">${dpsTaken ?? "N/A"}</span><span class="vph vph-combat-fade">dmg/s</span>
+                            <span class="vph vph-combat-taken">${dpsTaken ?? "N/A"}</span><span class="vph vph-combat-taken-fade">dmg/s</span>
                         </div>`
                     );
                 }
                 result.push(
                     `<div class="cde-generic-panel">
+                        ${URL_STATISTICS ? `<img class="skill-media" src="${URL_STATISTICS}" />` : '<span class="skill-media"></span>'}
                         <span class="skill-label">Fight Duration ➜ </span>
                         <span class="vph vph-combat">${time ?? "N/A"}</span>
                     </div>`
@@ -171,7 +180,7 @@ export const onRefresh = () => {
                 if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
                     const skills = activity.skills;
                     const labelTime = 
-                        `<div class="cde-generic-panel">
+                        `<div class="cde-generic-panel cde-generic-header">
                             <span class="skill-label">Time to Next Level:</span>
                         </div>`;
                     
@@ -180,7 +189,7 @@ export const onRefresh = () => {
                         if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
                             const current = skills[skill.localID];
                             const progression = typeof current.skillNextLevelProgress === "number"
-                                ? Math.round(current.skillNextLevelProgress).toString()
+                                ? (Math.round(current.skillNextLevelProgress * 100) / 100).toFixed(2)
                                 : "N/A";
                             const seconds = current.secondsToNextLevel;
                             if (seconds && seconds > 0) {
@@ -188,13 +197,11 @@ export const onRefresh = () => {
                                 const skillMedia = skill.media;
                                 resultSkills.push(
                                     `<div class="cde-generic-panel">
-                                        <span class="skill-label">&nbsp;&nbsp;[</span>
-                                        <span class="skill-value vph-skill">${progression}%</span>
-                                        <span class="skill-label">] </span>
                                         ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : '<span class="skill-media"></span>'}
                                         <span class="skill-value vph-skill">${skill.name}</span>
                                         <span class="skill-label"> ➜ </span>
                                         <span class="skill-value vph-skill">${timeToNextLevelStr ?? "N/A"}</span>
+                                        <span class="skill-label">( </span><span class="skill-value vph-skill">${progression}</span><span class="skill-value vph-tiny vph-skill-fade">%</span><span class="skill-label"> )</span>
                                     </div>`
                                 );
                             }

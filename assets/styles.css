@@ -311,14 +311,14 @@
   max-width: 100%;
 }
 .cde-eta-generic {
-  background: #23233a;
+  background: #23233ae4;
   color: #fff;
-  padding: 16px 20px;
-  margin-left: 8px;
+  padding: 16px 18px;
   display: block;
-  margin-right: 8px;
+  margin-left: 4px;
+  margin-right: 4px;
   margin-bottom: 12px;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   font-family: inherit;
   font-size: 14px;
@@ -347,6 +347,9 @@
   font-family: inherit;
   font-size: 14px;
 }
+.vph-tiny {
+  font-size: 12px;
+}
 .vph-fade {
   color: #ff8f8f87;
 }
@@ -359,6 +362,25 @@
 }
 .vph-combat-fade {
   color: #ffa97e87;
+}
+
+/**
+ * Combat
+ */
+.vph-combat-dealt {
+  color: #dfff7e;
+}
+.vph-combat-dealt-fade {
+  color: #dfff7e87;
+}
+/**
+ * Combat
+ */
+.vph-combat-taken {
+  color: #ff7e7e;
+}
+.vph-combat-taken-fade {
+  color: #ff7e7e87;
 }
 
 /**
@@ -386,6 +408,12 @@
  */
 .cde-generic-list  {
   margin-bottom: 2px;
+}
+/**
+ * Generic List
+ */
+.cde-generic-header  {
+  margin-top: 4px;
 }
 
 .skill-media {
