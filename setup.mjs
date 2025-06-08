@@ -49,7 +49,7 @@
 // Stage 26 - Live DPS
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.100";
+const MOD_VERSION = "v2.0.103";
 
 // --- Module Imports ---
 let mModules = null;
