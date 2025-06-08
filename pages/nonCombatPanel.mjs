@@ -226,7 +226,7 @@ export function createInstance(innerType) {
                                         const seconds = m?.secondsToNextLvl;
                                         if (seconds && isFinite(seconds)) {
                                             const isAltMagic = m?.skillID === "Magic";
-                                            const isCartography = m?.skillID === "Cartopgraphy";
+                                            const isCartography = m?.skillID === "Cartography";
                                             const masteryID = m?.masteryID;
                                             const masteryMedia = m?.masteryMedia;
                                             const masteryLabel = m?.masteryLabel;
