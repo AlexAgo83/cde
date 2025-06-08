@@ -12,6 +12,7 @@ let mCloudStorage = null;
 let mDisplayStats = null;
 let mCollector = null;
 let mExport = null;
+let mEta = null;
 let mViewer = null;
 let mPages = null;
 
@@ -41,6 +42,10 @@ export function getCollector() {
 
 export function getExport() {
     return mExport;
+}
+
+export function getETA() {
+    return mEta;
 }
 
 export function getLZString() {
@@ -91,6 +96,7 @@ export async function onModuleLoad(ctx) {
     mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
+    mEta = await ctx.loadModule("modules/eta.mjs");
     mViewer = await ctx.loadModule("modules/viewer.mjs");
     mPages = await ctx.loadModule("modules/pages.mjs");
     
@@ -104,12 +110,10 @@ export async function onModuleLoad(ctx) {
  * Should be called after the character and settings are loaded.
  * @param {*} settings - The settings object for the mod.
  * @param {*} characterStorage - The storage object for the current character.
- * @param {*} onSettingsChange - Callback to handle settings changes.
  */
-export async function onDataLoad(settings, characterStorage, onSettingsChange) {
+export async function onDataLoad(settings, characterStorage) {
     /// Initialize settings module
     mSettings.init(this, settings);
-    mSettings.setOnSettingsChange(onSettingsChange);
     mSettings.createSettings();
     
     // Core modules initialization
@@ -121,6 +125,7 @@ export async function onDataLoad(settings, characterStorage, onSettingsChange) {
     mDisplayStats.init(this);
     mCollector.init(this);
     mExport.init(this);
+    mEta.init(this);
 
     // Interfaces
     mViewer.init(this);

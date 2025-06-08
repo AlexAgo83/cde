@@ -16,6 +16,9 @@ let settings = null;
 export function init(modules, settingsInstance) {
 	mods = modules;
 	settings = settingsInstance;
+
+	/* DEFAULT SETTINGS HANDLER */
+	setOnSettingsChange(onSettingsChange)
 }
 
 /**
@@ -433,12 +436,12 @@ export function loadAllSettings() {
 	}
 }
 
-let onSettingsChange = (settingRef) => {
+let onSettingsChangeCb = (settingRef) => {
 	console.warn("[CDE] No handler set for 'onSettingsChange'");
 };
 export function setOnSettingsChange(handler) {
     if (typeof handler === "function") {
-        onSettingsChange = handler;
+        onSettingsChangeCb = handler;
     } else {
         console.error("[CDE] onSettingsChange must be a function");
     }
@@ -455,7 +458,7 @@ export function createSettings() {
 
 	for (const key in SettingsReference) {
 		const reference = SettingsReference[key];
-		const item = new SettingsReferenceItem(reference, onSettingsChange);
+		const item = new SettingsReferenceItem(reference, onSettingsChangeCb);
 		item.init(loadedSections[reference.section]);
 		referenceItems.set(key, item);
 	}
@@ -514,4 +517,64 @@ export function setCfg(settingRef, value) {
 
 export function isCfg(settingRef) {
 	return getCfg(settingRef) ?? false;
+}
+
+/**
+ * Main - Handle settings changes. (Override default action)
+ * Handles changes to mod settings, such as toggling debug mode, showing/hiding the export button,
+ * cleaning changes history, or clearing storage.
+ * @param {*} reference - The settings reference object containing the key and value.
+ * @returns {Function|undefined} Optionally returns a function for value propagation.
+ */
+export function onSettingsChange(reference) {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] settings - reference triggered:", reference);
+	}
+	
+	let key = reference?.ref;
+	let value = reference?.value;
+
+	if (key == Stg().ETA_DISPLAY) {
+		mods.getPages().triggerObservers(value);
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] Observers triggered (settings) :", value);
+		}
+		return () => { return value};
+	}
+
+	// MODE DEBUG
+	if (key == Stg().MOD_DEBUG) {
+		mods.getSettings().setDebug(value);
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] settings - Debugmode :", value);
+		}
+		return () => { return value};
+	}
+
+	// SHOW BUTTON
+	if (key == Stg().SHOW_BUTTON) {
+		mods.getViewer().visibilityExportButton(value);
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] settings - showButton :", value);
+		}
+		return () => { return value};
+	}
+
+	// MAX CHANGES HISTORY
+	if (key == Stg().MAX_CHANGES_HISTORY) {
+		mods.getExport().cleanChangesHistory();
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] settings - maxChangesHistory :", value);
+		}
+		return () => { return value};
+	}
+
+	// CLEAR STORAGE
+	if (key == Stg().CLEAR_STORAGE) {
+		mods.getLocalStorage().clearStorage();
+		mods.getCloudStorage().clearStorage();
+		console.log("[CDE] Storage cleared!");
+	}
+
+	return () => { return value };
 }

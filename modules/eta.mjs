@@ -1,0 +1,353 @@
+// Copyright (c) 2025 <a.agostini.fr@gmail.com>
+// This work is free. You can redistribute it and/or modify it
+
+// @ts-check
+// eta.mjs
+
+let mods = null;
+
+/**
+ * Initialize eta module.
+ * @param {Object} modules - The modules object containing dependencies.
+ */
+export function init(modules) {
+  mods = modules;
+}
+
+/**
+ * Get the settings reference object.
+ * @returns {Object} The settings reference object.
+ */
+function Stg() {
+	return mods.getSettings()?.SettingsReference;
+}
+
+/**
+ * Get the boolean value for a settings reference.
+ * @returns {boolean} True if the reference is allowed, false otherwise.
+ */
+function isCfg(reference) {
+	return mods.getSettings()?.isCfg(reference);
+}
+
+/**
+ * ETA - Callback for combat event.
+ * This function processes combat entries, updating the current monster data with kill count,
+ * time difference, and calculating Kills per Hour (KpH).
+ * It also sets the start kill count and start time for the current monster.
+ * If the current monster data matches the entry, it updates the statistics accordingly.
+ * @param {object} activity 
+ * @param {object} entry 
+ * @param {Date} [syncDate=new Date()] - The timestamp for the event.
+ */
+export function onCombat(activity, entry, syncDate=new Date()) {
+	const currentMonsterData = mods.getCloudStorage().getCurrentMonsterData();
+	const now = syncDate;
+
+	if (isCfg(Stg().ETA_COMBAT) && entry.monster) {
+		if (currentMonsterData 
+			&& typeof currentMonsterData === 'object' 
+			&& currentMonsterData.id === entry.monster.id
+			&& currentMonsterData.startKillcount
+			&& currentMonsterData.startTime
+		) {
+			/* Matching current monster */
+			entry.monster.startKillcount = currentMonsterData.startKillcount;
+			entry.monster.diffKillcount = entry.monster.killCount - entry.monster.startKillcount;
+
+			entry.monster.startTime = new Date(currentMonsterData.startTime);
+			entry.monster.diffTime = now.getTime() - entry.monster.startTime.getTime();
+
+			entry.monster.diffTimeStr = mods.getUtils().formatDuration(entry.monster.diffTime);
+			if (entry.monster.diffTime > 0) {
+				entry.monster.kph = Math.round(
+					(entry.monster.diffKillcount / (entry.monster.diffTime / 3600000)) || 0
+				);
+			} else {
+				entry.monster.kph = "NaN";
+			}
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] Matching current monster data", entry.monster);
+			}
+		} else {
+			if (currentMonsterData 
+				&& typeof currentMonsterData === 'object'
+				&& mods.getSettings().isDebug()) {
+				console.log("[CDE] Entry change detected", currentMonsterData);
+			}
+			
+			/* Soft cleanup */
+			if (mods.getCloudStorage().getCurrentActivityData()) {
+				mods.getCloudStorage().removeCurrentActivityData();
+			}
+
+			/* New current monster */
+			entry.monster.id = entry.monster.id;
+			entry.monster.diffKillcount = 0;
+			entry.monster.diffTime = 0;
+			entry.monster.diffTimeStr = "NaN";
+			entry.monster.kph = 0;
+			entry.monster.startKillcount = entry.monster.killCount;
+			entry.monster.startTime = now;
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] Start activity trace", entry.monster);
+			}
+		}
+
+		/* Update the current monster data */
+		mods.getCloudStorage().setCurrentMonsterData(entry.monster);
+	}
+}
+
+/**
+ * ETA - Callback for non-combat event.
+ * This function clears the current monster data when a non-combat event occurs,
+ * effectively resetting the activity trace for the current monster.
+ * @param {object} activity 
+ * @param {object} entry 
+ * @param {Date} syncDate
+ */
+export function onNonCombat(activity, entry, syncDate=new Date()) {
+	/* Reset current monster data memory */
+	if (mods.getCloudStorage().getCurrentMonsterData()) {
+		/* Soft cleanup */
+		mods.getCloudStorage().removeCurrentMonsterData();
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] Clear activity trace", entry.monster);
+		}
+	}
+
+	if (isCfg(Stg().ETA_MASTERY_PREDICT)) {
+		const masteries = entry.recipeQueue;
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] onNonCombat:Read (instance/new) entry", entry);
+			console.log("[CDE] onNonCombat:Read (mastery) entry.recipeQueue", masteries);
+		}
+		
+		// MASTERIES PREDICT
+		const masteriesToRemove = [];
+		Object.keys(masteries)?.forEach((key) => {
+			const m = masteries[key];
+			if (!m.active) return;
+
+			const skillEntry = entry.skills ? entry.skills[m.skillID] : null;
+			const currMph = skillEntry?.mph ?? 1;
+			const currMasteryLvl = m.masteryLevel;
+			const currMasteryMaxLvl = m.masteryMaxLevel;
+			const currMasteryXP = m.maxteryXp;
+
+			// ETA - Next mastery lvl
+			m.masteryNextLvl = currMasteryLvl + 1;
+			m.masteryNextLvlXp = mods.getUtils().getXpForLevel(m.masteryNextLvl);
+			m.masteryNextXpDiff = m.masteryNextLvlXp - currMasteryXP;
+			m.secondsToNextLvl = +(m.masteryNextXpDiff / (currMph / 3600)).toFixed(0);
+			m.timeToNextLvlStr = mods.getUtils().formatDuration(m.secondsToNextLvl * 1000);
+
+			// ETA - Predict next masteries lvl
+			m.predictLevels = new Map();
+			const prdArr = mods.getUtils().parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] ETA Mastery Predicts for ("+currMasteryLvl+"/"+currMasteryMaxLvl+")", prdArr, m);
+			}
+			prdArr?.forEach((item) => {
+				const xpCap = mods.getUtils().getXpForLevel(item);
+
+				const value = {
+					xpCap: xpCap,
+					xpDiff: xpCap - currMasteryXP
+				};
+
+				const secondsToCapLevel = value.xpDiff / (currMph / 3600);
+				value.secondsToCap = +secondsToCapLevel.toFixed(0);
+				value.timeToCapStr = mods.getUtils().formatDuration(value.secondsToCap * 1000);
+
+				m.predictLevels.set(item, value);
+			});
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] ETA Mastery Predict entries", m);
+			}
+		});
+	}
+}
+
+/**
+ * ETA - Callback for active skill event.
+ * Tracks skill progression, calculates XP left to next level, and estimates XP per hour (XPh).
+ * Handles skill data resets on level up and manages skill session timing.
+ * @param {string} skillId - The skill identifier.
+ * @param {object} data - The skill data object.
+ * @param {Date} [syncDate=new Date()] - The timestamp for the event.
+ */
+export function onActiveSkill(skillId, data, syncDate=new Date()) {
+	const now = syncDate;
+
+	const currLevel = data.skillLevel;
+	const nextLevel = currLevel+1;
+	const maxLevel = data.skillMaxLevel;
+
+	const currentXp = data.skillXp;
+	const nextLevelXp = mods.getUtils().getXpForLevel(nextLevel);
+	
+	data.xpLeft = nextLevelXp > currentXp ? nextLevelXp - currentXp : 0;
+	data.nextLevelXp = nextLevelXp > currentXp ? nextLevelXp : 0;
+
+	data.predictLevels = new Map();
+	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
+		let predictNextLevels = mods.getUtils().parseNextLevels(currLevel, maxLevel);
+		if (mods.getSettings().isDebug()) {
+			console.log("[ETA] ETA - Level predict (max:"+maxLevel+")", predictNextLevels);
+		}
+		predictNextLevels.forEach((cap) => {
+			const xpCap = mods.getUtils().getXpForLevel(cap);
+			const predictItem = {
+				xpCap: xpCap,
+				xpDiff: xpCap - currentXp
+			};
+			if (cap <= maxLevel) data.predictLevels.set(cap, predictItem);
+		});
+	}
+
+	// Request first record for skill data
+	let currentActivityData = mods.getCloudStorage().getCurrentActivityData();
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] onActiveSkill:Read (instance/new) skill data", data);
+		console.log("[CDE] onActiveSkill:Read (saved/old) skill data", currentActivityData);
+	}
+	let skill = {};
+
+	if (currentActivityData) {
+		if (currentActivityData[skillId]) {
+			// Matching skill data entry
+			const current = currentActivityData[skillId];
+
+			const isSameLevel = current.startLevel === data.skillLevel;
+			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
+				? current.startRecipe === data.recipe
+				: true;
+			// const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.recipeLevel !== "undefined")
+			// 	? current.startRecipeLevel === data.recipeLevel
+			// 	: true;
+
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] onActiveSkill:recipe diff", isSameRecipe, data.recipe, current.startRecipe);
+				//console.log("[CDE] onActiveSkill:recipe level diff", isSameRecipeLevel, data.recipeLevel, current.startRecipeLevel);
+			}
+
+			if (isSameLevel && (isSameRecipe 
+			//	&& isSameRecipeLevel
+			)) {
+				if (mods.getSettings().isDebug())
+					console.log("[CDE] onActiveSkill:matching skill", current);
+		 	} else {
+				// Reset if level or recipe change
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] onActiveSkill:reset on lvl or recipe change", current, data);
+				}
+				delete currentActivityData[skillId];
+			}
+			
+			let startDate = current.startTime;
+			if (!(startDate instanceof Date)) {
+				startDate = new Date(startDate);
+			}
+		}
+	} else {
+		// New data entry
+		currentActivityData = {};
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] onActiveSkill:new entry");
+		}
+	}
+
+	if (currentActivityData[skillId] == null) {
+		// New skill data records
+		skill.startTime = now;
+		skill.startXp = data.skillXp;
+		skill.startLevel = data.skillLevel;
+		skill.startRecipe = data.recipe;
+		skill.startRecipeXp = data.recipeXp;
+		skill.startRecipeLevel = data.recipeLevel;
+		
+		currentActivityData[skillId] = skill;
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] onActiveSkill:new current skill", skill);
+		}
+
+		// Print record for new skill data
+		mods.getCloudStorage().setCurrentActivityData(currentActivityData)
+	}
+
+	// ETA Check Skill Progression
+	if (isCfg(Stg().ETA_SKILLS) 
+		&& data.xpLeft > 0
+		&& currentActivityData
+		&& currentActivityData[skillId]) {
+
+		// UPDATING ETA ...
+		const current = currentActivityData[skillId];
+		let startDate = current.startTime;
+		if (!(startDate instanceof Date)) {
+			startDate = new Date(startDate);
+		}
+		data.diffTime = now.getTime() - startDate.getTime();
+		data.diffTimeStr = mods.getUtils().formatDuration(data.diffTime);
+		data.diffXp = data.skillXp - current.startXp;
+		data.diffRecipeXp = data.recipeXp - current.startRecipeXp;
+		
+		// XP per Hour
+		if (data.diffTime > 0) {
+			data.xph = Math.round(
+				(data.diffXp / (data.diffTime / 3600000)) || 0
+			);
+		} else {
+			data.xph = "NaN";
+		}
+
+		// Mastery per Hour
+		if (data.diffTime > 0) {
+			data.mph = Math.round(
+				(data.diffRecipeXp / (data.diffTime / 3600000)) || 0
+			);
+		} else {
+			data.mph = "NaN";
+		}
+
+		// Time before next level
+		if (data.xph > 0 && data.xpLeft > 0) {
+			const secondsToNextLevel = data.xpLeft / (data.xph / 3600);
+			data.secondsToNextLevel = +secondsToNextLevel.toFixed(0);
+			data.timeToNextLevelStr = mods.getUtils().formatDuration(data.secondsToNextLevel * 1000);
+		}
+
+		if (isCfg(Stg().ETA_LEVEL_PREDICT) && data.predictLevels?.size > 0) {
+			data.predictLevels.forEach((value) => {
+				const secondsToCapLevel = value.xpDiff / (data.xph / 3600);
+				value.secondsToCap = +secondsToCapLevel.toFixed(0);
+				value.timeToCapStr = mods.getUtils().formatDuration(value.secondsToCap * 1000);
+			});
+		}
+	}
+}
+
+/**
+ * ETA - Registered active skill identifiers.
+ * Cleans up skill tracking data for skills that are no longer active.
+ * @param {Set<string>} identifiers - The set of currently active skill identifiers.
+ */
+export function onSkillsUpdate(identifiers) {
+	if (identifiers && identifiers.size > 0) {
+		let currentActivityData = mods.getCloudStorage().getCurrentActivityData();
+		if (currentActivityData) {
+			const properties = Object.keys(currentActivityData);
+			if (mods.getSettings().isDebug) {
+				console.log("[CDE] onSkillsUpdate:", identifiers, properties);
+			}
+			properties?.forEach(p => {
+				if (!identifiers.has(p)) {
+					delete currentActivityData[p];
+					console.log("[CDE] remove unused activity data.", p);
+				}
+			});
+		}
+	}
+}

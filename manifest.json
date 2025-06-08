@@ -11,6 +11,7 @@
     "modules/collector.mjs",
     "modules/utils.mjs",
     "modules/export.mjs",
+    "modules/eta.mjs",
     "modules/viewer.mjs",
     "modules/pages.mjs",
     "views/exportView.mjs",
