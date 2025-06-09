@@ -575,6 +575,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			const skillsToUpdate = []
 			
 			const selectedRecipe = utl.getRecipeForAction(a);
+			const selectedRecupeCursor = utl.getRecipeCursorForAction(a);
 			let selectedRecipeSkill = selectedRecipe?.skill
 			if (selectedRecipe && !selectedRecipeSkill) {
 				selectedRecipeSkill = a;
@@ -632,6 +633,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					}
 
 					item.recipe = recipeID;
+					item.recipeCursor = selectedRecupeCursor; 
 					item.recipeMaxLevel = recipeMaxLvl;
 					item.recipeXp = mastery?.xp;
 					item.recipeLevel = mastery?.level;
@@ -705,8 +707,11 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 							item.masteryMedia = key.media;
 							item.maxteryNextLevelProgress = masteryPercent;
 							item.masteryLevel = mastery.level;
-							item.masteryMaxLevel = key.skill?.masteryLevelCap ?? 99;
+							item.masteryMaxLevel = key.skill?.masteryLevelCap ?? a.masteryLevelCap ?? 99;
 							item.currentActionInterval = a.currentActionInterval;
+							if (item.active) {
+								item.masteryCursor = a.selectedAltRecipe;
+							}
 							queue[key.localID] = item;
 						}		
 					})
@@ -722,7 +727,6 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 
 						item.skillID = a.localID;
 						item.masteryID = a.selectedSpell.localID;
-						// item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < mastery.maxLevelCap;
 						item.active = (selectedRecipe?.localID === item.masteryID);
 						item.masteryLabel = a.selectedSpell.name;
 						item.maxteryXp = mastery.xp;
@@ -731,6 +735,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						item.masteryLevel = mastery.level;
 						item.masteryMaxLevel = a.maxLevelCap;
 						item.currentActionInterval = a.currentActionInterval;
+						if (item.active) {
+							item.masteryCursor = a.selectedAltRecipe;
+						}
 						queue[a.localID] = item;
 					}	
 				/* (Specific Cartography) Parse Hex.POI as mastery */
@@ -746,7 +753,8 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						
 						item.skillID = a.localID;
 						item.masteryID = hexPoi.localID;
-						item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < mastery.maxLevelCap;
+						// item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < mastery.maxLevelCap;
+						item.active = (selectedRecipe?.localID === item.masteryID)
 						item.masteryLabel = hexPoi.name;
 						item.maxteryXp = mastery.xp;
 						item.masteryMedia = hexPoi.media;
@@ -754,6 +762,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						item.masteryLevel = mastery.level;
 						item.masteryMaxLevel = a.maxLevelCap;
 						item.currentActionInterval = a.currentActionInterval;
+						if (item.active) {
+							item.masteryCursor = a.selectedAltRecipe;
+						}
 						queue[a.localID] = item;
 					}
 				}

@@ -287,20 +287,45 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 
 function trustRecipe(mastery, itemResult, itemRecipe) {
 	/* Product in bank */
-	mastery.productInBank = mods.getUtils().getQteInBank(itemResult);
+	if (itemResult) {
+		if (itemResult.length > 0) {
+			mastery.productsInBank = [];
+			itemResult.forEach((item) => {
+				mastery.productsInBank.push({
+					itemID: item.localID, 
+					itemMedia: item.media,
+					itemLabel: item.name,
+					itemQte: mods.getUtils().getQteInBank(item)
+				});		
+			})
+		} else {
+			mastery.productInBank = mods.getUtils().getQteInBank(itemResult);
+			mastery.productName = itemResult.name;
+			mastery.productMedia = itemResult.media;
+		}
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] TrustRecipe, productInBank:", {mastery, itemResult, itemRecipe});
+		}
+	}
 
 	/* Item costs in bank */
 	const itemCosts = [];
 	let lessActionItem = {};
 
 	const itemCostCb = (value) => {
-		const qteNeed = value.quantity;
-		const qteInBank = mods.getUtils().getQteInBank(value.item);
+		let qteNeed = value.quantity;
+		let itemNeed = value.item;
+		if (value.category) {
+			qteNeed = 1;
+			itemNeed = value;
+		}
+		
+		const qteInBank = mods.getUtils().getQteInBank(itemNeed);
 		/* Add item to itemCosts */
 		const item = {
-			itemID: value.item.localID,
-			itemLabel: value.item.name,
-			itemMedia: value.item.media,
+			itemID: itemNeed.localID,
+			itemLabel: itemNeed.name,
+			itemMedia: itemNeed.media,
 			itemQteNeed: qteNeed,
 			itemQteInBank: qteInBank,
 			itemQteActions: getMaxItems(qteInBank, qteNeed),
@@ -313,11 +338,46 @@ function trustRecipe(mastery, itemResult, itemRecipe) {
 				lessActionItem = item;
 			}
 		} else lessActionItem = item;
+
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] TrustRecipe, onIterateCost:", {value, item});
+		}
 	};
 	
+	/* Default item costs source */
 	itemRecipe?.itemCosts?.forEach(itemCostCb);
+	/* Base fixed */
 	itemRecipe?.fixedItemCosts?.forEach(itemCostCb);
+	/* Runes */
 	itemRecipe?.runesRequired?.forEach(itemCostCb);
+	/* Firemaking */
+	if (itemRecipe?.log) {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] TrustRecipe, itemRecipe-log:", itemRecipe);
+		}
+		const log = itemRecipe.log;
+		if (log.category) {
+			itemCostCb(log);
+		} else {
+			log.forEach(itemCostCb);	
+		}
+	}
+	/* Alternative costs */
+	if (mastery.masteryCursor >= 0 && itemRecipe?.alternativeCosts) {
+		const recipeAltCosts = itemRecipe?.alternativeCosts;
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] TrustRecipe, alternativeCosts:", recipeAltCosts);
+		}
+		if (recipeAltCosts && recipeAltCosts.length && recipeAltCosts.length > 0) {
+			const selectedAltCost = recipeAltCosts[mastery.masteryCursor]?.itemCosts;	
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] TrustRecipe, alternativeCosts:current", selectedAltCost);
+			}
+			if (selectedAltCost) {
+				selectedAltCost?.forEach(itemCostCb)
+			}
+		}
+	}
 
 	/* Set itemLessActions */
 	if (lessActionItem) {
@@ -329,6 +389,10 @@ function trustRecipe(mastery, itemResult, itemRecipe) {
 	if (mastery.currentActionInterval > 0 && mastery.itemLessAction) {
 		const actionTimeMs = mastery.itemLessAction.itemQteActions * mastery.currentActionInterval;
 		mastery.actionTimeMs = actionTimeMs;
+	}
+
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] TrustRecipe, lessActionItem:", {mastery, lessActionItem});
 	}
 }
 /**

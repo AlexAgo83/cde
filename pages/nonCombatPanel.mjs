@@ -251,26 +251,76 @@ export function createInstance(innerType) {
                                         const masteryMedia = m?.masteryMedia;
                                         const masteryLabel = m?.masteryLabel;
                                         const nextMasteryLvl = m?.masteryLevel+1;
+                                        const productName = m?.productName;
+                                        const productMedia = m?.productMedia;
                                         const productCount = m?.productInBank;
+                                        const productsCount = m?.productsInBank;
                                         const itemCosts = m?.itemCosts;
                                         const lessActionItem = m?.itemLessAction;
                                         const masteryProgress = m?.maxteryNextLevelProgress;
                                         
-                                        
+                                        const hasProduct = (productCount && isFinite(productCount)) || productsCount?.length > 0;
+
+
                                         if (masteryID) {
                                             let pcStr = ``;
-                                            if (productCount && isFinite(productCount)) {
-                                                pcStr = `<span class="skill-value vph-tiny vph-mastery-fade"> x</span>`;
-                                                pcStr += `<span class="skill-value vph-tiny vph-mastery">${productCount}</span>`;
+
+                                            if (hasProduct) {
+                                                if (productsCount?.length > 0) {
+                                                    /* Multi products */
+                                                    pcStr += `<span class="skill-label">:</span>`;
+                                                    let firstTurn = true;
+                                                    productsCount.forEach((product) => {
+                                                        if (!firstTurn) pcStr += `,`;
+                                                        pcStr += product.itemMedia ? `<img class="skill-media" src="${product.itemMedia}" />` : `<span class="skill-media"></span>`
+                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
+                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery">${product.itemQte}</span>`;
+                                                        firstTurn = false;
+                                                    })
+                                                } else if (productCount && isFinite(productCount)) {
+                                                    /* Single product */
+                                                    if (productName && masteryLabel === productName) {
+                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery-fade"> x</span>`;
+                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery">${productCount}</span>`;
+                                                    } else if (productMedia) {
+                                                        pcStr += `<span class="skill-label"> :</span>`;
+                                                        pcStr += productMedia ? `<img class="skill-media" src="${productMedia}" />` : `<span class="skill-media"></span>`
+                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
+                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery">${productCount}</span>`;
+                                                    }
+                                                }
                                             }
+
                                             result.push(
                                                 `<div class="cde-generic-panel">
-                                                    ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : '<span class="skill-media"></span>'}
+                                                    ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : `<span class="skill-media"></span>`}
                                                     <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>${pcStr}
                                                 </div>`
                                             );
                                             /** CRAFT */
-                                            if (this.isCfg(this.Stg().ETA_CRAFT) && itemCosts && lessActionItem) {
+                                            if (itemCosts && lessActionItem) {
+                                                /* RECIPE ITEMS */
+                                                let pRecipeItems = ``;
+                                                if (itemCosts && itemCosts.length > 0) {
+                                                    let firstTurn = true;
+                                                    itemCosts.forEach((item) => {
+                                                        if (!firstTurn) pRecipeItems += `,`;
+                                                        pRecipeItems += item.itemMedia ? `<img class="skill-media" src="${item.itemMedia}" />` : `<span class="skill-media"></span>`
+                                                        pRecipeItems += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
+                                                        pRecipeItems += `<span class="skill-value vph-tiny vph-mastery">${item.itemQteNeed}</span>`;
+                                                        firstTurn = false;
+                                                    })
+                                                }
+                                                if (pRecipeItems.length > 0) {
+                                                     resultFooter.push(
+                                                        `<div class="cde-generic-panel">
+                                                            <span class="skill-label">Recipe :</span>
+                                                            ${pRecipeItems}
+                                                        </div>`
+                                                    );
+                                                }
+
+                                                /* ACTION LEFT */
                                                 const actionInterval = m?.actionTimeMs;
                                                 let pActionInterval = ``;
                                                 if (actionInterval) {

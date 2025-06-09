@@ -526,6 +526,10 @@ export function getRecipeForAction(action) {
 	return selectedRecipe;
 }
 
+export function getRecipeCursorForAction(action) {
+	return action?.selectedAltRecipe;
+}
+
 /**
  * Get the produces for a recipe
  * @param {*} recipe 
@@ -534,6 +538,8 @@ export function getRecipeForAction(action) {
 export function getProducesForRecipe(recipe) {
 	if (recipe?.product) return recipe.product;
 	if (recipe?.produces) return recipe.produces;
+	if (recipe?.potions) return recipe.potions;
+	if (recipe?.primaryProducts) return recipe.primaryProducts;
 	return null;
 }
 
