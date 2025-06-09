@@ -540,6 +540,7 @@ export function getProducesForRecipe(recipe) {
 	if (recipe?.produces) return recipe.produces;
 	if (recipe?.potions) return recipe.potions;
 	if (recipe?.primaryProducts) return recipe.primaryProducts;
+	//if ()
 	return null;
 }
 
@@ -559,4 +560,8 @@ export function getDungeonCount(dungeon) {
  */
 export function getQteInBank(item) {
 	return _game().bank.getQty(item);
+}
+
+export function getPreservationChance(skillObject, recipeObject) {
+	return skillObject.getPreservationChance(recipeObject)
 }

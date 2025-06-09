@@ -686,87 +686,49 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			} else { /** NON COMBAT SKILLS */
 				const queue = {};
 
+				const registerItemQueue = (mastery, queryCache)=> {
+					const item = {};
+					if (mastery) {							
+						const masteryPercent = masteryProgress(mastery.level, mastery.xp);
+						item.skillID = a.localID;
+						item.masteryID = queryCache.localID;
+						item.active = selectedRecipe?.localID === item.masteryID;
+						item.masteryLabel = queryCache.name;
+						item.maxteryXp = mastery.xp;
+						item.masteryMedia = queryCache.media;
+						item.maxteryNextLevelProgress = masteryPercent;
+						item.masteryLevel = mastery.level;
+						item.masteryMaxLevel = queryCache.skill?.masteryLevelCap ?? a.masteryLevelCap ?? 99;
+						item.currentActionInterval = a.currentActionInterval;
+						if (item.active) {
+							item.masteryCursor = a.selectedAltRecipe;
+						}
+						item.preservationChance = utl.getPreservationChance(a, queryCache);
+						return item;
+					}
+					return null;
+				};
+
 				/* Parse all action in query cache */
 				if (a.acionItemQueryCache && a.acionItemQueryCache.size > 0) {
 					/* For each active action mastery/recipe/spells */
-					a.acionItemQueryCache?.keys().forEach((key) => {
-						const mastery = a.actionMastery?.get(key);
-						const item = {};
-						if (mastery) {
-							// const masteryPercent = mods.getUtils().getMasteryProgressPercent(
-							// 	mastery.level,
-							// 	mastery.nextLevelProgress)?.percent;							
-							const masteryPercent = masteryProgress(mastery.level, mastery.xp);
-							
-							item.skillID = a.localID;
-							item.masteryID = key.localID;
-							// item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < 99;
-							item.active = selectedRecipe?.localID === item.masteryID;
-							item.masteryLabel = key.name;
-							item.maxteryXp = mastery.xp;
-							item.masteryMedia = key.media;
-							item.maxteryNextLevelProgress = masteryPercent;
-							item.masteryLevel = mastery.level;
-							item.masteryMaxLevel = key.skill?.masteryLevelCap ?? a.masteryLevelCap ?? 99;
-							item.currentActionInterval = a.currentActionInterval;
-							if (item.active) {
-								item.masteryCursor = a.selectedAltRecipe;
-							}
-							queue[key.localID] = item;
-						}		
+					a.acionItemQueryCache?.keys().forEach((queryCache) => {
+						const mastery = a.actionMastery?.get(queryCache);
+						const resultItem = registerItemQueue(mastery, queryCache);
+						if (resultItem) queue[queryCache.localID] = resultItem;	
 					})
-				/* (Specific AltMagic) Parse AltSpell as mastery */
 				} else if (a.localID == "Magic") {
+					/* (Specific AltMagic) Parse AltSpell as mastery */
 					const mastery = a;
-					const item = {};
-					if (mastery) {
-						// const masteryPercent = mods.getUtils().getMasteryProgressPercent(
-						// 	mastery.level,
-						// 	mastery.nextLevelProgress)?.percent;							
-						const masteryPercent = masteryProgress(mastery.level, mastery.xp);
-
-						item.skillID = a.localID;
-						item.masteryID = a.selectedSpell.localID;
-						item.active = (selectedRecipe?.localID === item.masteryID);
-						item.masteryLabel = a.selectedSpell.name;
-						item.maxteryXp = mastery.xp;
-						item.masteryMedia = a.selectedSpell.media;
-						item.maxteryNextLevelProgress = masteryPercent;
-						item.masteryLevel = mastery.level;
-						item.masteryMaxLevel = a.maxLevelCap;
-						item.currentActionInterval = a.currentActionInterval;
-						if (item.active) {
-							item.masteryCursor = a.selectedAltRecipe;
-						}
-						queue[a.localID] = item;
-					}	
-				/* (Specific Cartography) Parse Hex.POI as mastery */
+					const queryCache = a.selectedSpell;
+					const resultItem = registerItemQueue(mastery, queryCache);
+					if (resultItem) queue[a.localID] = resultItem;
 				} else if (a.localID == "Cartography") {
+					/* (Specific Cartography) Parse Hex.POI as mastery */
 					const mastery = a;
-					const hexPoi = mastery?.currentlySurveyedHex?.pointOfInterest;
-					const item = {};
-					if (hexPoi) {
-						// const masteryPercent = mods.getUtils().getMasteryProgressPercent(
-						// 	mastery.level,
-						// 	mastery.nextLevelProgress)?.percent;	
-						const masteryPercent = masteryProgress(mastery.level, mastery.xp);
-						
-						item.skillID = a.localID;
-						item.masteryID = hexPoi.localID;
-						// item.active = (selectedRecipe?.localID === item.masteryID) && mastery.level < mastery.maxLevelCap;
-						item.active = (selectedRecipe?.localID === item.masteryID)
-						item.masteryLabel = hexPoi.name;
-						item.maxteryXp = mastery.xp;
-						item.masteryMedia = hexPoi.media;
-						item.maxteryNextLevelProgress = masteryPercent;
-						item.masteryLevel = mastery.level;
-						item.masteryMaxLevel = a.maxLevelCap;
-						item.currentActionInterval = a.currentActionInterval;
-						if (item.active) {
-							item.masteryCursor = a.selectedAltRecipe;
-						}
-						queue[a.localID] = item;
-					}
+					const queryCache = mastery?.currentlySurveyedHex?.pointOfInterest;
+					const resultItem = registerItemQueue(mastery, queryCache);
+					if (resultItem) queue[a.localID] = resultItem;
 				}
 
 				entry.recipeQueue = queue;

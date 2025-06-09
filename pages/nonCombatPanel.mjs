@@ -330,13 +330,15 @@ export function createInstance(innerType) {
                                                     pActionInterval += `<span class="skill-label">)</span>`;
                                                 }
                                                 const actionLeft = lessActionItem.itemQteActions;
-                                                resultFooter.push(
-                                                    `<div class="cde-generic-panel">
-                                                        <span class="skill-label">Action left :</span>
-                                                        <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
-                                                        ${pActionInterval}
-                                                    </div>`
-                                                );
+                                                if (actionLeft) {
+                                                    resultFooter.push(
+                                                        `<div class="cde-generic-panel">
+                                                            <span class="skill-label">Action left :</span>
+                                                            <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                            ${pActionInterval}
+                                                        </div>`
+                                                    );    
+                                                }
                                             } 
                                             updated = true;
                                         }
