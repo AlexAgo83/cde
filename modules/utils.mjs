@@ -8,6 +8,7 @@ export const NameSpaces = ["melvorD", "melvorF", "melvorTotH", "melvorAoD", "mel
 export const HASTE_ENDPOINT = "https://haste.zneix.eu";
 
 let mods = null;
+let _mappedSkills = null;
 
 /* @ts-ignore Handle DEVMODE */
 function _exp()  {  return exp;  }
@@ -18,6 +19,12 @@ function _exp()  {  return exp;  }
  */
 export function init(modules) {
   mods = modules;
+}
+
+/* MOCK */
+function _game() {
+	// @ts-ignore
+	return game;
 }
 
 /**
@@ -399,4 +406,151 @@ export function parseNextMasteries(currMasteryLvl, masteryLvlCap = 99) {
 	if (nextLevel < 10 && nextLevel >= 1 && 10 <= masteryLvlCap) masteries.push(10);
 
 	return masteries;
+}
+
+/**
+ * Get the original map of skills
+ * @returns {Object} The original map of skills
+ */
+export function getSkills() {
+	return _game().skills;
+}
+
+/**
+ * Get the remapped map of skills
+ * @returns {Map} The remapped map of skills
+ */
+export function getSkillsRemapped() {
+	if (_mappedSkills === null) {
+		_mappedSkills = new Map();
+		getSkills().forEach((value) => {
+			_mappedSkills.set(value.localID, value);
+		});
+	}
+	return _mappedSkills;
+}
+
+/**
+ * Get a skill by its localID
+ * @param {*} localID 
+ * @returns {Object} The skill
+ */
+export function getSkillByLocalID(localID) {
+	return getSkillsRemapped().get(localID);
+}
+export function getMasteryByLocalID(skillID, masteryID) {
+	return getSkillByLocalID(skillID)?.actionMastery?.get(masteryID);
+}
+
+/**
+ * Get the active action
+ * @returns	{Object} The active action
+ */
+export function getActiveAction() {
+	return _game().activeAction;
+}
+/**
+ * Get the active actions
+ * @returns {Object} The active actions
+ */
+export function getActiveActions() {
+	return _game().activeActions;
+}
+/**
+ * Get the active skills
+ * @returns {Object} The active skills
+ */
+export function getActiveSkills() {
+	return getActiveAction()?.activeSkills;
+}
+
+/**
+ * Get the selected recipe for an action
+ * @param {*} action 
+ * @returns {Object} The selected recipe
+ */
+export function getRecipeForAction(action) {
+	if (!action) return null;
+
+	let currAction = action;
+	if (currAction.skillID) {
+		currAction = getSkillByLocalID(currAction.skillID);
+		if (mods.getSettings().isDebug()) {
+			console.log("[ETA] getRecipeForAction:currAction: inner mastery detected.", currAction);
+		}
+	}
+
+	/* Select active action skill as recipe */
+	let selectedRecipe = currAction.selectedRecipe;
+
+	/* Thieving */
+	if (!selectedRecipe && currAction.currentNPC) {
+		selectedRecipe = currAction.currentNPC;
+	}
+
+	/* Mining */
+	if (!selectedRecipe && currAction.selectedRock) {
+		selectedRecipe = currAction.selectedRock;
+	}
+
+	/* Fishing */
+	if (!selectedRecipe && currAction.activeFish) {
+		selectedRecipe = currAction.activeFish;
+	}
+
+	/* Alt. Magic */
+	if (!selectedRecipe && currAction.selectedSpell) {
+		selectedRecipe = currAction.selectedSpell;
+	}
+
+	/* Archaeology */
+	if (!selectedRecipe && currAction.currentDigSite) {
+		selectedRecipe = currAction.currentDigSite;
+	}
+
+	/* Cartography */
+	if (!selectedRecipe && currAction.currentlySurveyedHex?.pointOfInterest) {
+		selectedRecipe = currAction.currentlySurveyedHex.pointOfInterest;
+	}
+
+	/* Fallback: Active Recipe */
+	if (!selectedRecipe && currAction.activeRecipe) {
+		selectedRecipe = currAction.activeRecipe;
+	} 
+
+	/* Fallback: Mastery Action */
+	if (!selectedRecipe && currAction.masteryAction) {
+		selectedRecipe = currAction.masteryAction;
+	}
+
+	return selectedRecipe;
+}
+
+/**
+ * Get the produces for a recipe
+ * @param {*} recipe 
+ * @returns {Object} The produces
+ */
+export function getProducesForRecipe(recipe) {
+	if (recipe?.product) return recipe.product;
+	if (recipe?.produces) return recipe.produces;
+	return null;
+}
+
+/**
+ * Get the number of times a dungeon has been completed
+ * @param {*} dungeon 
+ * @returns {number} The number of times the dungeon has been completed
+ */
+export function getDungeonCount(dungeon) {
+	return _game().combat?.getDungeonCompleteCount(dungeon);
+}
+
+/**
+ * Get the quantity of an item in the bank
+ * @param {*} item 
+ * @returns {number} The quantity of the item
+ */
+export function getQteInBank(item) {
+	return _game().bank.getQty(item);
 }

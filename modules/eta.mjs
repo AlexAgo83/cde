@@ -202,6 +202,8 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
         console.log("[CDE] onNonCombat:Read (mastery) entry.recipeQueue", masteries);
     }
 
+	const utl = mods.getUtils();
+
 	if (isCfg(Stg().ETA_MASTERY_PREDICT)) {
 		
 		// MASTERIES PREDICT
@@ -219,10 +221,10 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 
 			// ETA - Next mastery lvl
 			m.masteryNextLvl = currMasteryLvl + 1;
-			m.masteryNextLvlXp = mods.getUtils().getXpForLevel(m.masteryNextLvl);
+			m.masteryNextLvlXp = utl.getXpForLevel(m.masteryNextLvl);
 			m.masteryNextXpDiff = m.masteryNextLvlXp - currMasteryXP;
 			m.secondsToNextLvl = +(m.masteryNextXpDiff / (currMph / 3600)).toFixed(0);
-			m.timeToNextLvlStr = mods.getUtils().formatDuration(m.secondsToNextLvl * 1000);
+			m.timeToNextLvlStr = utl.formatDuration(m.secondsToNextLvl * 1000);
 			m.currentActionInterval = activity?.actionInterval ?? 0;
 
 			// if (m.masteryNextLvlXp < m.masteryMaxLevel) {
@@ -234,12 +236,12 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 
 			// ETA - Predict next masteries lvl
 			m.predictLevels = new Map();
-			const prdArr = mods.getUtils().parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
+			const prdArr = utl.parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] ETA Mastery Predicts for ("+currMasteryLvl+"/"+currMasteryMaxLvl+")", prdArr, m);
 			}
 			prdArr?.forEach((item) => {
-				const xpCap = mods.getUtils().getXpForLevel(item);
+				const xpCap = utl.getXpForLevel(item);
 
 				const value = {
 					xpCap: xpCap,
@@ -248,7 +250,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 
 				const secondsToCapLevel = value.xpDiff / (currMph / 3600);
 				value.secondsToCap = +secondsToCapLevel.toFixed(0);
-				value.timeToCapStr = mods.getUtils().formatDuration(value.secondsToCap * 1000);
+				value.timeToCapStr = utl.formatDuration(value.secondsToCap * 1000);
 
 				m.predictLevels.set(item, value);
 			});
@@ -259,21 +261,25 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 	}
 
     if (isCfg(Stg().ETA_CRAFT)) {
-		const recipe = _game().activeAction?.selectedRecipe
-		const product = recipe?.product;
-		const spell = _game().activeAction?.selectedSpell
-        const spellCast = spell?.produces;
-
 		Object.keys(masteries)?.forEach((key) => {
 			const m = masteries[key];
-			if (!m.active) return; 
-			if (recipe && product && m.masteryID == recipe.localID) {
-				/** Match recipe & product */
-				trustRecipe(m, product, recipe);
-			}
-			if (spell && spellCast && m.masteryID == spell.localID) {
-				/** Match spellCast & spell */
-				trustRecipe(m, spellCast, spell);
+			if (!m.active) return;
+			const univRecipe = utl.getRecipeForAction(m);
+			if (univRecipe && m.masteryID == univRecipe.localID) {
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] ETA Crafting, univRecipe:", {m, univRecipe});
+				}
+				const produces = utl.getProducesForRecipe(univRecipe);
+				if (produces) {
+					if (mods.getSettings().isDebug()) {
+						console.log("[CDE] ETA Crafting, produces:", {m, univRecipe, produces});
+					}
+					trustRecipe(m, produces, univRecipe);
+				}
+			} else {
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] ETA Crafting, can't match:", {m, univRecipe});
+				}
 			}
 		});
 	}
@@ -281,7 +287,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 
 function trustRecipe(mastery, itemResult, itemRecipe) {
 	/* Product in bank */
-	mastery.productInBank = _game().bank.getQty(itemResult);
+	mastery.productInBank = mods.getUtils().getQteInBank(itemResult);
 
 	/* Item costs in bank */
 	const itemCosts = [];
@@ -289,7 +295,7 @@ function trustRecipe(mastery, itemResult, itemRecipe) {
 
 	const itemCostCb = (value) => {
 		const qteNeed = value.quantity;
-		const qteInBank = _game().bank.getQty(value.item);
+		const qteInBank = mods.getUtils().getQteInBank(value.item);
 		/* Add item to itemCosts */
 		const item = {
 			itemID: value.item.localID,

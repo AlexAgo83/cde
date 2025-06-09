@@ -547,16 +547,18 @@ export function collectCompletion() {
  * @returns {Object} An object containing the current activities.
  */
 export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkillsUpdate) {
+	const utl = mods.getUtils();
+
 	const result = {};
 	const player = _game().combat.player;
 	const stats = _game().stats;
 
-	const actions = _game().activeActions;
+	const actions = utl.getActiveActions();
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] collectCurrentActivity:currentActions: ", actions);
 	}
 
-	const skills = _game().activeAction?.activeSkills;
+	const skills = utl.getActiveSkills();
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] collectCurrentActivity:currentSkills: ", skills);
 	}
@@ -572,64 +574,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			const items = {};
 			const skillsToUpdate = []
 			
-			let selectedRecipe = a.selectedRecipe;
+			const selectedRecipe = utl.getRecipeForAction(a);
 			let selectedRecipeSkill = selectedRecipe?.skill
 			if (selectedRecipe && !selectedRecipeSkill) {
-				selectedRecipeSkill = a;
-			}
-
-			/* Select active action skill as recipe */
-			/* Thieving */
-			if (!selectedRecipe && a.currentNPC) {
-				selectedRecipe = a.currentNPC;
-				selectedRecipeSkill = a;
-			}
-
-			/* Mining */
-			if (!selectedRecipe && a.selectedRock) {
-				selectedRecipe = a.selectedRock;
-				selectedRecipeSkill = a;
-			}
-
-			/* Fishing */
-			if (!selectedRecipe && a.activeFish) {
-				selectedRecipe = a.activeFish;
-				selectedRecipeSkill = a;
-			}
-
-			/* Alt. Magic */
-			if (!selectedRecipe && a.selectedSpell) {
-				selectedRecipe = a.selectedSpell;
-				selectedRecipeSkill = a;
-			}
-
-			/* Archaeology */
-			if (!selectedRecipe && a.currentDigSite) {
-				selectedRecipe = a.currentDigSite;
-				selectedRecipeSkill = a;
-			}
-
-			/* Cartography */
-			if (!selectedRecipe && a.currentlySurveyedHex?.pointOfInterest) {
-				selectedRecipe = a.currentlySurveyedHex.pointOfInterest;
-				selectedRecipeSkill = a;
-			}
-
-			/* Firemaking */
-			// if (!selectedRecipe && a.litBonfireRecipe) {
-			// 	selectedRecipe = a.litBonfireRecipe;
-			// 	selectedRecipeSkill = a;
-			// }
-
-			/* Fallback: Active Recipe */
-			if (!selectedRecipe && a.activeRecipe) {
-				selectedRecipe = a.activeRecipe;
-				selectedRecipeSkill = a;
-			} 
-
-			/* Fallback: Mastery Action */
-			if (!selectedRecipe && a.masteryAction) {
-				selectedRecipe = a.masteryAction;
 				selectedRecipeSkill = a;
 			}
 
@@ -676,7 +623,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 								console.log("[CDE] collectCurrentActivity:Cartography:customQueue: ", mastery);
 							}
 						} else {
-							recipeID = selectedRecipe.localID
+							// recipeID = selectedRecipe.localID
 							mastery = a;
 							if (mods.getSettings().isDebug()) {
 								console.log("[CDE] collectCurrentActivity:Other:customQueue: ", mastery);
@@ -720,7 +667,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						entry.monster.area = {
 							areaID: a.selectedArea?.localID,
 							areaLabel: a.selectedArea?.name,
-							areaCompletion: _game().combat?.getDungeonCompleteCount(a.selectedArea),
+							areaCompletion: utl.getDungeonCount(a.selectedArea),
 							areaMedia: a.selectedArea?.media,
 							areaType: a.selectedArea?.category?.localID
 						}
