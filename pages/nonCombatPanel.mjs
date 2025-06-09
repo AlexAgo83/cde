@@ -306,7 +306,7 @@ export function createInstance(innerType) {
                                                 if (preservationChance) {
                                                     let pPreservation = ``;
                                                     pPreservation += `<span class="skill-label">Preservation : </span>`;
-                                                    pPreservation += `<span class="skill-value vph vph-mastery">${preservationChance}</span>`;
+                                                    pPreservation += `<span class="skill-value vph vph-mastery">${preservationChance.toFixed(2)}</span>`;
                                                     pPreservation += `<span class="skill-value vph-tiny vph-mastery-fade">%</span>`;
                                                     resultFooter.push(`<div class="cde-generic-panel">${pPreservation}</div>`);
                                                 }
@@ -351,15 +351,40 @@ export function createInstance(innerType) {
                                                         pActionInterval += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
                                                         pActionInterval += `<span class="skill-label">)</span>`;
                                                     }
+                                                    const actionIntervalPres = m?.actionTimeMsWithPreservation;
+                                                    let pActionIntervalPres = ``;
+                                                    if (actionIntervalPres) {
+                                                        pActionIntervalPres += `<span class="skill-label">(</span><span class="skill-label vph-tiny">expected </span>`;
+                                                        const inter = mods.getUtils().formatDuration(actionIntervalPres, "vph-mastery-fade");
+                                                        pActionIntervalPres += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
+                                                        pActionIntervalPres += `<span class="skill-label">)</span>`;
+                                                    }
                                                     const actionLeft = lessActionItem.itemQteActions;
+                                                    const actionLeftPres = lessActionItem.itemQteActionsWithPreservation;
                                                     if (actionLeft) {
-                                                        resultFooter.push(
-                                                            `<div class="cde-generic-panel">
+                                                        let actionResult = ``;
+                                                        actionResult += `<div class="cde-generic-panel">
                                                                 <span class="skill-label">Action left :</span>
-                                                                <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
-                                                                ${pActionInterval}
-                                                            </div>`
-                                                        );    
+                                                            </div>`;
+                                                        if (actionLeft) {
+                                                            actionResult += `<div class="cde-generic-panel">
+                                                                    <span class="skill-label"> • get </span>
+                                                                    <span class="skill-value vph-mastery">Base / Flat</span>
+                                                                    <span class="skill-label"> ➜ </span>
+                                                                    <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                                    ${pActionInterval}
+                                                                </div>`;
+                                                        }
+                                                        if (actionIntervalPres) {
+                                                            actionResult += `<div class="cde-generic-panel">
+                                                                    <span class="skill-label"> • get </span>
+                                                                    <span class="skill-value vph-mastery">Preservation</span>
+                                                                    <span class="skill-label"> ➜ </span>
+                                                                    <span class="skill-value vph vph-mastery">${actionLeftPres ?? "N/A"}</span>
+                                                                    ${pActionIntervalPres}
+                                                                </div>`
+                                                        }
+                                                        resultFooter.push(actionResult);    
                                                     }
                                                 }
                                             } 

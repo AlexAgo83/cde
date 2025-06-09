@@ -349,14 +349,23 @@ function trustRecipeItemCosts(mastery, itemRecipe) {
 			itemQteActions: getMaxItems(qteInBank, qteNeed),
 			itemLessActions: false
 		}
-		itemCosts.push(item);
+		/* Apply preservation */
+		const preservation = mastery.preservationChance;
+		if (preservation > 0) {
+			const coef = 1+(preservation / 100);
+			const applied = Math.floor(coef*item.itemQteActions);
+			item.itemQteActionsWithPreservation = applied;
+		}
+		
 		/* Find item with less actions */
 		if (lessActionItem && lessActionItem?.itemQteActions) {
 			if (item.itemQteActions < lessActionItem.itemQteActions) {
 				lessActionItem = item;
 			}
 		} else lessActionItem = item;
-
+		
+		itemCosts.push(item);
+		
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] TrustRecipe, onIterateCost:", {value, item});
 		}
@@ -424,12 +433,18 @@ function trustRecipeItemCosts(mastery, itemRecipe) {
 	if (lessActionItem) {
 		lessActionItem.itemLessActions = true;
 	}
+	
 	mastery.itemCosts = itemCosts;
 	mastery.itemLessAction = lessActionItem;
 
 	if (mastery.currentActionInterval > 0 && mastery.itemLessAction) {
-		const actionTimeMs = mastery.itemLessAction.itemQteActions * mastery.currentActionInterval;
-		mastery.actionTimeMs = actionTimeMs;
+		const currInterval = mastery.currentActionInterval;
+		
+		/* Flat action  */
+		mastery.actionTimeMs = currInterval * mastery.itemLessAction.itemQteActions;
+
+		/* Apply preservation action */
+		mastery.actionTimeMsWithPreservation = currInterval * mastery.itemLessAction.itemQteActionsWithPreservation;
 	}
 
 	if (mods.getSettings().isDebug()) {
