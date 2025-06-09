@@ -157,7 +157,7 @@ export function createInstance(innerType) {
                                         // const time = currentSkill.timeToNextLevelStr;
                                         const secondsToNextLevel = currentSkill.secondsToNextLevel;
                                         const timeSkill = mods.getUtils().formatDuration(secondsToNextLevel * 1000, "vph-skill-fade");
-
+                                        
                                         resultFooter.push(
                                             `<div class="cde-generic-panel cde-generic-header">
                                                 <span class="skill-label">Craft Duration :</span>
@@ -258,13 +258,12 @@ export function createInstance(innerType) {
                                         const itemCosts = m?.itemCosts;
                                         const lessActionItem = m?.itemLessAction;
                                         const masteryProgress = m?.maxteryNextLevelProgress;
-                                        
-                                        const hasProduct = (productCount && isFinite(productCount)) || productsCount?.length > 0;
+                                        const preservationChance = m?.preservationChance;
 
+                                        const hasProduct = (productCount && isFinite(productCount)) || productsCount?.length > 0;
 
                                         if (masteryID) {
                                             let pcStr = ``;
-
                                             if (hasProduct) {
                                                 if (productsCount?.length > 0) {
                                                     /* Multi products */
@@ -299,20 +298,42 @@ export function createInstance(innerType) {
                                             );
                                             /** CRAFT */
                                             if (itemCosts && lessActionItem) {
+
+                                                /* Can't estimate item cost for Summoning right now */
+                                                const isNoDisplayItemCosts = masteries?.skillID == "Summoning";
+
+                                                /* Preservation */
+                                                if (preservationChance) {
+                                                    let pPreservation = ``;
+                                                    pPreservation += `<span class="skill-label">Preservation : </span>`;
+                                                    pPreservation += `<span class="skill-value vph vph-mastery">${preservationChance}</span>`;
+                                                    pPreservation += `<span class="skill-value vph-tiny vph-mastery-fade">%</span>`;
+                                                    resultFooter.push(`<div class="cde-generic-panel">${pPreservation}</div>`);
+                                                }
                                                 /* RECIPE ITEMS */
                                                 let pRecipeItems = ``;
                                                 if (itemCosts && itemCosts.length > 0) {
                                                     let firstTurn = true;
-                                                    itemCosts.forEach((item) => {
-                                                        if (!firstTurn) pRecipeItems += `,`;
-                                                        pRecipeItems += item.itemMedia ? `<img class="skill-media" src="${item.itemMedia}" />` : `<span class="skill-media"></span>`
-                                                        pRecipeItems += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
-                                                        pRecipeItems += `<span class="skill-value vph-tiny vph-mastery">${item.itemQteNeed}</span>`;
-                                                        firstTurn = false;
-                                                    })
+                                                    if (isNoDisplayItemCosts) {
+                                                        /* Show only item cost media */
+                                                        itemCosts.forEach((item) => {
+                                                            if (!firstTurn) pRecipeItems += `,`;
+                                                            pRecipeItems += item.itemMedia ? `<img class="skill-media" src="${item.itemMedia}" />` : `<span class="skill-media"></span>`
+                                                            firstTurn = false;
+                                                        })
+                                                    } else {
+                                                        /* Show item cost media & costs */
+                                                        itemCosts.forEach((item) => {
+                                                            if (!firstTurn) pRecipeItems += `,`;
+                                                            pRecipeItems += item.itemMedia ? `<img class="skill-media" src="${item.itemMedia}" />` : `<span class="skill-media"></span>`
+                                                            pRecipeItems += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
+                                                            pRecipeItems += `<span class="skill-value vph-tiny vph-mastery">${item.itemQteNeed}</span>`;
+                                                            firstTurn = false;
+                                                        })
+                                                    }
                                                 }
                                                 if (pRecipeItems.length > 0) {
-                                                     resultFooter.push(
+                                                    resultFooter.push(
                                                         `<div class="cde-generic-panel">
                                                             <span class="skill-label">Recipe :</span>
                                                             ${pRecipeItems}
@@ -321,23 +342,25 @@ export function createInstance(innerType) {
                                                 }
 
                                                 /* ACTION LEFT */
-                                                const actionInterval = m?.actionTimeMs;
-                                                let pActionInterval = ``;
-                                                if (actionInterval) {
-                                                    pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">more than </span>`;
-                                                    const inter = mods.getUtils().formatDuration(actionInterval, "vph-mastery-fade");
-                                                    pActionInterval += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
-                                                    pActionInterval += `<span class="skill-label">)</span>`;
-                                                }
-                                                const actionLeft = lessActionItem.itemQteActions;
-                                                if (actionLeft) {
-                                                    resultFooter.push(
-                                                        `<div class="cde-generic-panel">
-                                                            <span class="skill-label">Action left :</span>
-                                                            <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
-                                                            ${pActionInterval}
-                                                        </div>`
-                                                    );    
+                                                if (!isNoDisplayItemCosts) {
+                                                    const actionInterval = m?.actionTimeMs;
+                                                    let pActionInterval = ``;
+                                                    if (actionInterval) {
+                                                        pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">more than </span>`;
+                                                        const inter = mods.getUtils().formatDuration(actionInterval, "vph-mastery-fade");
+                                                        pActionInterval += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
+                                                        pActionInterval += `<span class="skill-label">)</span>`;
+                                                    }
+                                                    const actionLeft = lessActionItem.itemQteActions;
+                                                    if (actionLeft) {
+                                                        resultFooter.push(
+                                                            `<div class="cde-generic-panel">
+                                                                <span class="skill-label">Action left :</span>
+                                                                <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                                ${pActionInterval}
+                                                            </div>`
+                                                        );    
+                                                    }
                                                 }
                                             } 
                                             updated = true;

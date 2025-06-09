@@ -701,7 +701,14 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						item.masteryMaxLevel = queryCache.skill?.masteryLevelCap ?? a.masteryLevelCap ?? 99;
 						item.currentActionInterval = a.currentActionInterval;
 						if (item.active) {
-							item.masteryCursor = a.selectedAltRecipe;
+							/* (Default) parse alt recipe cursor */
+							if (a.selectedAltRecipe) {
+								item.masteryCursor = a.selectedAltRecipe;
+							}
+							/* (Summoning) parse non shard recipe cursor */
+							if (a.selectedNonShardCosts && a.selectedNonShardCosts.size > 0) {
+								item.masteryCursor = a.selectedNonShardCosts?.get(queryCache)?.localID;
+							}
 						}
 						item.preservationChance = utl.getPreservationChance(a, queryCache);
 						return item;

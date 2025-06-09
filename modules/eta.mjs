@@ -5,6 +5,7 @@
 // eta.mjs
 
 let mods = null;
+const URL_ARCHAEOLOGY_MAP = "https://cdn2-main.melvor.net/assets/media/skills/archaeology/map_colour.png";
 
 /**
  * Initialize eta module.
@@ -227,13 +228,6 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			m.timeToNextLvlStr = utl.formatDuration(m.secondsToNextLvl * 1000);
 			m.currentActionInterval = activity?.actionInterval ?? 0;
 
-			// if (m.masteryNextLvlXp < m.masteryMaxLevel) {
-			// 	const lastXpNeeded = mods.getUtils().getXpForLevel(currMasteryLvl);
-			// 	const totalCost = m.masteryNextLvlXp - lastXpNeeded;
-			// 	const totalOwned = currMasteryXP - lastXpNeeded;
-			// 	m.progression = Math.floor(totalOwned / totalCost);
-			// }
-
 			// ETA - Predict next masteries lvl
 			m.predictLevels = new Map();
 			const prdArr = utl.parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
@@ -274,8 +268,10 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 					if (mods.getSettings().isDebug()) {
 						console.log("[CDE] ETA Crafting, produces:", {m, univRecipe, produces});
 					}
-					trustRecipe(m, produces, univRecipe);
+					/* Collect itemCosts & products */
+					trustRecipeProducts(m, produces, univRecipe);
 				}
+				trustRecipeItemCosts(m, univRecipe);
 			} else {
 				if (mods.getSettings().isDebug()) {
 					console.log("[CDE] ETA Crafting, can't match:", {m, univRecipe});
@@ -285,39 +281,61 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 	}
 }
 
-function trustRecipe(mastery, itemResult, itemRecipe) {
+/**
+ * Generate product info
+ * @param {*} mastery 
+ * @param {*} itemResult 
+ * @param {*} itemRecipe 
+ * @returns 
+ */
+function trustRecipeProducts(mastery, itemResult, itemRecipe) {
+	if (!itemResult) return null;
 	/* Product in bank */
-	if (itemResult) {
-		if (itemResult.length > 0) {
-			mastery.productsInBank = [];
-			itemResult.forEach((item) => {
-				mastery.productsInBank.push({
-					itemID: item.localID, 
-					itemMedia: item.media,
-					itemLabel: item.name,
-					itemQte: mods.getUtils().getQteInBank(item)
-				});		
-			})
-		} else {
-			mastery.productInBank = mods.getUtils().getQteInBank(itemResult);
-			mastery.productName = itemResult.name;
-			mastery.productMedia = itemResult.media;
-		}
-		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] TrustRecipe, productInBank:", {mastery, itemResult, itemRecipe});
-		}
+	if (itemResult.length > 0) {
+		mastery.productsInBank = [];
+		itemResult.forEach((item) => {
+			mastery.productsInBank.push({
+				itemID: item.localID, 
+				itemMedia: item.media,
+				itemLabel: item.name,
+				itemQte: mods.getUtils().getQteInBank(item)
+			});		
+		})
+	} else {
+		mastery.productInBank = mods.getUtils().getQteInBank(itemResult);
+		mastery.productName = itemResult.name;
+		mastery.productMedia = itemResult.media;
 	}
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] TrustRecipe, productInBank:", {mastery, itemResult, itemRecipe});
+	}
+}
 
-	/* Item costs in bank */
+/**
+ * Generate itemCosts info
+ * @param {*} mastery  
+ * @param {*} itemRecipe 
+ * @returns  
+ */
+function trustRecipeItemCosts(mastery, itemRecipe) {
+	if (!itemRecipe) return null;
+	/* Item costs */
 	const itemCosts = [];
 	let lessActionItem = {};
 
 	const itemCostCb = (value) => {
+		/* Default recipe item */
 		let qteNeed = value.quantity;
 		let itemNeed = value.item;
 		if (value.category) {
+			/* Default gathering ; Firemaking */
 			qteNeed = 1;
 			itemNeed = value;
+		} else if (value.charges) {
+			/* Custom: Archaeology */
+			qteNeed = value.charges;
+			itemNeed = value;
+			itemNeed.media = URL_ARCHAEOLOGY_MAP;
 		}
 		
 		const qteInBank = mods.getUtils().getQteInBank(itemNeed);
@@ -345,13 +363,13 @@ function trustRecipe(mastery, itemResult, itemRecipe) {
 	};
 	
 	/* Default item costs source */
-	itemRecipe?.itemCosts?.forEach(itemCostCb);
+	itemRecipe.itemCosts?.forEach(itemCostCb);
 	/* Base fixed */
-	itemRecipe?.fixedItemCosts?.forEach(itemCostCb);
+	itemRecipe.fixedItemCosts?.forEach(itemCostCb);
 	/* Runes */
-	itemRecipe?.runesRequired?.forEach(itemCostCb);
+	itemRecipe.runesRequired?.forEach(itemCostCb);
 	/* Firemaking */
-	if (itemRecipe?.log) {
+	if (itemRecipe.log) {
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] TrustRecipe, itemRecipe-log:", itemRecipe);
 		}
@@ -362,19 +380,42 @@ function trustRecipe(mastery, itemResult, itemRecipe) {
 			log.forEach(itemCostCb);	
 		}
 	}
-	/* Alternative costs */
-	if (mastery.masteryCursor >= 0 && itemRecipe?.alternativeCosts) {
-		const recipeAltCosts = itemRecipe?.alternativeCosts;
+	/* Archaeology */
+	if (itemRecipe.maps) {
 		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] TrustRecipe, alternativeCosts:", recipeAltCosts);
+			console.log("[CDE] TrustRecipe, itemRecipe-maps:", itemRecipe);
+		}
+		const maps = itemRecipe.maps;
+		if (maps && maps.length && maps.length > 0) {
+			maps.forEach(itemCostCb);
+		}
+	}
+	/* Alternative & (Summoning) nonShardItemCosts costs */
+	const alternativeCosts = itemRecipe.alternativeCosts || itemRecipe.nonShardItemCosts;
+	if (mastery.masteryCursor !== null && alternativeCosts) {
+		const recipeAltCosts = alternativeCosts;
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] TrustRecipe, other Costs:", recipeAltCosts);
 		}
 		if (recipeAltCosts && recipeAltCosts.length && recipeAltCosts.length > 0) {
-			const selectedAltCost = recipeAltCosts[mastery.masteryCursor]?.itemCosts;	
-			if (mods.getSettings().isDebug()) {
-				console.log("[CDE] TrustRecipe, alternativeCosts:current", selectedAltCost);
-			}
-			if (selectedAltCost) {
-				selectedAltCost?.forEach(itemCostCb)
+			let selectedAltCost = null;
+			if (typeof mastery.masteryCursor === "string") {
+				alternativeCosts.forEach((altCost) => {
+					if (altCost.localID === mastery.masteryCursor) {
+						if (mods.getSettings().isDebug()) {
+							console.log("[CDE] TrustRecipe, nonShardItemCosts", selectedAltCost);
+						}
+						itemCostCb(altCost);		
+					}
+				})
+			} else {
+				selectedAltCost = recipeAltCosts[mastery.masteryCursor]?.itemCosts;	
+				if (mods.getSettings().isDebug()) {
+					console.log("[CDE] TrustRecipe, alternativeCosts", selectedAltCost);
+				}
+				if (selectedAltCost) {
+					selectedAltCost?.forEach(itemCostCb);
+				}
 			}
 		}
 	}
@@ -395,6 +436,7 @@ function trustRecipe(mastery, itemResult, itemRecipe) {
 		console.log("[CDE] TrustRecipe, lessActionItem:", {mastery, lessActionItem});
 	}
 }
+
 /**
  * 
  * @param {*} itemInBank 
