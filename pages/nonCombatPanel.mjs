@@ -300,7 +300,7 @@ export function createInstance(innerType) {
                                             if (itemCosts && lessActionItem) {
 
                                                 /* Can't estimate item cost for Summoning right now */
-                                                const isNoDisplayItemCosts = masteries?.skillID == "Summoning";
+                                                const isNoDisplayItemCosts = parentSkillID == "Summoning";
 
                                                 /* Preservation */
                                                 if (preservationChance) {
