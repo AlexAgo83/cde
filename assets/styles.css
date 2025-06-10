@@ -320,7 +320,7 @@
   pointer-events: none;
   margin-left: 14px;
   margin-right: 18px;
-  margin-top: 22px;
+  margin-top: 14px;
   margin-bottom: 12px;
 }
 .cde-eta-controls {
@@ -330,6 +330,9 @@
   width: fit-content !important;
   pointer-events: auto;
   position: absolute;
+  margin-right: 6px;
+  margin-left: 6px;
+  margin-top: 0px;
   top: 0; 
   right: 0;
   z-index: 10;
@@ -337,7 +340,11 @@
 .cde-generic-panel {
   width: fit-content !important;
 }
-
+.cde-eta-wrapper {
+  position: relative;
+  display: inline-block; /* ou flex/inline-flex si tu veux gÃ©rer mieux l'intÃ©rieur */
+  width: fit-content;
+}
 .cde-eta-header {
   width: 100%;
   max-width: 100%;

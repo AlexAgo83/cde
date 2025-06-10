@@ -103,7 +103,8 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
     identity = identifier;
     const etaStr = etaData ? etaData : "n/a";
     const controlsPanel = controlsPanelCb();
-    return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}</div>`;
+    let wrapper = `<span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}`;
+    return `<div class="cde-${identity}-panel cde-eta-generic"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
 }
 
 /**
