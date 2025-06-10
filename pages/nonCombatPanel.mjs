@@ -111,7 +111,7 @@ export function createInstance(innerType) {
             identity = identifier;
             const etaStr = etaData ? etaData : "n/a";
             const controlsPanel = controlsPanelCb();
-            return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}${controlsPanel}</span></div>`;
+            return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}</div>`;
         },
 
         /**

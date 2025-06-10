@@ -348,6 +348,11 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
 const onControlsPanel = () => {
     if (controlsPanel === null) {
         let controls = ``;
+
+        // controls += `<button id="cde-btn-test1" class="btn btn-sm btn-primary">Test 1</button>`;
+        // controls += `<button id="cde-btn-test2" class="btn btn-sm btn-secondary">Test 2</button>`;
+
+        /* Register controls panel */
         controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
     }
     return controlsPanel;
@@ -397,12 +402,12 @@ function pageContainer(targetPage, identifier, currPanel) {
         corePanel.style.display = "none";
         
         if (typeof currPanel.onRefresh === "function") {
-            corePanel.addEventListener("click", (...args) => {
-                mods.getExport().resetExportData();               
-                mods.getLocalStorage().clearStorage();
-		        mods.getCloudStorage().clearStorage();
-                return currPanel.onRefresh(...args);
-            });
+            // innHtml.addEventListener("click", (...args) => {
+            //     mods.getExport().resetExportData();               
+            //     mods.getLocalStorage().clearStorage();
+		    //     mods.getCloudStorage().clearStorage();
+            //     return currPanel.onRefresh(...args);
+            // });
         }
 
         mutationCompute.container = container;
