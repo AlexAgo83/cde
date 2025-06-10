@@ -317,14 +317,14 @@ export function createInstance(innerType) {
                                                     if (isNoDisplayItemCosts) {
                                                         /* Show only item cost media */
                                                         itemCosts.forEach((item) => {
-                                                            if (!firstTurn) pRecipeItems += `,`;
+                                                            if (!firstTurn) pRecipeItems += `<span class="skill-label">,</span>`;
                                                             pRecipeItems += item.itemMedia ? `<img class="skill-media" src="${item.itemMedia}" />` : `<span class="skill-media"></span>`
                                                             firstTurn = false;
                                                         })
                                                     } else {
                                                         /* Show item cost media & costs */
                                                         itemCosts.forEach((item) => {
-                                                            if (!firstTurn) pRecipeItems += `,`;
+                                                            if (!firstTurn) pRecipeItems += `<span class="skill-label">,</span>`;
                                                             pRecipeItems += item.itemMedia ? `<img class="skill-media" src="${item.itemMedia}" />` : `<span class="skill-media"></span>`
                                                             pRecipeItems += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
                                                             pRecipeItems += `<span class="skill-value vph-tiny vph-mastery">${item.itemQteNeed}</span>`;
