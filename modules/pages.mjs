@@ -10,6 +10,7 @@ let pageObservers = new Map();
 
 /** COMBAT PANEL */
 let combatPanel = null;
+let controlsPanel = null;
 
 export function getCombatPanel() { return combatPanel; }
 
@@ -341,6 +342,18 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
 }
 
 /**
+ * Returns the controls panel HTML for ETA.
+ * @returns {string} The controls panel HTML.
+ */
+const onControlsPanel = () => {
+    if (controlsPanel === null) {
+        let controls = ``;
+        controlsPanel = `<div class="cde-controls-panel" style="flex: 1;">.${controls}</div>`;
+    }
+    return controlsPanel;
+};
+
+/**
  * Creates or retrieves a MutationObserver reference object for a given target page and identifier.
  * The observer monitors changes to the DOM and injects a styled header block with a summary
  * if it does not already exist in the target container.
@@ -349,7 +362,7 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
  * @param {string} identifier - A unique identifier used to generate element IDs.
  * @returns {{observer: MutationObserver, identifier: string}} The observer reference object.
  */
-function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
+function pageContainer(targetPage, identifier, currPanel) {
     if (!mods) {
         throw new Error("Modules not initialized. Call init(modules) before using pageContainer.");
     }
@@ -366,26 +379,29 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
 
     const observer = new MutationObserver(() => {
         const container = document.querySelector(targetPage);
+        /* No available container for this page */
         if (!container) return;
 
         const headerId = getHeaderID(identifier)
+        /* Already spawned */
         if (document.getElementById(headerId)) return;
 
         const summaryId = getSummaryID(identifier);
         const corePanel = document.createElement('div');
         corePanel.id = headerId;
         corePanel.classList.add("cde-eta-header");
-        corePanel.innerHTML = viewPanel(corePanel, summaryId, identifier);
-        corePanel.style.display = "none";
 
-        if (typeof onRefresh === "function") {
+        currPanel.setControlsPanelCb(onControlsPanel);
+        const innHtml = currPanel.container(corePanel, summaryId, identifier);
+        corePanel.innerHTML = innHtml;
+        corePanel.style.display = "none";
+        
+        if (typeof currPanel.onRefresh === "function") {
             corePanel.addEventListener("click", (...args) => {
-                mods.getExport().resetExportData()
-                // mods.getCloudStorage().removeCurrentMonsterData();
-                // mods.getCloudStorage().removeCurrentActivityData();                
+                mods.getExport().resetExportData();               
                 mods.getLocalStorage().clearStorage();
 		        mods.getCloudStorage().clearStorage();
-                return onRefresh(...args);
+                return currPanel.onRefresh(...args);
             });
         }
 
@@ -429,7 +445,7 @@ function pageContainer(targetPage, identifier, viewPanel, onRefresh) {
  */
 function registerObserver(references, panel, pageId, identifier) {
     if (panel && typeof panel.container === "function" && typeof panel.onRefresh === "function") {
-        const reference = pageContainer(pageId, identifier, panel.container, panel.onRefresh);
+        const reference = pageContainer(pageId, identifier, panel);
         if (reference != null) {
             references.push(reference);
             if (mods.getSettings().isDebug()) {

@@ -22,6 +22,11 @@ export function createInstance(innerType) {
      */
     let extractETA = (etaExtract=true, timeBuffer=100) => {return {currentActivity: null}};
 
+    /**
+     * Placeholder for Controls Panel function.
+     */
+    let controlsPanelCb = () => {};
+
     const self = {
         /**
          * Initialize the nonCombat panel.
@@ -76,7 +81,16 @@ export function createInstance(innerType) {
             extractETA = cb;
         },
 
-        
+        /**
+         * Sets the callback function used to generate the controls panel.
+         * @param {*} cb - Callback function that generate controls panel.
+         */
+        setControlsPanelCb(cb) {
+            if (mods.getSettings().isDebug()) {
+                console.log("[CDE] Controls panel callback:", cb);
+            }
+            controlsPanelCb = cb;
+        },
 
         /**
          * Displays the given value in the panel container.
@@ -96,7 +110,8 @@ export function createInstance(innerType) {
             summaryId = summaryIdentifier;
             identity = identifier;
             const etaStr = etaData ? etaData : "n/a";
-            return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary"id="${summaryIdentifier}">${etaStr}</span></div>`;
+            const controlsPanel = controlsPanelCb();
+            return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}${controlsPanel}</span></div>`;
         },
 
         /**

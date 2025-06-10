@@ -25,6 +25,11 @@ export const URL_STATISTICS = "https://cdn2-main.melvor.net/assets/media/main/st
 let extractETA = (etaExtract=true, timeBuffer=100) => {return {currentActivity: null}};
 
 /**
+ * Placeholder for Controls Panel function.
+ */
+let controlsPanelCb = () => {};
+
+/**
  * Initialize the combat panel.
  * @param {Object} modules - The modules object containing dependencies.
  */
@@ -77,6 +82,17 @@ export function setCollectCb(cb) {
 }
 
 /**
+ * Sets the callback function used to generate the controls panel.
+ * @param {*} cb - Callback function that generate controls panel.
+ */
+export function setControlsPanelCb(cb) {
+    if (mods.getSettings().isDebug()) {
+        console.log("[CDE] Controls panel callback:", cb);
+    }
+    controlsPanelCb = cb;
+}
+
+/**
  * Returns the default HTML for an ETA panel.
  * @param {*} summaryIdentifier - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
@@ -86,7 +102,8 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
     summaryId = summaryIdentifier;
     identity = identifier;
     const etaStr = etaData ? etaData : "n/a";
-    return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}</span></div>`;
+    const controlsPanel = controlsPanelCb();
+    return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}${controlsPanel}</span></div>`;
 }
 
 /**
@@ -228,7 +245,7 @@ export const onRefresh = () => {
                 updated = true;
             }
         }
-        parent.innerHTML = container(parent, summaryId, identity);
+        parent.innerHTML = container(parent, summaryId, identity) + controlsPanelCb();
     }
     return updated;
 }
