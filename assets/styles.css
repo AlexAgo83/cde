@@ -309,6 +309,10 @@
 .cde-eta-summary {
   display: flex !important; 
 }
+.cde-eta-controls {
+  flex: 1 !important; 
+  justify-content: flex-end !important; 
+}
 .cde-eta-header {
   width: 100%;
   max-width: 100%;

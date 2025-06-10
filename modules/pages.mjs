@@ -348,7 +348,7 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
 const onControlsPanel = () => {
     if (controlsPanel === null) {
         let controls = ``;
-        controlsPanel = `<div class="cde-controls-panel" style="flex: 1;">.${controls}</div>`;
+        controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
     }
     return controlsPanel;
 };
