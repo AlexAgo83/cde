@@ -96,7 +96,7 @@ export function createInstance(innerType) {
             summaryId = summaryIdentifier;
             identity = identifier;
             const etaStr = etaData ? etaData : "n/a";
-            return `<div class="cde-${identity}-panel cde-eta-generic"><span id="${summaryIdentifier}">${etaStr}</span></div>`;
+            return `<div class="cde-${identity}-panel cde-eta-generic"><span class="cde-eta-summary"id="${summaryIdentifier}">${etaStr}</span></div>`;
         },
 
         /**

@@ -255,7 +255,7 @@ export function collectAncientRelics() {
 			});
 		});
 		
-		if (relics.length > 0) {
+		if (Object.keys(relics).length > 0) {
 			const item = {
 				skill: skill.name,
 				skillID: skill.localID,
@@ -550,21 +550,17 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 	const utl = mods.getUtils();
 
 	const result = {};
+
 	const player = _game().combat.player;
 	const stats = _game().stats;
-
 	const actions = utl.getActiveActions();
-	if (mods.getSettings().isDebug()) {
-		console.log("[CDE] collectCurrentActivity:currentActions: ", actions);
-	}
-
 	const skills = utl.getActiveSkills();
-	if (mods.getSettings().isDebug()) {
-		console.log("[CDE] collectCurrentActivity:currentSkills: ", skills);
-	}
+
+	if (mods.getSettings().isDebug()) console.log("[CDE] collectCurrentActivity:current Actions & Skills: ", actions, skills);
 
 	// ETA - Mode 2
 	const syncDate = new Date();
+
 	/* For each actives actions */
 	actions?.registeredObjects?.forEach((a) => {
 		if (a.isActive) {
@@ -624,7 +620,6 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 								console.log("[CDE] collectCurrentActivity:Cartography:customQueue: ", mastery);
 							}
 						} else {
-							// recipeID = selectedRecipe.localID
 							mastery = a;
 							if (mods.getSettings().isDebug()) {
 								console.log("[CDE] collectCurrentActivity:Other:customQueue: ", mastery);

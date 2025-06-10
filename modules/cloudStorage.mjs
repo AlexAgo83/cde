@@ -4,9 +4,9 @@
 // @ts-check
 // cloudStorage.mjs
 
-const CS_SETTINGS = "cs_settings_";
-const CS_CURRENT_MONSTER_DATA = "cs_current_monster_data";
-const CS_CURRENT_ACTIVITY_DATA = "cs_current_activity_data";
+const CS_SETTINGS = "cde_settings";
+const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data";
+const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data";
 
 let mods = null;
 let cloudStorage = null;

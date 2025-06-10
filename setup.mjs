@@ -49,7 +49,7 @@
 // Stage 26 - Live DPS
 
 // --- Configuration ---
-const MOD_VERSION = "v2.0.158";
+const MOD_VERSION = "v2.0.164";
 
 // --- Module Imports ---
 let mModules = null;
@@ -121,7 +121,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
 		mModules = await ctx.loadModule("modules.mjs");
-		mModules.onModuleLoad(ctx);
+		mModules.onModuleLoad(ctx, MOD_VERSION);
 		console.info("[CDE] Modules loaded !");
 	});
 

@@ -82,13 +82,13 @@ export const SettingsReference = {
 		options: [
 			{ value: 0, display: "0 (Disable history)" },
 			{ value: 1, display: "1" },
-			{ value: 5, display: "5" },
-			{ value: 10, display: "10 (Default)" },
+			{ value: 3, display: "3" },
+			{ value: 5, display: "5 (Default)" },
+			{ value: 10, display: "10" },
 			{ value: 25, display: "25" },
-			{ value: 50, display: "50" },
-			{ value: 100, display: "100" }
+			{ value: 50, display: "50" }
 		],
-		toggle: 10
+		toggle: 3
 	},
 	
 	// DATA OPTIONS SETTINGS
@@ -98,7 +98,7 @@ export const SettingsReference = {
 		key: "export-bank",
 		label: "Include Bank Data",
 		hint: "Include inventory and bank items in export", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_SHOP: {
 		section: Sections.DataOptions,
@@ -114,7 +114,7 @@ export const SettingsReference = {
 		key: "export-equipment",
 		label: "Include Current Equipment Data",
 		hint: "Include current equipment items in export", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_EQUIPMENT_SETS: {
 		section: Sections.DataOptions,
@@ -122,7 +122,7 @@ export const SettingsReference = {
 		key: "export-equipment-sets",
 		label: "Include Equipment Sets Data",
 		hint: "Include equipment sets items in export", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_FARMING: {
 		section: Sections.DataOptions,
@@ -130,7 +130,7 @@ export const SettingsReference = {
 		key: "export-farming",
 		label: "Include Farming Data",
 		hint: "Include current farming plots in export", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_GAMESTATS: {
 		section: Sections.DataOptions,
@@ -146,7 +146,7 @@ export const SettingsReference = {
 		key: "export-cartography",
 		label: "Include Cartography Data",
 		hint: "Include discovered POIs and map progress in export", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_SKILLS: {
 		section: Sections.DataOptions,

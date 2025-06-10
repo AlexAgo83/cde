@@ -317,9 +317,7 @@ export function showContainer(container, identity, value) {
 	if (container && container.style) {
 		if (value) container.style.display = "";
 		else container.style.display = "none";
-		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] Refresh UI updated:"+value);
-		}
+		// if (mods.getSettings().isDebug()) console.log("[CDE] Refresh UI updated:"+value);
 	} else if (mods.getSettings().isDebug()) {
 		console.log("[CDE] Refresh UI aborted:", container);
 	}
@@ -526,6 +524,11 @@ export function getRecipeForAction(action) {
 	return selectedRecipe;
 }
 
+/**
+ * Get the selected recipe cursor for an action
+ * @param {*} action 
+ * @returns {Object} The selected recipe cursor
+ */
 export function getRecipeCursorForAction(action) {
 	return action?.selectedAltRecipe;
 }
@@ -562,6 +565,12 @@ export function getQteInBank(item) {
 	return _game().bank.getQty(item);
 }
 
+/**
+ * Get the preservation chance for a recipe
+ * @param {*} skillObject 
+ * @param {*} recipeObject 
+ * @returns {number} The preservation chance
+ */
 export function getPreservationChance(skillObject, recipeObject) {
 	return skillObject.getPreservationChance(recipeObject)
 }

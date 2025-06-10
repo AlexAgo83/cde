@@ -4,6 +4,7 @@
 // @ts-check
 // modules.mjs
 
+let currModVersion = null;
 let mLZString = null;
 let mSettings = null;
 let mUtils = null;
@@ -15,6 +16,10 @@ let mExport = null;
 let mEta = null;
 let mViewer = null;
 let mPages = null;
+
+export function getModVersion() {
+    return currModVersion;
+}
 
 export function getSettings() {
     return mSettings;
@@ -81,7 +86,9 @@ function isCfg(reference) {
  * This should be called once during mod initialization.
  * @param {*} ctx - The context object provided by the mod loader, used to load dependencies.
  */
-export async function onModuleLoad(ctx) {
+export async function onModuleLoad(ctx, modVersion) {
+    currModVersion = modVersion;
+
     // Load Libs :
     mLZString = await ctx.loadModule("libs/lz-string.js");
     if (mLZString && typeof mLZString.default === 'object') {

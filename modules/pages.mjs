@@ -178,7 +178,7 @@ export function load(ctx) {
  */
 function doWorker(userPage, isCombat, activeAction, panel, localID) {
     let updated = false;
-    if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:run:"+localID, userPage);
+    // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:run:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
         let patchedLoginID = localID;
 
@@ -187,14 +187,14 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         if (localID === "AltMagic" && !isCombat) patchedLoginID = "Magic";
         const isNotActiveAction = activeAction && (activeAction.localID !== patchedLoginID);
         if (isNotActionPage || isNotActiveAction) {
-            if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:"+localID);
+            // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:"+localID);
             panel.show(false); 
             return updated;
         }
         
         /** Refresh & update visibility */
         updated = panel.onRefresh();
-        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:"+localID+"->"+updated);
+        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:"+localID+" -> "+updated);
         if (updated != null) panel.show(updated);
     } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Can't execute refresh:"+localID, panel);
     return updated;
@@ -336,7 +336,7 @@ function getSummaryID(identifier) {
 function onDefaultPanel(parentPanel, summaryId, identifier) {
     return `<div class="cde-eta-panel">
             <strong>DEBUG TITLE</strong><br>
-            <span id="${summaryId}">DEBUG SUMMARY - ${identifier}</span>
+            <span class="cde-eta-summary" id="${summaryId}">DEBUG SUMMARY - ${identifier}</span>
             </div>`;
 }
 

@@ -155,12 +155,13 @@ export function collector(cfgRef, collectorFn, fallbackMsg) {
  * @param {Function} onMeta - Callback to enrich export metadata.
  * @returns {Object} The generated export data.
  */
-export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, extractEta=false, timeBuffer=100, onMeta) {
+export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, extractEta=false, timeBuffer=250, onMeta) {
 	const newData = {};
 
 	const _mc = mods.getCollector();
 	const _sr = Stg();
 	const date = new Date();
+	const diffExecution = lastTimeBuffer ? (date.getTime() - lastTimeBuffer.getTime()) : 0;
 
 	if (lastTimeBuffer == null  
 		|| (lastTimeBuffer.getTime() + timeBuffer) < date.getTime()
@@ -182,7 +183,10 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	}
 
 	newData.basics = _mc.collectBasics();
+
+	const startExecutionTime = new Date().getTime();
 	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate);
+	const endExecutionTime = new Date().getTime();
 
 	if (!extractEta) {
 		newData.agility = _mc.collectAgility();
@@ -205,9 +209,17 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		newData.cartography = collector(_sr.EXPORT_CARTOGRAPHY, _mc.collectCartography, "Cartography data unavailable");
 		newData.farming = collector(_sr.EXPORT_FARMING, _mc.collectFarming, "Farming data unavailable");
 	}
+
+	/* Meta */
+	const executionTime = endExecutionTime - startExecutionTime;
 	newData.meta = {
 		exportTimestamp: mods.getUtils().parseTimestamp(date),
-		version: _game().lastLoadedGameVersion
+		processTime: executionTime,
+		lastProcessTime: diffExecution,
+		processBuffer: timeBuffer,
+		isFullExport: !extractEta,
+		gameVersion: _game().lastLoadedGameVersion,
+		modVersion: mods.getModVersion()
 	};
     if (typeof onMeta === "function") onMeta(newData.meta);
 
