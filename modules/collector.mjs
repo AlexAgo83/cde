@@ -686,7 +686,9 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			} else { /** NON COMBAT SKILLS */
 				const queue = {};
 
-				const registerItemQueue = (mastery, queryCache)=> {
+				const registerItemQueue = (mastery, queryCache) => {
+					if (!queryCache || typeof queryCache.localID === "undefined") return;
+
 					const item = {};
 					if (mastery) {							
 						const masteryPercent = masteryProgress(mastery.level, mastery.xp);
