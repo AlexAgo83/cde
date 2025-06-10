@@ -306,6 +306,9 @@
 }
 
 /* ETA PANEL */
+.cde-eta-summary {
+  display: flex !important; 
+}
 .cde-eta-header {
   width: 100%;
   max-width: 100%;
