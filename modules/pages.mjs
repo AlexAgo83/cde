@@ -349,9 +349,10 @@ const onControlsPanel = () => {
     if (controlsPanel === null) {
         let controls = ``;
 
-        // controls += `<button id="cde-btn-test1" class="btn btn-sm btn-primary">Test 1</button>`;
-        // controls += `<button id="cde-btn-test2" class="btn btn-sm btn-secondary">Test 2</button>`;
-
+        controls += `<button id="cde-btn-eta-displayLeft" class="cde-eta-btn btn-info m-1 font-size-xs">⏴</button>`;
+        controls += `<button id="cde-btn-eta-displayCenter" class="cde-eta-btn btn-info m-1 font-size-xs">■</button>`;
+        controls += `<button id="cde-btn-eta-displayRight" class="cde-eta-btn btn-info m-1 font-size-xs">⏵</button>`;
+        
         /* Register controls panel */
         controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
     }
@@ -400,15 +401,45 @@ function pageContainer(targetPage, identifier, currPanel) {
         const innHtml = currPanel.container(corePanel, summaryId, identifier);
         corePanel.innerHTML = innHtml;
         corePanel.style.display = "none";
-        
-        if (typeof currPanel.onRefresh === "function") {
-            // innHtml.addEventListener("click", (...args) => {
-            //     mods.getExport().resetExportData();               
-            //     mods.getLocalStorage().clearStorage();
-		    //     mods.getCloudStorage().clearStorage();
-            //     return currPanel.onRefresh(...args);
-            // });
+
+        const controlsPosition = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
+        if (controlsPosition === "left") {
+            corePanel.classList.remove("cde-justify-center");
+            corePanel.classList.remove("cde-justify-right");
+            corePanel.classList.add("cde-justify-left");
+        } else if (controlsPosition === "center") {
+            corePanel.classList.remove("cde-justify-left");
+            corePanel.classList.remove("cde-justify-right");
+            corePanel.classList.add("cde-justify-center");
+        } else if (controlsPosition === "right") {
+            corePanel.classList.remove("cde-justify-left");
+            corePanel.classList.remove("cde-justify-center");
+            corePanel.classList.add("cde-justify-right");
         }
+
+        corePanel.addEventListener("click", (event) => {
+            // @ts-ignore
+            if (event && event.target && event.target.id) {
+                // @ts-ignore
+                const id = event?.target?.id;
+                if (id === "cde-btn-eta-displayLeft") {
+                    corePanel.classList.remove("cde-justify-center");
+                    corePanel.classList.remove("cde-justify-right");
+                    corePanel.classList.add("cde-justify-left");
+                    mods.getCloudStorage().setCurrentETAPostion("left");
+                } else if (id === "cde-btn-eta-displayCenter") {
+                    corePanel.classList.remove("cde-justify-left");
+                    corePanel.classList.remove("cde-justify-right");
+                    corePanel.classList.add("cde-justify-center");
+                    mods.getCloudStorage().setCurrentETAPostion("center");
+                } else if (id === "cde-btn-eta-displayRight") {
+                    corePanel.classList.remove("cde-justify-left");
+                    corePanel.classList.remove("cde-justify-center");
+                    corePanel.classList.add("cde-justify-right");
+                    mods.getCloudStorage().setCurrentETAPostion("right");
+                }
+            }
+        });
 
         mutationCompute.container = container;
         mutationCompute.corePanel = corePanel;

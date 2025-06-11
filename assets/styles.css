@@ -320,12 +320,12 @@
   pointer-events: none;
   margin-left: 14px;
   margin-right: 18px;
-  margin-top: 14px;
-  margin-bottom: 12px;
+  margin-top: 20px;
+  margin-bottom: 14px;
 }
 .cde-eta-controls {
   display: flex !important; 
-  flex-direction: column !important; 
+  flex-direction: row !important; 
   align-items: flex-end !important;
   width: fit-content !important;
   pointer-events: auto;
@@ -336,6 +336,9 @@
   top: 0; 
   right: 0;
   z-index: 10;
+}
+.cde-eta-btn {
+  border-radius: 0.25rem;
 }
 .cde-generic-panel {
   width: fit-content !important;
@@ -352,6 +355,15 @@
   display: flex; 
   justify-content: center;
   pointer-events: none;
+}
+.cde-justify-left {
+  justify-content: left;
+}
+.cde-justify-center {
+  justify-content: center;
+}
+.cde-justify-right {
+  justify-content: right;
 }
 .cde-eta-generic {
   background: #23233ae4;

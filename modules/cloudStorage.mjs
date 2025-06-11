@@ -7,6 +7,7 @@
 const CS_SETTINGS = "cde_settings";
 const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data";
 const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data";
+const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
 
 let mods = null;
 let cloudStorage = null;
@@ -151,4 +152,11 @@ export function loadSetting(reference) {
 		console.error("[CDE] Can't parse settings", key, raw);
         return raw;
     }
+}
+
+export function setCurrentETAPostion(position) {
+	cloudStorage?.setItem(CS_CURRENT_ETA_POSITION, position);
+}
+export function getCurrentETAPostion() {
+	return cloudStorage?.getItem(CS_CURRENT_ETA_POSITION);
 }
