@@ -91,6 +91,13 @@ export function setControlsPanelCb(cb) {
     }
     controlsPanelCb = cb;
 }
+/**
+ * Returns the parent panel element.
+ * @returns {Object} The parent panel element.
+ */
+export function getParent() {
+    return parent;
+}
 
 /**
  * Returns the default HTML for an ETA panel.
@@ -176,10 +183,6 @@ export const onRefresh = () => {
                 let pCountAreaStr = dCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${dCount}</span>`:``;
                 let pCountMonsterStr = kCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${kCount}</span>`:``;
 
-                result.push(
-                    `<div class="cde-generic-panel">${pKphStr}<span class="skill-label"> (</span>${pMediaArea}${pCountAreaStr}${pMediaMonster}${pCountMonsterStr}<span class="skill-label"> )</span></div>`
-                );
-
                 if (isCfg(Stg().ETA_LIVE_DPS)) {
                     result.push(
                         `<div class="cde-generic-panel">
@@ -196,6 +199,11 @@ export const onRefresh = () => {
                         </div>`
                     );
                 }
+
+                result.push(
+                    `<div class="cde-generic-panel">${pKphStr}<span class="skill-label"> (</span>${pMediaArea}${pCountAreaStr}${pMediaMonster}${pCountMonsterStr}<span class="skill-label"> )</span></div>`
+                );
+
                 result.push(
                     `<div class="cde-generic-panel">
                         ${URL_STATISTICS ? `<img class="skill-media" src="${URL_STATISTICS}" />` : `<span class="skill-media"></span>`}

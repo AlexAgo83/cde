@@ -93,6 +93,14 @@ export function createInstance(innerType) {
         },
 
         /**
+         * Returns the parent panel element.
+         * @returns {Object} The parent panel element.
+         */
+        getParent() {
+            return parent;
+        },
+
+        /**
          * Displays the given value in the panel container.
          * @param {*} value - The HTML content or data to display in the panel.
          */

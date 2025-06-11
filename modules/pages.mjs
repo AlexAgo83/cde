@@ -197,6 +197,10 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         updated = panel.onRefresh();
         if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:"+localID+" -> "+updated);
         if (updated != null) panel.show(updated);
+        if (typeof panel.getParent === "function") {
+            const position = mods.getCloudStorage().getCurrentETAPostion();
+            displayEtaAt(panel.getParent(), position);
+        }
     } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Can't execute refresh:"+localID, panel);
     return updated;
 }
@@ -407,19 +411,20 @@ function pageContainer(targetPage, identifier, currPanel) {
             if (event && event.target && event.target.id) {
                 // @ts-ignore
                 const id = event?.target?.id;
-                let currState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
+                const currState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
                 if (id === "cde-btn-eta-displayLeft") {
-                    if (currState === "left")
-                        mods.getCloudStorage().setCurrentETAPostion("left");
-                    if (currState === "right")
-                        mods.getCloudStorage().setCurrentETAPostion("center");
+                    if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("left");
+                    if (currState === "right") mods.getCloudStorage().setCurrentETAPostion("center");
                 } else if (id === "cde-btn-eta-displayRight") {
-                    if (currState === "center")
-                        mods.getCloudStorage().setCurrentETAPostion("right");
-                    if (currState === "left")
-                        mods.getCloudStorage().setCurrentETAPostion("center");
+                    if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("right");
+                    if (currState === "left") mods.getCloudStorage().setCurrentETAPostion("center");
                 }
-                displayEtaAt(corePanel, currState);
+                const newCurrState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
+                // if (newCurrState === currState) return;
+                displayEtaAt(corePanel, newCurrState);
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] Updated ETA position:", {currState, newCurrState});
+                }
             }
         });
 
@@ -454,7 +459,12 @@ function pageContainer(targetPage, identifier, currPanel) {
     return reference;
 }
 
-export function displayEtaAt(panel, position) {
+/**
+ * Display ETA at position
+ * @param {*} panel the current panel ETA
+ * @param {*} position the position
+ */
+function displayEtaAt(panel, position) {
     if (position === "left") {
         panel.classList.remove("cde-justify-center");
         panel.classList.remove("cde-justify-right");
@@ -468,6 +478,18 @@ export function displayEtaAt(panel, position) {
         panel.classList.remove("cde-justify-center");
         panel.classList.add("cde-justify-right");
     }
+}
+
+/**
+ * Get the current state of the panel
+ * @param {*} panel 
+ * @returns The ETA position 
+ */
+function getStateEta(panel) {
+    if (panel?.classList.contains("cde-justify-left")) return "left";
+    if (panel?.classList.contains("cde-justify-center")) return "center";
+    if (panel?.classList.contains("cde-justify-right")) return "right";
+    return null;
 }
 
 /**
