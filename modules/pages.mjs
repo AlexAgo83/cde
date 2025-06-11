@@ -349,9 +349,9 @@ const onControlsPanel = () => {
     if (controlsPanel === null) {
         let controls = ``;
 
-        controls += `<button id="cde-btn-eta-displayLeft" class="cde-eta-btn btn-info m-1 font-size-xs">⏴</button>`;
-        controls += `<button id="cde-btn-eta-displayCenter" class="cde-eta-btn btn-info m-1 font-size-xs">■</button>`;
-        controls += `<button id="cde-btn-eta-displayRight" class="cde-eta-btn btn-info m-1 font-size-xs">⏵</button>`;
+        controls += `<button id="cde-btn-eta-displayLeft" class="btn-info m-1 font-size-xs cde-eta-btn">⏴</button>`;
+        controls += `<button id="cde-btn-eta-displayCenter" class="btn-info m-1 font-size-xs cde-eta-btn">■</button>`;
+        controls += `<button id="cde-btn-eta-displayRight" class="btn-info m-1 font-size-xs cde-eta-btn">⏵</button>`;
         
         /* Register controls panel */
         controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
