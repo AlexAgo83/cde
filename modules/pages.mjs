@@ -348,11 +348,8 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
 const onControlsPanel = () => {
     if (controlsPanel === null) {
         let controls = ``;
-
         controls += `<button id="cde-btn-eta-displayLeft" class="btn-info m-1 font-size-xs cde-eta-btn">⏴</button>`;
-        controls += `<button id="cde-btn-eta-displayCenter" class="btn-info m-1 font-size-xs cde-eta-btn">■</button>`;
         controls += `<button id="cde-btn-eta-displayRight" class="btn-info m-1 font-size-xs cde-eta-btn">⏵</button>`;
-        
         /* Register controls panel */
         controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
     }
@@ -403,41 +400,26 @@ function pageContainer(targetPage, identifier, currPanel) {
         corePanel.style.display = "none";
 
         const controlsPosition = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-        if (controlsPosition === "left") {
-            corePanel.classList.remove("cde-justify-center");
-            corePanel.classList.remove("cde-justify-right");
-            corePanel.classList.add("cde-justify-left");
-        } else if (controlsPosition === "center") {
-            corePanel.classList.remove("cde-justify-left");
-            corePanel.classList.remove("cde-justify-right");
-            corePanel.classList.add("cde-justify-center");
-        } else if (controlsPosition === "right") {
-            corePanel.classList.remove("cde-justify-left");
-            corePanel.classList.remove("cde-justify-center");
-            corePanel.classList.add("cde-justify-right");
-        }
+        displayEtaAt(corePanel, controlsPosition);
 
         corePanel.addEventListener("click", (event) => {
             // @ts-ignore
             if (event && event.target && event.target.id) {
                 // @ts-ignore
                 const id = event?.target?.id;
+                let currState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
                 if (id === "cde-btn-eta-displayLeft") {
-                    corePanel.classList.remove("cde-justify-center");
-                    corePanel.classList.remove("cde-justify-right");
-                    corePanel.classList.add("cde-justify-left");
-                    mods.getCloudStorage().setCurrentETAPostion("left");
-                } else if (id === "cde-btn-eta-displayCenter") {
-                    corePanel.classList.remove("cde-justify-left");
-                    corePanel.classList.remove("cde-justify-right");
-                    corePanel.classList.add("cde-justify-center");
-                    mods.getCloudStorage().setCurrentETAPostion("center");
+                    if (currState === "left")
+                        mods.getCloudStorage().setCurrentETAPostion("left");
+                    if (currState === "right")
+                        mods.getCloudStorage().setCurrentETAPostion("center");
                 } else if (id === "cde-btn-eta-displayRight") {
-                    corePanel.classList.remove("cde-justify-left");
-                    corePanel.classList.remove("cde-justify-center");
-                    corePanel.classList.add("cde-justify-right");
-                    mods.getCloudStorage().setCurrentETAPostion("right");
+                    if (currState === "center")
+                        mods.getCloudStorage().setCurrentETAPostion("right");
+                    if (currState === "left")
+                        mods.getCloudStorage().setCurrentETAPostion("center");
                 }
+                displayEtaAt(corePanel, currState);
             }
         });
 
@@ -470,6 +452,22 @@ function pageContainer(targetPage, identifier, currPanel) {
         console.log("[CDE] New observer registered", reference);
     }
     return reference;
+}
+
+export function displayEtaAt(panel, position) {
+    if (position === "left") {
+        panel.classList.remove("cde-justify-center");
+        panel.classList.remove("cde-justify-right");
+        panel.classList.add("cde-justify-left");
+    } else if (position === "center") {
+        panel.classList.remove("cde-justify-left");
+        panel.classList.remove("cde-justify-right");
+        panel.classList.add("cde-justify-center");
+    } else if (position === "right") {
+        panel.classList.remove("cde-justify-left");
+        panel.classList.remove("cde-justify-center");
+        panel.classList.add("cde-justify-right");
+    }
 }
 
 /**
