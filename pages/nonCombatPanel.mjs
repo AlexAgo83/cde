@@ -368,17 +368,20 @@ export function createInstance(innerType) {
                                                 /* ACTION LEFT */
                                                 if (!isNoDisplayItemCosts) {
                                                     const actionInterval = m?.actionTimeMs;
+                                                    let lMoreThan = actionInterval < 50000 ? "more than" : ">";
+                                                    let lExpected = actionInterval < 50000 ? "expected" : "~";
                                                     let pActionInterval = ``;
                                                     if (actionInterval) {
-                                                        pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">more than </span>`;
+                                                        pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lMoreThan} </span>`;
                                                         const inter = mods.getUtils().formatDuration(actionInterval, "vph-mastery-fade");
                                                         pActionInterval += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
                                                         pActionInterval += `<span class="skill-label">)</span>`;
                                                     }
+                                                    
                                                     const actionIntervalPres = m?.actionTimeMsWithPreservation;
                                                     let pActionIntervalPres = ``;
                                                     if (actionIntervalPres) {
-                                                        pActionIntervalPres += `<span class="skill-label">(</span><span class="skill-label vph-tiny">expected </span>`;
+                                                        pActionIntervalPres += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lExpected} </span>`;
                                                         const inter = mods.getUtils().formatDuration(actionIntervalPres, "vph-mastery-fade");
                                                         pActionIntervalPres += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
                                                         pActionIntervalPres += `<span class="skill-label">)</span>`;
