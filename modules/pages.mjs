@@ -532,11 +532,11 @@ function initObservers(etaDisplay = false, connect = false) {
         /* Crafting */ registerObserver(references, getCraftingPanel(), '#crafting-container', 'crafting');
         /* Runecraft */ registerObserver(references, getRunecraftingPanel(), '#runecrafting-container', 'runecraft');
         /* Herblore */ registerObserver(references, getHerblorePanel(), '#herblore-container', 'herblore');
-        /* Agility */ registerObserver(references, getAgilityPanel(), '#agility-container', 'agility');
+        // /* Agility */ registerObserver(references, getAgilityPanel(), '#agility-container', 'agility');
         /* Summoning */ registerObserver(references, getSummoningPanel(), '#summoning-container', 'summoning');
         /* Astrology */ registerObserver(references, getAstrologyPanel(), '#astrology-container', 'astrology');
         /* Magic */ registerObserver(references, getAltMagicPanel(), '#magic-container', 'magic');
-        /* Cartography */ registerObserver(references, getCartographyPanel(), '#cartography-container', 'cartography');
+        // /* Cartography */ registerObserver(references, getCartographyPanel(), '#cartography-container', 'cartography');
         /* Archaeology */ registerObserver(references, getArchaeologyPanel(), '#archaeology-container', 'archaeology');
 
         if (mods.getSettings().isDebug()) {
