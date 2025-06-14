@@ -352,10 +352,21 @@ function trustRecipeItemCosts(mastery, itemRecipe) {
 		/* Apply preservation */
 		const preservation = mastery.preservationChance;
 		if (preservation > 0) {
-			const coef = 1+(preservation / 100);
-			const applied = Math.floor(coef*item.itemQteActions);
+
+			// /* coef: 1 + ({preservation value: 0-100} / 100) */
+			// const coef = 1+(preservation / 100);
+			// /* Apply coef to actions */
+			// const applied = Math.floor(coef*item.itemQteActions);
+
+			// Apply probabilistic model based on geometric distribution
+			// Expected value = itemQteActions / (1 - (preservation / 100))
+			const failureRate = 1 - (preservation / 100);
+			const expectedMultiplier = failureRate > 0 ? 1 / failureRate : Infinity;
+			const applied = Math.floor(item.itemQteActions * expectedMultiplier);
+			
 			item.itemQteActionsWithPreservation = applied;
 		}
+		
 		
 		/* Find item with less actions */
 		if (lessActionItem && lessActionItem?.itemQteActions) {
