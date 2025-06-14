@@ -321,7 +321,10 @@
   margin-left: 14px;
   margin-right: 18px;
   margin-top: 20px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+.cde-eta-summary-small {
+  margin-top: 30px;
 }
 .cde-eta-controls {
   display: flex !important; 
@@ -340,7 +343,7 @@
 .cde-eta-btn {
   font-size: 0.55rem;
   background-color: #caac02;
-  border-radius: 1rem;
+  border-radius: .80rem;
   border-color:#caac02;
   /* margin-top: 1px; */
   /* color: #000000; */

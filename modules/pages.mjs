@@ -193,9 +193,13 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
             return updated;
         }
         
+        /** Display Mode */
+        const sizeCursor = panel.getIdentity();
+        const etaSize = mods.getCloudStorage().getCurrentETASize(sizeCursor);
+
         /** Refresh & update visibility */
-        updated = panel.onRefresh();
-        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh:"+localID+" -> "+updated);
+        updated = panel.onRefresh(etaSize);
+        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh("+etaSize+"):"+localID+" -> "+updated);
         if (updated != null) panel.show(updated);
         if (typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
@@ -353,6 +357,7 @@ const onControlsPanel = () => {
     if (controlsPanel === null) {
         let controls = ``;
         controls += `<button id="cde-btn-eta-displayLeft" class="btn-info m-1 font-size-xs cde-eta-btn">⏴</button>`;
+        controls += `<button id="cde-btn-eta-displaySmall" class="btn-info m-1 font-size-xs cde-eta-btn">▼</button>`;
         controls += `<button id="cde-btn-eta-displayRight" class="btn-info m-1 font-size-xs cde-eta-btn">⏵</button>`;
         /* Register controls panel */
         controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
@@ -409,9 +414,15 @@ function pageContainer(targetPage, identifier, currPanel) {
         corePanel.addEventListener("click", (event) => {
             // @ts-ignore
             if (event && event.target && event.target.id) {
+                /* Collect cloud settings */
                 // @ts-ignore
                 const id = event?.target?.id;
                 const currState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
+                
+                const sizeCursor = currPanel.getIdentity();
+                const etaSize = mods.getCloudStorage().getCurrentETASize(sizeCursor);
+
+                /* Setup position */
                 if (id === "cde-btn-eta-displayLeft") {
                     if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("left");
                     if (currState === "right") mods.getCloudStorage().setCurrentETAPostion("center");
@@ -419,11 +430,18 @@ function pageContainer(targetPage, identifier, currPanel) {
                     if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("right");
                     if (currState === "left") mods.getCloudStorage().setCurrentETAPostion("center");
                 }
+
+                /* Update Position */
                 const newCurrState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-                // if (newCurrState === currState) return;
                 displayEtaAt(corePanel, newCurrState);
                 if (mods.getSettings().isDebug()) {
                     console.log("[CDE] Updated ETA position:", {currState, newCurrState});
+                }
+
+                /* Setup size */
+                if (id === "cde-btn-eta-displaySmall") {
+                    if (etaSize === "large") mods.getCloudStorage().setCurrentETASize(sizeCursor, "small");
+                    if (etaSize === "small") mods.getCloudStorage().setCurrentETASize(sizeCursor, "large");
                 }
             }
         });
@@ -532,11 +550,11 @@ function initObservers(etaDisplay = false, connect = false) {
         /* Crafting */ registerObserver(references, getCraftingPanel(), '#crafting-container', 'crafting');
         /* Runecraft */ registerObserver(references, getRunecraftingPanel(), '#runecrafting-container', 'runecraft');
         /* Herblore */ registerObserver(references, getHerblorePanel(), '#herblore-container', 'herblore');
-        // /* Agility */ registerObserver(references, getAgilityPanel(), '#agility-container', 'agility');
+        /* Agility */ registerObserver(references, getAgilityPanel(), '#agility-container', 'agility');
         /* Summoning */ registerObserver(references, getSummoningPanel(), '#summoning-container', 'summoning');
         /* Astrology */ registerObserver(references, getAstrologyPanel(), '#astrology-container', 'astrology');
         /* Magic */ registerObserver(references, getAltMagicPanel(), '#magic-container', 'magic');
-        // /* Cartography */ registerObserver(references, getCartographyPanel(), '#cartography-container', 'cartography');
+        /* Cartography */ registerObserver(references, getCartographyPanel(), '#cartography-container', 'cartography');
         /* Archaeology */ registerObserver(references, getArchaeologyPanel(), '#archaeology-container', 'archaeology');
 
         if (mods.getSettings().isDebug()) {

@@ -8,6 +8,7 @@ const CS_SETTINGS = "cde_settings";
 const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data";
 const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data";
 const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
+const CS_CURRENT_ETA_SIZE = "cde_current_eta_size";
 
 let mods = null;
 let cloudStorage = null;
@@ -154,9 +155,35 @@ export function loadSetting(reference) {
     }
 }
 
+/**
+ * Stores the current ETA position in cloud storage.
+ * @param {string} position - The position to be set (e.g., "left", "center", "right").
+ */
 export function setCurrentETAPostion(position) {
 	cloudStorage?.setItem(CS_CURRENT_ETA_POSITION, position);
 }
+/**
+ * Retrieves the current ETA position from cloud storage.
+ * @returns {string|null} The position as a string (e.g., "left", "center", "right"), or null if not found.
+ */
 export function getCurrentETAPostion() {
 	return cloudStorage?.getItem(CS_CURRENT_ETA_POSITION);
+}
+
+
+/**
+ * Stores the current ETA size for the given cursor in cloud storage.
+ * @param {string} cursor - The cursor to be set (e.g., "left", "center", "right").
+ * @param {string} size - The size to be set.
+ */
+export function setCurrentETASize(cursor, size="large") {
+	cloudStorage?.setItem(CS_CURRENT_ETA_SIZE+"-"+cursor, size);
+}
+/**
+ * Retrieves the current ETA size for the specified cursor from cloud storage.
+ * @param {string} cursor - The cursor whose ETA size is to be retrieved (e.g., "left", "center", "right").
+ * @returns {string|null} The size associated with the given cursor as a string, or null if not found.
+ */
+export function getCurrentETASize(cursor) {
+	return cloudStorage?.getItem(CS_CURRENT_ETA_SIZE+"-"+cursor) ?? "large";
 }

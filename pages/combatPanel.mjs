@@ -100,6 +100,14 @@ export function getParent() {
 }
 
 /**
+ * Retrieves the unique identifier for the combat panel.
+ * @returns {string} The identifier of the combat panel.
+ */
+export function getIdentity() {
+    return identity;
+}
+
+/**
  * Returns the default HTML for an ETA panel.
  * @param {*} summaryIdentifier - The summary element ID to use in the panel.
  * @returns {string} The default panel HTML.
@@ -108,9 +116,12 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
     parent = parentPanel;
     summaryId = summaryIdentifier;
     identity = identifier;
+
     const etaStr = etaData ? etaData : "n/a";
     const controlsPanel = controlsPanelCb();
-    let wrapper = `<span class="cde-eta-summary" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}`;
+    const etaSize = mods.getCloudStorage().getCurrentETASize(identity);
+
+    let wrapper = `<span class="cde-eta-summary ${etaSize == "small" ? "cde-eta-summary-small" : ""}" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}`;
     return `<div class="cde-${identity}-panel cde-eta-generic"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
 }
 
@@ -126,9 +137,12 @@ export function show(value) {
  * Refreshes the Combat panel by updating the displayed ETA data.
  * @returns {boolean|null} True if the panel was updated, null if skipped due to refresh throttling.
  */
-export const onRefresh = () => {
+export const onRefresh = (etaSize) => {
     const currTime = new Date();
     let updated = false;
+    const isSmallMode = (etaSize === "small");
+    const isNotSmallMode = !isSmallMode;
+
     if (lastCallTime == null || lastCallTime.getTime() + 25 < currTime.getTime()) {
         lastCallTime = currTime;
     } else {
@@ -183,7 +197,7 @@ export const onRefresh = () => {
                 let pCountAreaStr = dCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${dCount}</span>`:``;
                 let pCountMonsterStr = kCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${kCount}</span>`:``;
 
-                if (isCfg(Stg().ETA_LIVE_DPS)) {
+                if (isNotSmallMode && isCfg(Stg().ETA_LIVE_DPS)) {
                     result.push(
                         `<div class="cde-generic-panel">
                             ${URL_COMBAT ? `<img class="skill-media" src="${URL_COMBAT}" />` : `<span class="skill-media"></span>`}
@@ -199,11 +213,13 @@ export const onRefresh = () => {
                         </div>`
                     );
                 }
-
-                result.push(
-                    `<div class="cde-generic-panel">${pKphStr}<span class="skill-label"> (</span>${pMediaArea}${pCountAreaStr}${pMediaMonster}${pCountMonsterStr}<span class="skill-label"> )</span></div>`
-                );
-
+                
+                if (isNotSmallMode) {
+                    result.push(
+                        `<div class="cde-generic-panel">${pKphStr}<span class="skill-label"> (</span>${pMediaArea}${pCountAreaStr}${pMediaMonster}${pCountMonsterStr}<span class="skill-label"> )</span></div>`
+                    );
+                }
+                
                 result.push(
                     `<div class="cde-generic-panel">
                         ${URL_STATISTICS ? `<img class="skill-media" src="${URL_STATISTICS}" />` : `<span class="skill-media"></span>`}
@@ -212,7 +228,7 @@ export const onRefresh = () => {
                     </div>`
                 );
 
-                if (activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
+                if (isNotSmallMode && activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
                     const skills = activity.skills;
                     const labelTime = 
                         `<div class="cde-generic-panel cde-generic-header">
