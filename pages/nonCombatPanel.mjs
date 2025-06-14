@@ -340,11 +340,16 @@ export function createInstance(innerType) {
                                                 result.push(
                                                     `<div class="cde-generic-panel">
                                                         ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : `<span class="skill-media"></span>`}
-                                                        <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span> ${pcStr}
+                                                        <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>
+                                                    </div>`   
+                                                );
+                                            }
+                                            if (pcStr && pcStr.length > 0) {
+                                                result.push(
+                                                    `<div class="cde-generic-panel">
+                                                        <span class="skill-label">Products : </span>${pcStr}
                                                     </div>`
                                                 );
-                                            } else {
-                                                result.push(`<div class="cde-generic-panel">${pcStr}</div>`);
                                             }
 
                                             /** CRAFT */
@@ -395,24 +400,39 @@ export function createInstance(innerType) {
                                                 /* ACTION LEFT */
                                                 if (!isNoDisplayItemCosts) {
                                                     const actionInterval = m?.actionTimeMs;
+                                                    
                                                     let lMoreThan = actionInterval < 50000 ? "more than" : ">";
                                                     let lExpected = actionInterval < 50000 ? "expected" : "~";
+
                                                     let pActionInterval = ``;
-                                                    if (actionInterval) {
-                                                        pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lMoreThan} </span>`;
+                                                    let pActionIntervalEta = ``;
+                                                    if (actionInterval && actionInterval > 0) {
+                                                        /* Action left flat */
+                                                        if (isNotSmallMode) pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lMoreThan} </span>`;
                                                         const inter = mods.getUtils().formatDuration(actionInterval, "vph-mastery-fade");
                                                         pActionInterval += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
-                                                        pActionInterval += `<span class="skill-label">)</span>`;
+                                                        if (isNotSmallMode) pActionInterval += `<span class="skill-label">)</span>`;
+
+                                                        /* ETA Flat */
+                                                        const etaTime = new Date(actionInterval+currTime.getTime());
+                                                        pActionIntervalEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
                                                     }
                                                     
                                                     const actionIntervalPres = m?.actionTimeMsWithPreservation;
                                                     let pActionIntervalPres = ``;
-                                                    if (actionIntervalPres) {
+                                                    let pActionIntervalPresEta = ``;
+                                                    if (actionIntervalPres && actionIntervalPres > 0) {
+                                                        /* Action left preserv */
                                                         if (isNotSmallMode) pActionIntervalPres += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lExpected} </span>`;
                                                         const inter = mods.getUtils().formatDuration(actionIntervalPres, "vph-mastery-fade");
                                                         pActionIntervalPres += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
                                                         if (isNotSmallMode) pActionIntervalPres += `<span class="skill-label">)</span>`;
+
+                                                        /* ETA Preserv */
+                                                        const etaTime = new Date(actionIntervalPres+currTime.getTime());
+                                                        pActionIntervalPresEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
                                                     }
+
                                                     const actionLeft = lessActionItem.itemQteActions;
                                                     const actionLeftPres = lessActionItem.itemQteActionsWithPreservation;
 
@@ -441,15 +461,46 @@ export function createInstance(innerType) {
                                                                         ${pActionIntervalPres}
                                                                     </div>`
                                                             }
+                                                            /* ETA */
+                                                            if (pActionIntervalPresEta && pActionIntervalPresEta.length > 0) {
+                                                                actionResult += `<div class="cde-generic-panel">
+                                                                        <span class="skill-label"> • ETA : </span>
+                                                                        ${pActionIntervalPresEta}
+                                                                    </div>`
+                                                            } else if (pActionIntervalEta && pActionIntervalEta.length > 0) {
+                                                                actionResult += `<div class="cde-generic-panel">
+                                                                        <span class="skill-label"> • ETA : </span>
+                                                                        ${pActionIntervalEta}
+                                                                    </div>`
+                                                            }
                                                         /** SMALL MODE */
                                                         } else if (actionLeftPres && actionLeftPres > 0) {
+                                                            /* With preserv */
                                                             actionResult += `<div class="cde-generic-panel">
-                                                                    <span class="skill-label">Actions Left ➜ </span>
+                                                                    <span class="skill-label">Actions Left : </span>
                                                                     <span class="skill-value vph vph-mastery">${actionLeftPres ?? "N/A"}</span>
                                                                 </div>`;
                                                             actionResult += `<div class="cde-generic-panel">
-                                                                    <span class="skill-label">ETA ➜ </span>
+                                                                    <span class="skill-label">Time left : </span>
                                                                     <span class="skill-value vph vph-mastery">${pActionIntervalPres ?? "N/A"}</span>
+                                                                </div>`;
+                                                            actionResult += `<div class="cde-generic-panel">
+                                                                    <span class="skill-label">ETA : </span>
+                                                                    <span class="skill-value vph vph-mastery">${pActionIntervalPresEta ?? "N/A"}</span>
+                                                                </div>`;
+                                                        } else if (actionLeft && actionLeft > 0) {
+                                                            /* Without preserv */
+                                                            actionResult += `<div class="cde-generic-panel">
+                                                                    <span class="skill-label">Actions Left : </span>
+                                                                    <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                                </div>`;
+                                                            actionResult += `<div class="cde-generic-panel">
+                                                                    <span class="skill-label">Time left : </span>
+                                                                    <span class="skill-value vph vph-mastery">${pActionInterval ?? "N/A"}</span>
+                                                                </div>`;
+                                                            actionResult += `<div class="cde-generic-panel">
+                                                                    <span class="skill-label">ETA : </span>
+                                                                    <span class="skill-value vph vph-mastery">${pActionIntervalEta ?? "N/A"}</span>
                                                                 </div>`;
                                                         }
                                                         resultFooter.push(actionResult);    
