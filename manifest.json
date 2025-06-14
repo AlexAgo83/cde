@@ -7,6 +7,7 @@
     "modules/settings.mjs",
     "modules/localStorage.mjs",
     "modules/cloudStorage.mjs",
+    "modules/notification.mjs",
     "modules/displayStats.mjs",
     "modules/collector.mjs",
     "modules/utils.mjs",

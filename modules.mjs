@@ -10,6 +10,7 @@ let mSettings = null;
 let mUtils = null;
 let mLocalStorage = null;
 let mCloudStorage = null;
+let mNotification = null;
 let mDisplayStats = null;
 let mCollector = null;
 let mExport = null;
@@ -35,6 +36,10 @@ export function getLocalStorage() {
 
 export function getCloudStorage() {
     return mCloudStorage;
+}
+
+export function getNotification() {
+    return mNotification;
 }
 
 export function getDisplayStats() {
@@ -101,6 +106,7 @@ export async function onModuleLoad(ctx, modVersion) {
     mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
     mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
     mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
+    mNotification = await ctx.loadModule("modules/notification.mjs");
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
     mEta = await ctx.loadModule("modules/eta.mjs");
@@ -127,6 +133,7 @@ export async function onDataLoad(settings, characterStorage) {
     mUtils.init(this);
     mLocalStorage.init(this);
     mCloudStorage.init(this, characterStorage);
+    mNotification.init(this);
 
     // Game data modules initialization
     mDisplayStats.init(this);
