@@ -362,8 +362,8 @@ export function createInstance(innerType) {
                                                 if (isNotSmallMode && preservationChance) {
                                                     let pPreservation = ``;
                                                     pPreservation += `<span class="skill-label">Preservation : </span>`;
-                                                    pPreservation += `<span class="skill-value vph vph-mastery">${preservationChance.toFixed(2)}</span>`;
-                                                    pPreservation += `<span class="skill-value vph-tiny vph-mastery-fade">%</span>`;
+                                                    pPreservation += `<span class="skill-value vph vph-small vph-mastery">${preservationChance.toFixed(2)}</span>`;
+                                                    pPreservation += `<span class="skill-value vph vph-tiny vph-mastery-fade">%</span>`;
                                                     resultFooter.push(`<div class="cde-generic-panel">${pPreservation}</div>`);
                                                 }
                                                 /* RECIPE ITEMS */
@@ -441,7 +441,7 @@ export function createInstance(innerType) {
                                                         /** LARGE MODE */
                                                         if (isNotSmallMode) {
                                                             actionResult += `<div class="cde-generic-panel">
-                                                                    <span class="skill-label">Action left :</span>
+                                                                    <span class="skill-label">Actions left :</span>
                                                                 </div>`;
                                                             /* Action left flat */
                                                             if (actionLeft) {
@@ -449,7 +449,7 @@ export function createInstance(innerType) {
                                                                         <span class="skill-label"> • get </span>
                                                                         <span class="skill-value vph-mastery">Base / Flat</span>
                                                                         <span class="skill-label"> ➜ </span>
-                                                                        <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                                        <span class="skill-value vph vph-small vph-mastery">${actionLeft ?? "N/A"}</span>
                                                                         ${pActionInterval}
                                                                     </div>`;
                                                             }
@@ -459,7 +459,7 @@ export function createInstance(innerType) {
                                                                         <span class="skill-label"> • get </span>
                                                                         <span class="skill-value vph-mastery">Preservation</span>
                                                                         <span class="skill-label"> ➜ </span>
-                                                                        <span class="skill-value vph vph-mastery">${actionLeftPres ?? "N/A"}</span>
+                                                                        <span class="skill-value vph vph-small vph-mastery">${actionLeftPres ?? "N/A"}</span>
                                                                         ${pActionIntervalPres}
                                                                     </div>`
                                                             }
@@ -480,7 +480,7 @@ export function createInstance(innerType) {
                                                             /* With preserv */
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Actions Left : </span>
-                                                                    <span class="skill-value vph vph-mastery">${actionLeftPres ?? "N/A"}</span>
+                                                                    <span class="skill-value vph vph-small vph-mastery">${actionLeftPres ?? "N/A"}</span>
                                                                 </div>`;
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Time left : </span>
@@ -494,7 +494,7 @@ export function createInstance(innerType) {
                                                             /* Without preserv */
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Actions Left : </span>
-                                                                    <span class="skill-value vph vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                                    <span class="skill-value vph vph-small vph-mastery">${actionLeft ?? "N/A"}</span>
                                                                 </div>`;
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Time left : </span>

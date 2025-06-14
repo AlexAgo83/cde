@@ -197,7 +197,7 @@ export const onRefresh = (etaSize) => {
                 let pCountAreaStr = dCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${dCount}</span>`:``;
                 let pCountMonsterStr = kCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${kCount}</span>`:``;
 
-                if (isNotSmallMode && isCfg(Stg().ETA_LIVE_DPS)) {
+                if (isCfg(Stg().ETA_LIVE_DPS)) {
                     result.push(
                         `<div class="cde-generic-panel">
                             ${URL_COMBAT ? `<img class="skill-media" src="${URL_COMBAT}" />` : `<span class="skill-media"></span>`}

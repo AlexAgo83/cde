@@ -611,3 +611,16 @@ export function setCollectCb(cb) {
         else console.log("[CDE] Page error", m);
     });
 }
+
+// Demander la permission d'afficher une notification
+// Notification.requestPermission().then(permission => {
+//   if (permission === "granted") {
+//       console.log("[CDE] permission granted");
+//     setTimeout(() => {
+//         console.log("[CDE] test notif");
+//       new Notification("Hey ! Il est temps de faire quelque chose !");
+//     }, 10000); // 10 secondes
+//   } else {
+//       console.log("[CDE] permission not granted");
+//   }
+// });
