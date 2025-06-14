@@ -5,7 +5,10 @@
 // notification.mjs
 
 let mods = null;
-// const URL_ARCHAEOLOGY_MAP = "https://cdn2-main.melvor.net/assets/media/skills/archaeology/map_colour.png";
+let _internalTimer = null;
+let _registeredNotify = null;
+
+const URL_MELVORIDLE_ICON = "https://cdn2-main.melvor.net/assets/media/main/logo_no_text.png";
 
 /**
  * Initialize notification module.
@@ -37,15 +40,81 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
-// Demander la permission d'afficher une notification
-// Notification.requestPermission().then(permission => {
-//   if (permission === "granted") {
-//       console.log("[CDE] permission granted");
-//     setTimeout(() => {
-//         console.log("[CDE] test notif");
-//       new Notification("Hey ! Il est temps de faire quelque chose !");
-//     }, 10000); // 10 secondes
-//   } else {
-//       console.log("[CDE] permission not granted");
-//   }
-// });
+/**
+ * Requests permission to display notifications.
+ * @param {Function} onRequest - The function to call if permission is granted.
+ * @param {Function} onError - The function to call if permission is not granted.
+ */
+export function requestPermission(onRequest, onError) {
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
+            onRequest();
+        } else {
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
+            onError();
+        }
+    });
+}
+
+
+/**
+ * Registers a new notification to be executed after a specified delay.
+ * If a notification is already pending, it cancels the previous one and schedules the new one.
+ * @param {Function} newNotification - The function to execute for the new notification.
+ * @param {number} [when=0] - The delay in milliseconds after which the notification should be executed.
+ */
+export function registerNotify(newNotification, when=0) {
+    /* If a notification is already pending, remove it */
+    if (_internalTimer) clearNotify();
+    _registeredNotify = newNotification;
+    /* Schedule the notification */
+    _internalTimer = setTimeout(() => {
+        if (_registeredNotify) {
+            /* Display the notification */
+            const notif = _registeredNotify();
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:notify", notif);
+            /* Clean up */
+            clearNotify();
+        }
+    }, when);
+    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:registerNotify");
+}
+
+/**
+ * Cancels any pending notifications.
+ * If a notification was previously registered using registerNotify, this method
+ * will prevent it from being shown.
+ */
+export function clearNotify() {
+    if (_internalTimer) {
+        clearTimeout(_internalTimer);
+        _internalTimer = null;
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:clearNotify");
+    }
+}
+
+/**
+ * Creates a new notification to be displayed.
+ * @param {string} notifLabel - The notification title.
+ * @param {string} notifDescription - The notification description.
+ * @returns {Function} A function that can be executed to display the notification.
+ */
+export function newNotify(notifLabel, notifDescription) {
+    return () => {
+        return new Notification(notifLabel, {
+            body: notifDescription,
+            icon: URL_MELVORIDLE_ICON
+        });
+    }
+}
+
+/**
+ * Requests a notification to be displayed when the given crafting action is complete.
+ * @param {string} craftName - The name of the crafting action.
+ * @param {number} timeInMs - The delay in milliseconds after which the notification should be displayed.
+ */
+export function notifyEtaAction(craftName, timeInMs) {
+    const notif = newNotify(`"${craftName}" ETA Reached!`, `Your "${craftName}" action is complete.`);
+    registerNotify(notif, timeInMs);
+}
