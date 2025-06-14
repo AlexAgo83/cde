@@ -443,6 +443,7 @@ export function createInstance(innerType) {
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Action left :</span>
                                                                 </div>`;
+                                                            /* Action left flat */
                                                             if (actionLeft) {
                                                                 actionResult += `<div class="cde-generic-panel">
                                                                         <span class="skill-label"> • get </span>
@@ -452,6 +453,7 @@ export function createInstance(innerType) {
                                                                         ${pActionInterval}
                                                                     </div>`;
                                                             }
+                                                            /* Action left preserve */
                                                             if (actionIntervalPres) {
                                                                 actionResult += `<div class="cde-generic-panel">
                                                                         <span class="skill-label"> • get </span>
