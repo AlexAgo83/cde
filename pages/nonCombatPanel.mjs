@@ -171,6 +171,7 @@ export function createInstance(innerType) {
                     const resultCenter = [];
                     const resultEnd = [];
                     const lazySkills = [];
+                    const registeredNotify = new Map();
 
                     self._game().skills?.registeredObjects.forEach((skill) => {
                         
@@ -406,7 +407,10 @@ export function createInstance(innerType) {
 
                                                     let pActionInterval = ``;
                                                     let pActionIntervalEta = ``;
-                                                    let notifyEta = ``;
+
+                                                    const etaFlatButtonId = "cde-btn-flat-notif-" + notifyLabel;
+                                                    const etaPresButtonId = "cde-btn-pres-notif-" + notifyLabel;
+
                                                     if (actionInterval && actionInterval > 0) {
                                                         /* Action left flat */
                                                         if (isNotSmallMode) pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lMoreThan} </span>`;
@@ -420,10 +424,16 @@ export function createInstance(innerType) {
 
                                                         /* ETA Flat Notif */
                                                         if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
-                                                            const buttonId = "cde-btn-flat-notif-" + notifyLabel;
-                                                            const buttonButton = mods.getNotification().createButton(buttonId);
-                                                            pActionIntervalEta += `${buttonButton}`;
-                                                            mods.getNotification().registerButton(buttonId, {etaName: notifyLabel, media: notifyMedia, timeInMs: actionInterval});
+                                                            const buttonHtml = mods.getNotification().createButton(etaFlatButtonId);
+                                                            pActionIntervalEta += `${buttonHtml}`;
+                                                            registeredNotify.set(etaFlatButtonId, mods.getNotification().registerButton(etaFlatButtonId, 
+                                                                {
+                                                                    etaName: notifyLabel, 
+                                                                    media: notifyMedia, 
+                                                                    timeInMs: actionInterval,
+                                                                    autoNotify: true
+                                                                })
+                                                            );
                                                         }
                                                     }
                                                     
@@ -442,12 +452,18 @@ export function createInstance(innerType) {
                                                         const etaTime = new Date(actionIntervalPres+currTime.getTime());
                                                         pActionIntervalPresEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
 
-                                                        /* ETA Flat Notif */
+                                                        /* ETA Preserv Notif */
                                                         if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
-                                                            const buttonId = "cde-btn-pres-notif-" + notifyLabel;
-                                                            const buttonButton = mods.getNotification().createButton(buttonId);
-                                                            pActionIntervalPresEta += ` ${buttonButton}`;
-                                                            mods.getNotification().registerButton(buttonId, {etaName: notifyLabel, media: notifyMedia, timeInMs: actionIntervalPres});
+                                                            const buttonHtml = mods.getNotification().createButton(etaPresButtonId);
+                                                            pActionIntervalPresEta += ` ${buttonHtml}`;
+                                                            registeredNotify.set(etaPresButtonId, mods.getNotification().registerButton(etaPresButtonId, 
+                                                                {
+                                                                    etaName: notifyLabel, 
+                                                                    media: notifyMedia, 
+                                                                    timeInMs: actionIntervalPres,
+                                                                    autoNotify: true
+                                                                })
+                                                            );
                                                         }
                                                     }
 
@@ -486,12 +502,32 @@ export function createInstance(innerType) {
                                                                 actionResult += `<div class="cde-generic-panel">
                                                                         <span class="skill-label"> • ETA : </span>
                                                                         ${pActionIntervalPresEta}
-                                                                    </div>`
+                                                                    </div>`;
+                                                                /* Auto notify pres eta */
+                                                                if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
+                                                                    && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
+                                                                    && etaPresButtonId && registeredNotify.has(etaPresButtonId)) {
+                                                                        const currentButton = registeredNotify.get(etaPresButtonId);
+                                                                        /* Request notify if time is over 5s and auto-notify is enabled */
+                                                                        if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
+                                                                            currentButton.event(etaPresButtonId);
+                                                                        }
+                                                                }
                                                             } else if (pActionIntervalEta && pActionIntervalEta.length > 0) {
                                                                 actionResult += `<div class="cde-generic-panel">
                                                                         <span class="skill-label"> • ETA : </span>
                                                                         ${pActionIntervalEta}
-                                                                    </div>`
+                                                                    </div>`;
+                                                                /* Auto notify flat eta */
+                                                                if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
+                                                                    && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
+                                                                    && etaFlatButtonId && registeredNotify.has(etaFlatButtonId)) {
+                                                                        const currentButton = registeredNotify.get(etaFlatButtonId);
+                                                                        /* Request notify if time is over 5s and auto-notify is enabled */
+                                                                        if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
+                                                                            currentButton.event(etaFlatButtonId);
+                                                                        }
+                                                                }
                                                             }
                                                         /** SMALL MODE */
                                                         } else if (actionLeftPres && actionLeftPres > 0) {
@@ -508,6 +544,16 @@ export function createInstance(innerType) {
                                                                     <span class="skill-label">ETA : </span>
                                                                     <span class="skill-value vph vph-mastery">${pActionIntervalPresEta ?? "N/A"}</span>
                                                                 </div>`;
+                                                            /* Auto notify pres eta */
+                                                            if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
+                                                                && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
+                                                                && etaPresButtonId && registeredNotify.has(etaPresButtonId)) {
+                                                                    const currentButton = registeredNotify.get(etaPresButtonId);
+                                                                    /* Request notify if time is over 5s and auto-notify is enabled */
+                                                                    if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
+                                                                        currentButton.event(etaPresButtonId);
+                                                                    }
+                                                            }
                                                         } else if (actionLeft && actionLeft > 0) {
                                                             /* Without preserv */
                                                             actionResult += `<div class="cde-generic-panel">
@@ -522,6 +568,16 @@ export function createInstance(innerType) {
                                                                     <span class="skill-label">ETA : </span>
                                                                     <span class="skill-value vph vph-mastery">${pActionIntervalEta ?? "N/A"}</span>
                                                                 </div>`;
+                                                            /* Auto notify flat eta */
+                                                            if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
+                                                                && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
+                                                                && etaFlatButtonId && registeredNotify.has(etaFlatButtonId)) {
+                                                                    const currentButton = registeredNotify.get(etaFlatButtonId);
+                                                                    /* Request notify if time is over 5s and auto-notify is enabled */
+                                                                    if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
+                                                                        currentButton.event(etaFlatButtonId);
+                                                                    }
+                                                            }
                                                         }
                                                         resultCenter.push(actionResult);    
                                                     }

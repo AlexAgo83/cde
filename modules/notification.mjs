@@ -99,7 +99,7 @@ function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_IC
  * @param {string} dataObject.media - The media associated with the notification.
  * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
  */
-const onClickCallback = (dataObject) => {
+let onNotifyAction = (dataObject) => {
     if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) return;
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
@@ -113,6 +113,13 @@ const onClickCallback = (dataObject) => {
         }
     });
     if (mods.getSettings().isDebug()) console.log("[CDE] Notification:onClickCallback:", dataObject);
+}
+/**
+ * Surcharge the default onClick callback function with a custom callback.
+ * @param {*} callback - The custom callback function.
+ */
+export function surchargeOnNotify(callback) {
+    onNotifyAction = callback;
 }
 
 /**
@@ -156,9 +163,11 @@ function saveBuilder() {
  */
 function initBuilder(dataObject) {
     let timeMs = dataObject.timeInMs;
-    if (timeMs < 15000) timeMs -= 5000;     /* Adjust short time */
-    else if (timeMs < 60000) timeMs -= 10000;    /* Adjust mid time */
+
+    if (timeMs <= 15000) timeMs -= 5000;     /* Adjust short time */
+    else if (timeMs <= 60000) timeMs -= 10000;    /* Adjust mid time */
     else timeMs -= 15000;    /* Adjust long time */
+
     const now = Date.now();
     const notifBuilder = {
         timeInMs: timeMs,
@@ -211,12 +220,14 @@ export function createButton(buttonId) {
  * @param {object} dataObject - An object containing data for the notification.
  * @param {string} dataObject.etaName - The name of the crafting action.
  * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
+ * @param {boolean} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete.
  */
 export function registerButton(buttonId, dataObject, customClickCallback=null) {
     registeredNotifications.set(buttonId, {
         data: dataObject, 
-        event: customClickCallback ?? onClickCallback
+        event: customClickCallback ?? onNotifyAction
     });
+    return registeredNotifications.get(buttonId);
 }
 
 /**
@@ -239,6 +250,26 @@ export function onClick(buttonId, dataObject=null) {
     }
 }
 
+/**
+ * Automatically triggers all registered notifications with an etaName matching the given dataObject.
+ * This is called when an action is nearly complete.
+ * @param {object} dataObject - An object containing data for the notification.
+ * @param {string} dataObject.etaName - The name of the crafting action.
+ */
+export function onAutoNotify(dataObject) {
+    if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) return;
+    if (isCfg(Stg().ETA_NOTIFICATION) === false) return;
+    if (isCfg(Stg().ETA_AUTO_NOTIFY) === false) return;
+    registeredNotifications.forEach((object, buttonId) => {
+        if (object 
+            && object.data 
+            && object.data.autoNotify 
+            && object.data?.etaName === dataObject.etaName) {
+            onClick(buttonId, dataObject);
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:autoNotify", dataObject);
+        }
+    })
+}
 
 /**
  * Loads the saved notification builder from cloud storage and schedules the notification for display.

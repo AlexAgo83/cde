@@ -206,7 +206,6 @@ export const SettingsReference = {
 		hint: "Toggle to show the ETA section on any available page.",
 		toggle: true
 	},
-	// ETA
 	ETA_NOTIFICATION: {
 		section: Sections.ETA,
 		type: "switch",
@@ -215,7 +214,14 @@ export const SettingsReference = {
 		hint: "Toggle to allow notifications for ETA.",
 		toggle: true
 	},
-	// ETA
+	ETA_AUTO_NOTIFY: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-auto-notify",
+		label: "Allow to auto-notify for ETA",
+		hint: "Toggle to allow auto-notifications for ETA.",
+		toggle: false
+	},
 	ETA_LEVEL_PREDICT: {
 		section: Sections.ETA,
 		type: "switch",
@@ -224,7 +230,6 @@ export const SettingsReference = {
 		hint: "Toggle to enable ETA prediction for upcoming level-ups.",
 		toggle: true
 	},
-	// ETA
 	ETA_MASTERY_PREDICT: {
 		section: Sections.ETA,
 		type: "switch",
