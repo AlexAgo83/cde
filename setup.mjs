@@ -56,7 +56,7 @@
 // Stage 31 - Agility ETA
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.31";
+const MOD_VERSION = "v2.1.32";
 
 // --- Module Imports ---
 let mModules = null;

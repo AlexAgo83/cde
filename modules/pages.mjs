@@ -248,7 +248,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:onStop:", args);
         }
         if (!isCfg(Stg().ETA_COMBAT)) return;
-        mods.getCloudStorage().removeCurrentMonsterData();
+        onStop();
         /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
     }))
 
@@ -292,7 +292,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Craft action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        mods.getCloudStorage().removeCurrentActivityData();
+        onStop();
         /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
         /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
         /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
@@ -322,7 +322,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Gathering action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        mods.getCloudStorage().removeCurrentActivityData();
+        onStop();
         /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
         /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
         /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
@@ -342,7 +342,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:AltMagic action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        mods.getCloudStorage().removeCurrentActivityData();
+        onStop();
         /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
     }));
 
@@ -358,7 +358,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Thieving action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        mods.getCloudStorage().removeCurrentActivityData();
+        onStop();
         /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
     }));
 
@@ -374,7 +374,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Archaeology action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        mods.getCloudStorage().removeCurrentActivityData();
+        onStop();
         /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
     }));
 
@@ -390,10 +390,19 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Cartography action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
-        mods.getCloudStorage().removeCurrentActivityData();
+        onStop();
         /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
     }));
 
+}
+
+/**
+ * Resets the current monster data and activity data in cloud storage, and clears the in-game notification.
+ */
+function onStop() {
+    mods.getCloudStorage().removeCurrentMonsterData();
+    mods.getCloudStorage().removeCurrentActivityData();
+    mods.getNotification().clearNotify();
 }
 
 /**

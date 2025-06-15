@@ -168,14 +168,19 @@ function initBuilder(dataObject) {
  * will prevent it from being shown.
  */
 export function clearNotify() {
+    let lChange = false;
     if (_internalTimer) {
         clearTimeout(_internalTimer);
         _internalTimer = null;
+        lChange = true;
+    }
+    if (_notify || _builder) {
         _notify = null;
         _builder = null;
         saveBuilder();
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:clearNotify");
+        lChange = true;
     }
+    if (lChange && mods.getSettings().isDebug()) console.log("[CDE] Notification:clearNotify");
 }
 
 /**
