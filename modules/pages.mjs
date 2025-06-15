@@ -234,7 +234,7 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
  */
 export function worker(ctx) {
     /** COMBAT ONLY : Enemy Death */
-    ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage, isCombat, activeAction,...args) => {
+    ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Enemy death rised:", args);
         }
@@ -242,8 +242,17 @@ export function worker(ctx) {
         /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
     }))
 
+    /** COMBAT ONLY : Combat Stop */
+    ctx.patch(_CombatManager(), 'stop').after(patcher((userPage, isCombat, activeAction, ...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:onStop:", args);
+        }
+        if (!isCfg(Stg().ETA_COMBAT)) return;
+        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+    }))
+
     /** COMBAT ONLY : Player - Damage */
-    ctx.patch(_Player(), 'damage').after(patcher((userPage, isCombat, activeAction,...args) => {
+    ctx.patch(_Player(), 'damage').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Player damage():", args);
         }
@@ -318,6 +327,7 @@ export function worker(ctx) {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
     }));
+
 }
 
 /**
@@ -356,9 +366,9 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
 const onControlsPanel = () => {
     if (controlsPanel === null) {
         let controls = ``;
-        controls += `<button id="cde-btn-eta-displayLeft" class="btn-info m-1 font-size-xs cde-eta-btn">⏴</button>`;
-        controls += `<button id="cde-btn-eta-displaySmall" class="btn-info m-1 font-size-xs cde-eta-btn">▼</button>`;
-        controls += `<button id="cde-btn-eta-displayRight" class="btn-info m-1 font-size-xs cde-eta-btn">⏵</button>`;
+        controls += `<span id="cde-btn-eta-displayLeft" class="btn-info m-1 cde-eta-btn" title="Move ETA left">◄</span>`;
+        controls += `<span id="cde-btn-eta-displaySmall" class="btn-info m-1 cde-eta-btn" title="Toggle ETA size">▼</span>`;
+        controls += `<span id="cde-btn-eta-displayRight" class="btn-info m-1 cde-eta-btn" title="Move ETA right">▶</span>`;
         /* Register controls panel */
         controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
     }

@@ -137,7 +137,7 @@ export function clearNotify() {
  * @returns {string} The HTML structure for the button.
  */
 export function createButton(buttonId) {
-    return `<span class="skill-label eta-notif-btn clickable" id="${buttonId}">⏰</span>`;
+    return `<span class="btn-info m-1 cde-eta-btn clickable" title="New ETA Notification" id="${buttonId}">⏰</span>`;
 }
 
 /**

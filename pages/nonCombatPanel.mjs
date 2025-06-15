@@ -418,7 +418,7 @@ export function createInstance(innerType) {
                                                         if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
                                                             const buttonId = "cde-btn-flat-notif-" + notifyLabel;
                                                             const buttonButton = mods.getNotification().createButton(buttonId);
-                                                            pActionIntervalEta += ` ${buttonButton}`;
+                                                            pActionIntervalEta += `${buttonButton}`;
                                                             mods.getNotification().registerButton(buttonId, {etaName: notifyLabel, media: notifyMedia, timeInMs: actionInterval});
                                                         }
                                                     }
