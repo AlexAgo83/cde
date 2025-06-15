@@ -320,15 +320,19 @@
   pointer-events: none;
   margin-left: 14px;
   margin-right: 20px;
+  min-width: 180px;
   margin-top: 10px;
   margin-bottom: 10px;
 }
 .cde-eta-summary-small {
   margin-top: 30px;
+  min-width: 120px;
   margin-right: 14px;
+  margin-left: 12px;
 }
 .cde-eta-summary-medium {
   margin-right: 20px;
+  min-width: 180px;
   margin-top: 10px;
 }
 .cde-eta-controls {
