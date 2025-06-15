@@ -172,6 +172,8 @@ export function clearNotify() {
         clearTimeout(_internalTimer);
         _internalTimer = null;
         _notify = null;
+        _builder = null;
+        saveBuilder();
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:clearNotify");
     }
 }
