@@ -181,6 +181,7 @@ export function createInstance(innerType) {
          * @returns {boolean|null} True if the panel was updated, null if skipped due to refresh throttling.
          */
         onRefresh(etaSize) {
+            
             /* Data Refresh */
             const dr = {};
             dr.updated = false;
@@ -204,11 +205,14 @@ export function createInstance(innerType) {
                 
                 if (
                     dr.scan && typeof dr.scan === "object" && dr.scan !== null &&
-                    Object.prototype.hasOwnProperty.call(dr.scan, "currentActivity")
+                    mods.getUtils().existIn(dr.scan, "currentActivity")
                 ) {
+                    /* Select scan activity */
                     /** @type {{ currentActivity: any }} */
+                    dr.activities = mods.getUtils().getIfExist(dr.scan, "currentActivity");
+
+                    /* Setup scanWithActivity */
                     dr.scanWithActivity = dr.scan;
-                    dr.activities = dr.scanWithActivity.currentActivity;
 
                     /* ETA - Non-Combat */
                     dr.resultTop = [];
@@ -220,33 +224,32 @@ export function createInstance(innerType) {
                     self._game().skills?.registeredObjects.forEach((skill) => {
                         
                         /* Focus on Activities (only): Non-Combat */
-                        if (Object.prototype.hasOwnProperty.call(dr.activities, skill.localID)) {
-
-                            const activity = dr.activities[skill.localID];
+                        const activity = mods.getUtils().getIfExist(dr.activities, skill.localID);
+                        if (activity) {
 
                             /* Has skills to display ? */
-                            if (Object.prototype.hasOwnProperty.call(activity, "skills")) {
-                                // Parse Skills
-                                const skills = activity.skills;
+                            const skills = mods.getUtils().getIfExist(activity, "skills");
+                            if (skills) {
 
+                                // Parse Skills
                                 if (mods.getSettings().isDebug()) {
                                     console.log("[CDE] nonCombatPanel:onRefresh:skills", skills);
                                 }
 
                                 self._game().skills?.registeredObjects.forEach((activeSkill) => {
-                                    if (Object.prototype.hasOwnProperty.call(skills, activeSkill.localID)) {
+                                    const currentSkill = mods.getUtils().getIfExist(skills, activeSkill.localID);
+                                    if (currentSkill) {
                                         dr.lazySkills.push(skill.localID);
-                                        const currentSkill = skills[activeSkill.localID];
                                         this.onRefreshSkill(dr, currentSkill, activeSkill);
                                     }
                                 });
                             }
 
                             /* Has mastery to display ? */
-                            if (Object.prototype.hasOwnProperty.call(activity, "recipeQueue")) {
-                                // Parse Mastery
-                                const masteries = activity.recipeQueue;
+                            const masteries = mods.getUtils().getIfExist(activity, "recipeQueue");
+                            if (masteries) {
 
+                                // Parse Mastery
                                 if (mods.getSettings().isDebug()) {
                                     console.log("[CDE] nonCombatPanel:onRefresh:recipeQueue", masteries);
                                 }

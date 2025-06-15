@@ -574,3 +574,23 @@ export function getQteInBank(item) {
 export function getPreservationChance(skillObject, recipeObject) {
 	return skillObject.getPreservationChance(recipeObject)
 }
+
+/**
+ * Check if an object has a property
+ * @param {Object} objectToTest - The object to test
+ * @param {string} keyInStr - The key to test
+ * @returns {boolean} true if the object has the property, false otherwise
+ */
+export function existIn(objectToTest, keyInStr) {
+	return Object.prototype.hasOwnProperty.call(objectToTest, keyInStr);
+}
+
+/**
+ * Get the value of a property in an object if it exists, otherwise return null
+ * @param {Object} objectToTest - The object to test
+ * @param {string} keyInStr - The key to test
+ * @returns {*} The value of the property if it exists, null otherwise
+ */
+export function getIfExist(objectToTest, keyInStr) {
+	return existIn(objectToTest, keyInStr) ? objectToTest[keyInStr] : null;
+}
