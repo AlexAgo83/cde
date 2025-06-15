@@ -98,15 +98,19 @@ function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_IC
  * @param {string} dataObject.etaName - The name of the crafting action.
  * @param {string} dataObject.media - The media associated with the notification.
  * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
+ * @param {boolean} [withPoupup=true] - Whether to show a popup notification or not.
  */
-let onNotifyAction = (dataObject) => {
-    if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) return;
+let onNotifyAction = (dataObject, withPoupup=true) => {
+    if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) {
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:data object invalide", dataObject);
+        return;
+    }
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
             if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
             /* Load & save current builder */
             const newBuilder = initBuilder(dataObject);
-            loadBuilder(newBuilder, true);
+            loadBuilder(newBuilder, withPoupup);
             saveBuilder();
         } else {
             if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");

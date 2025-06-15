@@ -134,6 +134,48 @@ export function createInstance(innerType) {
             return `<div class="cde-${identity}-panel cde-eta-generic"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
         },
 
+
+        /**
+         * Creates a new dataObject for a non-combat panel.
+         * @param {string} label - The notification title.
+         * @param {string} media - The notification icon URL.
+         * @param {number} timeInMs - The delay in milliseconds for notification display.
+         * @param {boolean} [autoNotify=false] - Whether to automatically notify when the action is nearly complete.
+         * @returns {object} The new dataObject.
+         */
+        newDataObject(label, media, timeInMs, autoNotify=false) {
+            return {
+                etaName: label, 
+                media: media, 
+                timeInMs: timeInMs,
+                autoNotify: autoNotify
+            };
+        },
+
+        /**
+         * Auto-notify for the given buttonId in the registeredButtons map.
+         * Checks if the ETA notification and auto-notify settings are enabled.
+         * If so, and the button's autoNotify property is set, then the registered
+         * event handler for the button is called with the buttonId as parameter.
+         * @param {Map<string, object>} registeredButtons - The map of registered buttons.
+         * @param {string} buttonId - The buttonId to auto-notify.
+         * @param {number} [minTimeInMs=5000] - The minimum time in milliseconds for auto-notify.
+         */
+        autoNotify(registeredButtons, buttonId, minTimeInMs=5000) {
+            if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
+                && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
+                && buttonId && registeredButtons.has(buttonId)) {
+                    const currentButton = registeredButtons.get(buttonId);
+                    /* Request notify if time is over 5s and auto-notify is enabled */
+                    if (currentButton.data.autoNotify && currentButton.data.timeInMs > minTimeInMs) {
+                        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:autoNotify:match="+buttonId, currentButton.data);
+                        currentButton.event(currentButton.data, false);
+                    } else {
+                        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:autoNotify:invalide="+buttonId, currentButton.data);
+                    }
+            }
+        },
+
         /**
          * Refreshes the Non-Combat panel by updating the displayed ETA data.
          * @returns {boolean|null} True if the panel was updated, null if skipped due to refresh throttling.
@@ -426,14 +468,14 @@ export function createInstance(innerType) {
                                                         if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
                                                             const buttonHtml = mods.getNotification().createButton(etaFlatButtonId);
                                                             pActionIntervalEta += `${buttonHtml}`;
-                                                            registeredNotify.set(etaFlatButtonId, mods.getNotification().registerButton(etaFlatButtonId, 
-                                                                {
-                                                                    etaName: notifyLabel, 
-                                                                    media: notifyMedia, 
-                                                                    timeInMs: actionInterval,
-                                                                    autoNotify: true
-                                                                })
-                                                            );
+                                                            const registeredObject = mods.getNotification().registerButton(
+                                                                etaFlatButtonId, 
+                                                                this.newDataObject(notifyLabel, notifyMedia, actionInterval, true));
+                                                            /* Register if auto notify is enabled */
+                                                            if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
+                                                                registeredNotify.set(etaFlatButtonId, registeredObject);
+                                                                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:etaButton:added:"+etaFlatButtonId, registeredObject);
+                                                            }
                                                         }
                                                     }
                                                     
@@ -456,14 +498,14 @@ export function createInstance(innerType) {
                                                         if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
                                                             const buttonHtml = mods.getNotification().createButton(etaPresButtonId);
                                                             pActionIntervalPresEta += ` ${buttonHtml}`;
-                                                            registeredNotify.set(etaPresButtonId, mods.getNotification().registerButton(etaPresButtonId, 
-                                                                {
-                                                                    etaName: notifyLabel, 
-                                                                    media: notifyMedia, 
-                                                                    timeInMs: actionIntervalPres,
-                                                                    autoNotify: true
-                                                                })
-                                                            );
+                                                            const registeredObject = mods.getNotification().registerButton(
+                                                                etaPresButtonId, 
+                                                                this.newDataObject(notifyLabel, notifyMedia, actionIntervalPres, true));
+                                                            /* Register if auto notify is enabled */
+                                                            if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
+                                                                registeredNotify.set(etaPresButtonId, registeredObject);
+                                                                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:etaButton:added:"+etaPresButtonId, registeredObject);
+                                                            }
                                                         }
                                                     }
 
@@ -504,30 +546,14 @@ export function createInstance(innerType) {
                                                                         ${pActionIntervalPresEta}
                                                                     </div>`;
                                                                 /* Auto notify pres eta */
-                                                                if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
-                                                                    && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
-                                                                    && etaPresButtonId && registeredNotify.has(etaPresButtonId)) {
-                                                                        const currentButton = registeredNotify.get(etaPresButtonId);
-                                                                        /* Request notify if time is over 5s and auto-notify is enabled */
-                                                                        if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
-                                                                            currentButton.event(etaPresButtonId);
-                                                                        }
-                                                                }
+                                                                this.autoNotify(registeredNotify, etaPresButtonId);
                                                             } else if (pActionIntervalEta && pActionIntervalEta.length > 0) {
                                                                 actionResult += `<div class="cde-generic-panel">
                                                                         <span class="skill-label"> • ETA : </span>
                                                                         ${pActionIntervalEta}
                                                                     </div>`;
                                                                 /* Auto notify flat eta */
-                                                                if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
-                                                                    && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
-                                                                    && etaFlatButtonId && registeredNotify.has(etaFlatButtonId)) {
-                                                                        const currentButton = registeredNotify.get(etaFlatButtonId);
-                                                                        /* Request notify if time is over 5s and auto-notify is enabled */
-                                                                        if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
-                                                                            currentButton.event(etaFlatButtonId);
-                                                                        }
-                                                                }
+                                                                this.autoNotify(registeredNotify, etaFlatButtonId);
                                                             }
                                                         /** SMALL MODE */
                                                         } else if (actionLeftPres && actionLeftPres > 0) {
@@ -545,15 +571,7 @@ export function createInstance(innerType) {
                                                                     <span class="skill-value vph vph-mastery">${pActionIntervalPresEta ?? "N/A"}</span>
                                                                 </div>`;
                                                             /* Auto notify pres eta */
-                                                            if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
-                                                                && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
-                                                                && etaPresButtonId && registeredNotify.has(etaPresButtonId)) {
-                                                                    const currentButton = registeredNotify.get(etaPresButtonId);
-                                                                    /* Request notify if time is over 5s and auto-notify is enabled */
-                                                                    if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
-                                                                        currentButton.event(etaPresButtonId);
-                                                                    }
-                                                            }
+                                                            this.autoNotify(registeredNotify, etaPresButtonId);
                                                         } else if (actionLeft && actionLeft > 0) {
                                                             /* Without preserv */
                                                             actionResult += `<div class="cde-generic-panel">
@@ -569,15 +587,7 @@ export function createInstance(innerType) {
                                                                     <span class="skill-value vph vph-mastery">${pActionIntervalEta ?? "N/A"}</span>
                                                                 </div>`;
                                                             /* Auto notify flat eta */
-                                                            if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
-                                                                && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
-                                                                && etaFlatButtonId && registeredNotify.has(etaFlatButtonId)) {
-                                                                    const currentButton = registeredNotify.get(etaFlatButtonId);
-                                                                    /* Request notify if time is over 5s and auto-notify is enabled */
-                                                                    if (currentButton.data.autoNotify && currentButton.data.timeInMs > 5000) {
-                                                                        currentButton.event(etaFlatButtonId);
-                                                                    }
-                                                            }
+                                                            this.autoNotify(registeredNotify, etaFlatButtonId);
                                                         }
                                                         resultCenter.push(actionResult);    
                                                     }
