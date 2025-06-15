@@ -216,7 +216,10 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 
 			// Current values
 			const skillEntry = entry.skills ? entry.skills[m.skillID] : null;
-			const currMph = skillEntry?.mph ?? 1;
+			const currRecipes = mods.getUtils().getIfExist(skillEntry, "recipeEta");
+			const currEta = mods.getUtils().getIfExist(currRecipes, m.masteryID);
+			
+			const currMph = currEta?.mph ?? 1;
 			const currMasteryLvl = m.masteryLevel;
 			const currMasteryMaxLvl = m.masteryMaxLevel;
 			const currMasteryXP = m.maxteryXp;
@@ -583,9 +586,17 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		skill.startXp = data.skillXp;
 		skill.startLevel = data.skillLevel;
 		skill.startRecipe = data.recipe;
-		skill.startRecipeXp = data.recipeXp;
-		skill.startRecipeLevel = data.recipeLevel;
+		// skill.startRecipeXp = data.recipeXp;
+		// skill.startRecipeLevel = data.recipeLevel;
 		skill.isMultiRecipe = isMultiRecipe;
+		
+		if (!skill.startRecipeEta) skill.startRecipeEta = {};
+		skill.startRecipeEta[data.recipe] = {
+			xp: data.recipeXp,
+			level: data.recipeLevel
+		};
+		// const mEta = skill.startRecipeEta[data.recipe] ?? {};
+
 		if (isMultiRecipe) {
 			if (currentActivityData[skillId] == null) {
 				currentActivityData[skillId] = {};	
@@ -624,8 +635,18 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		data.diffTime = now.getTime() - startDate.getTime();
 		data.diffTimeStr = mods.getUtils().formatDuration(data.diffTime);
 		data.diffXp = data.skillXp - current.startXp;
-		data.diffRecipeXp = data.recipeXp - current.startRecipeXp;
+		// data.diffRecipeXp = data.recipeXp - current.startRecipeXp;
+
+		if (!data.recipeEta) data.recipeEta = {};
+		const mEta = data.recipeEta[data.recipe] ?? {};
+		const currEta = mods.getUtils().getIfExist(current.startRecipeEta, data.recipe);
+
+		mEta.diffLevel = data.recipeLevel - (currEta ? currEta.level : 0); 
+		mEta.diffXp = data.recipeXp - (currEta ? currEta.xp : 0); 
 		
+		/* Save mDiff */
+		data.recipeEta[data.recipe] = mEta;
+
 		// XP per Hour
 		if (data.diffTime > 0) {
 			data.xph = Math.round(
@@ -637,13 +658,12 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 
 		// Mastery per Hour
 		if (data.diffTime > 0) {
-			data.mph = Math.round(
-				(data.diffRecipeXp / (data.diffTime / 3600000)) || 0
+			const mEta = data.recipeEta[data.recipe];
+			mEta.mph = Math.round(
+				(mEta.diffXp / (data.diffTime / 3600000)) || 0
 			);
-		} else {
-			data.mph = "NaN";
 		}
-
+		
 		// Time before next level
 		if (data.xph > 0 && data.xpLeft > 0) {
 			const secondsToNextLevel = data.xpLeft / (data.xph / 3600);
@@ -656,7 +676,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		const predictkeys = predictObj ? Object.keys(predictObj) : null;
 		if (isCfg(Stg().ETA_LEVEL_PREDICT) && predictkeys !== null && predictkeys?.length > 0) {
 			predictkeys.forEach((key) => {
-				const value = predictObj.get(key);
+				const value = predictObj[key];
 				const secondsToCapLevel = value.xpDiff / (data.xph / 3600);
 				value.secondsToCap = +secondsToCapLevel.toFixed(0);
 				value.timeToCapStr = mods.getUtils().formatDuration(value.secondsToCap * 1000);

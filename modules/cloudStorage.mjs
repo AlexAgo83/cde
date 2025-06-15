@@ -5,8 +5,8 @@
 // cloudStorage.mjs
 
 const CS_SETTINGS = "cde_settings";
-const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data";
-const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data";
+const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data_X1";
+const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data_X1";
 const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
 const CS_CURRENT_ETA_SIZE = "cde_current_eta_size";
 const CS_CURRENT_NOTIFICATION = "cde_current_notification";

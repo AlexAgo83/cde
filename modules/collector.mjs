@@ -640,13 +640,21 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				if (mods.getSettings().isDebug()) {
 					console.log("[CDE] collectCurrentActivity:onActiveSkill: ", item);
 				}
-				onActiveSkill(skill.localID, item, syncDate);
+				try {
+					onActiveSkill(skill.localID, item, syncDate);	
+				} catch (error) {
+					console.error("[CDE] collectCurrentActivity:onActiveSkill: ", error);	
+				}
 			});
 			
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] collectCurrentActivity:onSkillsUpdate: ", skillsToUpdate, items);
 			}
-			onSkillsUpdate(skillsToUpdate, items);
+			try {
+				onSkillsUpdate(skillsToUpdate, items);
+			} catch (error) {
+				console.error("[CDE] collectCurrentActivity:onSkillsUpdate: ", error);	
+			}
 			entry.skills = items;
 
 			if (a.localID === "Combat") { /** COMBAT SKILLS */
@@ -676,7 +684,11 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				if (mods.getSettings().isDebug()) {
 					console.log("[CDE] collectCurrentActivity:onCombat: ", entry, syncDate);
 				}
-				onCombat(a, entry, syncDate);
+				try {
+					onCombat(a, entry, syncDate);
+				} catch (error) {
+					console.error("[CDE] collectCurrentActivity:onCombat: ", error);
+				}
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update combat", entry);
 			} else { /** NON COMBAT SKILLS */
@@ -741,7 +753,11 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				if (mods.getSettings().isDebug()) {
 					console.log("[CDE] collectCurrentActivity:onNonCombat: ", entry, syncDate);
 				}
-				onNonCombat(a, entry, syncDate);
+				try {
+					onNonCombat(a, entry, syncDate);
+				} catch (error) {
+					console.error("[CDE] collectCurrentActivity:onNonCombat: ", error);
+				}
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] Update non-combat", entry);
 			}
