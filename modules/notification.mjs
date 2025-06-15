@@ -122,8 +122,8 @@ const onClickCallback = (dataObject) => {
  * @param {string} builder.label - The notification title.
  * @param {string} builder.desc - The notification description.
  * @param {string} builder.media - The notification icon URL.
+ * @param {number} builder.requestAt - The time in milliseconds when the notification was requested.
  * @param {number} builder.timeInMs - The delay in milliseconds for notification display.
- * @param {string} builder.etaStr - The ETA string to show in the success popup.
  * @param {boolean} [withPoupup=false] - Whether to display a success popup after scheduling the notification.
  * @returns {object} The notification builder object.
  */
@@ -131,7 +131,10 @@ function loadBuilder(builder, withPoupup=false) {
     _builder = builder;
     const notif = newNotificationCb(builder.label, builder.desc, builder.media);
     registerNotify(notif, builder.timeInMs);
-    if (withPoupup) mods.getViewer().popupSuccess('Timer set to: ' + builder.etaStr);
+    if (withPoupup) {
+        const etaStr = new Date(builder.requestAt + builder.timeInMs).toLocaleString();
+        mods.getViewer().popupSuccess('Timer set to: ' + etaStr);
+    }
     return builder;
 }
 
@@ -152,13 +155,19 @@ function saveBuilder() {
  * @returns {object} An object with the notification properties (label, desc, media, etaStr).
  */
 function initBuilder(dataObject) {
+    let timeMs = dataObject.timeInMs;
+    if (timeMs < 15000) timeMs -= 5000;     /* Adjust short time */
+    else if (timeMs < 60000) timeMs -= 10000;    /* Adjust mid time */
+    else timeMs -= 15000;    /* Adjust long time */
+    const now = Date.now();
     const notifBuilder = {
-        timeInMs: dataObject.timeInMs,
+        timeInMs: timeMs,
         label: `${getCharName()} complete "${dataObject.etaName}" action.`,
-        desc: `Your "${dataObject.etaName}" action is complete.`,
+        desc: `Your "${dataObject.etaName}" action is nearly complete.`,
         media: dataObject.media ?? URL_MELVORIDLE_ICON,
-        etaStr: new Date(Date.now() + dataObject.timeInMs).toLocaleString()
+        requestAt: now
     };
+    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:initBuilder:", notifBuilder);
     return notifBuilder;
 }
 
@@ -241,20 +250,43 @@ export function load(ctx) {
     const savedBuilder = mods.getCloudStorage().getCurrentNotification();
     
     /* Notification is disabled */
-    if (!isCfg(Stg().ETA_NOTIFICATION)) return;
+    if (!isCfg(Stg().ETA_NOTIFICATION)) { 
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:disabled");
+        return;
+    }
     /* No notification saved to reload */
-    if (savedBuilder === null || savedBuilder === undefined) return;
+    if (savedBuilder === null || savedBuilder === undefined) {
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:no saved builder found");
+        return;
+    }
     /* All notifications are already loaded */
-    if (_builder && _builder.timeInMs === savedBuilder.timeInMs) return;
+    if (_builder && _builder.timeInMs === savedBuilder.timeInMs) {
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:builder already setup", savedBuilder);
+        return;
+    }
     /* Notification is already expired */
-    if (savedBuilder.timeInMs <= new Date().getTime()) return;
+    const now = Date.now();
+    const targetTime = savedBuilder.requestAt + savedBuilder.timeInMs;
+    const remainingTime = now - targetTime;
+    if (remainingTime > 0) {
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:builder already expired", savedBuilder, remainingTime);
+        return;
+    } else {
+        /* Update saved builder to match new current time */
+        savedBuilder.requestAt = now;
+        savedBuilder.timeInMs = -remainingTime;
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:update current builder", savedBuilder, remainingTime);
+    }
 
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
             if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
             loadBuilder(savedBuilder, false);
+            saveBuilder();
         } else {
             if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
         }
     });
+
+    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:loaded", savedBuilder);
 }

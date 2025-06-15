@@ -157,8 +157,10 @@ export async function onViewLoad(ctx) {
         console.log("[CDE] Warning: debug mode allowed");
     }
 
+    // Load views
     mViewer.load(ctx);
     mPages.load(ctx);
 
+    // Load notification
     mNotification.load(ctx);
 }
