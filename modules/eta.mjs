@@ -211,7 +211,8 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 		const masteriesToRemove = [];
 		Object.keys(masteries)?.forEach((key) => {
 			const m = masteries[key];
-			if (!m.active) return;
+		
+			if (!m.active && !m.isMultiRecipe) return;
 
 			// Current values
 			const skillEntry = entry.skills ? entry.skills[m.skillID] : null;
@@ -619,6 +620,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		if (!(startDate instanceof Date)) {
 			startDate = new Date(startDate);
 		}
+
 		data.diffTime = now.getTime() - startDate.getTime();
 		data.diffTimeStr = mods.getUtils().formatDuration(data.diffTime);
 		data.diffXp = data.skillXp - current.startXp;
