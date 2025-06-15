@@ -527,6 +527,7 @@ function pageContainer(targetPage, identifier, currPanel) {
                 if (id === "cde-btn-eta-displaySmall") {
                     if (etaSize === "large") mods.getCloudStorage().setCurrentETASize(sizeCursor, "small");
                     if (etaSize === "small") mods.getCloudStorage().setCurrentETASize(sizeCursor, "large");
+                    currPanel.onRefresh(etaSize);
                 }
 
                 /* Notification */
