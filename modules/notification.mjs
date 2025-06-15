@@ -237,6 +237,8 @@ export function load(ctx) {
     if (savedBuilder === null || savedBuilder === undefined) return;
     /* All notifications are already loaded */
     if (_builder && _builder.timeInMs === savedBuilder.timeInMs) return;
+    /* Notification is disabled */
+    if (!isCfg(Stg().ETA_NOTIFICATION)) return;
 
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
