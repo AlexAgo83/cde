@@ -324,13 +324,7 @@ export function createInstance(innerType) {
                                                     })
                                                 } else if (productCount && isFinite(productCount)) {
                                                     /* Single product */
-                                                    if (productName && masteryLabel === productName) {
-                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery-fade"> x</span>`;
-                                                        pcStr += `<span class="skill-value vph-tiny vph-mastery">${productCount}</span>`;
-                                                    } else if (productMedia) {
-                                                        if (isNotSmallMode) {
-                                                            pcStr += `<span class="skill-label"> :</span>`;
-                                                        }
+                                                    if ((productName && masteryLabel === productName) || productMedia) {
                                                         pcStr += productMedia ? `<img class="skill-media" src="${productMedia}" />` : `<span class="skill-media"></span>`
                                                         pcStr += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
                                                         pcStr += `<span class="skill-value vph-tiny vph-mastery">${productCount}</span>`;
@@ -349,7 +343,7 @@ export function createInstance(innerType) {
                                             if (pcStr && pcStr.length > 0) {
                                                 result.push(
                                                     `<div class="cde-generic-panel">
-                                                        <span class="skill-label">Products : </span>${pcStr}
+                                                        <span class="skill-label">Products :</span>${pcStr}
                                                     </div>`
                                                 );
                                             }
