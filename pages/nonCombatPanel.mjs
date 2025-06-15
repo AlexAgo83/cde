@@ -359,7 +359,6 @@ export function createInstance(innerType) {
             }
         },
 
-        
         /**
          * Updates the non-combat panel with mastery information, including progression 
          * details, product counts, and estimated time to the next mastery level.

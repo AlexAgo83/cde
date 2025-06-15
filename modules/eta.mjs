@@ -484,6 +484,7 @@ function getMaxItems(itemInBank, itemPerCast) {
  * @param {Date} [syncDate=new Date()] - The timestamp for the event.
  */
 export function onActiveSkill(skillId, data, syncDate=new Date()) {
+	const isMultiRecipe = skillId === "Agility";
 	const now = syncDate;
 
 	const currLevel = data.skillLevel;
@@ -521,34 +522,32 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 	let skill = {};
 
 	if (currentActivityData) {
-		if (currentActivityData[skillId]) {
+		let current = currentActivityData[skillId];
+		if (current && isMultiRecipe && current.isMultiRecipe) {
+			current = current[data.recipe];
+		}
+		if (current) {
 			// Matching skill data entry
-			const current = currentActivityData[skillId];
-
 			const isSameLevel = current.startLevel === data.skillLevel;
 			const isSameRecipe = (typeof current.startRecipe !== "undefined" && typeof data.recipe !== "undefined")
-				? current.startRecipe === data.recipe
+				? (current.startRecipe === data.recipe)
 				: true;
-
-            /* RECIPE LEVEL TEST */
-			// const isSameRecipeLevel = (typeof current.startRecipeLevel !== "undefined" && typeof data.recipeLevel !== "undefined")
-			// 	? current.startRecipeLevel === data.recipeLevel
-			// 	: true;
-
+				
 			if (mods.getSettings().isDebug()) {
-				console.log("[CDE] onActiveSkill:recipe diff", isSameRecipe, data.recipe, current.startRecipe);
+				console.log("[CDE] onActiveSkill:recipe diff (isAgility:"+isMultiRecipe+")", isSameRecipe, data.recipe, current.startRecipe);
 				//console.log("[CDE] onActiveSkill:recipe level diff", isSameRecipeLevel, data.recipeLevel, current.startRecipeLevel);
 			}
 
-			if (isSameLevel && (isSameRecipe 
-			//	&& isSameRecipeLevel
-			)) {
+			if (isMultiRecipe || (isSameLevel && isSameRecipe)) {
 				if (mods.getSettings().isDebug())
-					console.log("[CDE] onActiveSkill:matching skill", current);
+					console.log("[CDE] onActiveSkill:matching skill(isAgility:"+isMultiRecipe+")", current);
+				if (isMultiRecipe) {
+					// ...
+				}
 		 	} else {
 				// Reset if level or recipe change
 				if (mods.getSettings().isDebug()) {
-					console.log("[CDE] onActiveSkill:reset on lvl or recipe change", current, data);
+					console.log("[CDE] onActiveSkill:reset on lvl or recipe change(isAgility:"+isMultiRecipe+")", current, data);
 				}
 				delete currentActivityData[skillId];
 			}
@@ -566,7 +565,20 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		}
 	}
 
-	if (currentActivityData[skillId] == null) {
+	const activityMap = currentActivityData[skillId];
+	let isNewEntry = !activityMap;
+	if (activityMap 
+		&& isMultiRecipe 
+		&& !activityMap[data.recipe]) {
+		isNewEntry = true;
+	}
+	
+	if (mods.getSettings().isDebug()) console.log(
+		"[CDE] onActiveSkill:isNewEntry="+isNewEntry, 
+		activityMap, 
+		currentActivityData[skillId]);
+			
+	if (isNewEntry) {
 		// New skill data records
 		skill.startTime = now;
 		skill.startXp = data.skillXp;
@@ -574,10 +586,19 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		skill.startRecipe = data.recipe;
 		skill.startRecipeXp = data.recipeXp;
 		skill.startRecipeLevel = data.recipeLevel;
+		skill.isMultiRecipe = isMultiRecipe;
 		
-		currentActivityData[skillId] = skill;
+		if (isMultiRecipe) {
+			if (currentActivityData[skillId] == null) {
+				currentActivityData[skillId] = {};	
+				currentActivityData[skillId].isMultiRecipe = true;
+			}
+			currentActivityData[skillId][data.recipe] = skill;
+		} else {
+			currentActivityData[skillId] = skill;
+		}
 		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] onActiveSkill:new current skill", skill);
+			console.log("[CDE] onActiveSkill:new current skill", currentActivityData, skill);
 		}
 
 		// Print record for new skill data
@@ -590,8 +611,13 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		&& currentActivityData
 		&& currentActivityData[skillId]) {
 
+		let current = currentActivityData[skillId];
+		if (isMultiRecipe && current.isMultiRecipe) {
+			current = current[data.recipe];
+			if (mods.getSettings().isDebug()) console.log("[CDE] onActiveSkill:etaOnRecipe="+data.recipe, current);
+		}
+
 		// UPDATING ETA ...
-		const current = currentActivityData[skillId];
 		let startDate = current.startTime;
 		if (!(startDate instanceof Date)) {
 			startDate = new Date(startDate);
