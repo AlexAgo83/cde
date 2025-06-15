@@ -181,7 +181,10 @@ export const onRefresh = (etaSize) => {
                 const media = activity.monster?.media;
                 const areaMedia = activity.monster?.area?.areaMedia;
                 const time = mods.getUtils().formatDuration(seconds, "vph-combat-fade");
-                const result = [];
+                
+                const resultTop = [];
+                const resultCenter = [];
+                const resultEnd = [];
                 
                 
                 let pKphStr = `${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : `<span class="skill-media"></span>`}`;
@@ -198,14 +201,14 @@ export const onRefresh = (etaSize) => {
                 let pCountMonsterStr = kCount ? `<span class="vph vph-tiny vph-combat-fade">x</span><span class="vph vph-tiny vph-combat">${kCount}</span>`:``;
 
                 if (isCfg(Stg().ETA_LIVE_DPS)) {
-                    result.push(
+                    resultTop.push(
                         `<div class="cde-generic-panel">
                             ${URL_COMBAT ? `<img class="skill-media" src="${URL_COMBAT}" />` : `<span class="skill-media"></span>`}
                             <span class="skill-label">DPS Dealt ➜ </span>
                             <span class="vph vph-combat-dealt">${dpsDealt ?? "N/A"}</span><span class="vph vph-combat-dealt-fade">dmg/s</span>
                         </div>`
                     );
-                    result.push(
+                    resultTop.push(
                         `<div class="cde-generic-panel">
                             ${URL_DEFENCE ? `<img class="skill-media" src="${URL_DEFENCE}" />` : `<span class="skill-media"></span>`}
                             <span class="skill-label">DPS Taken ➜ </span>
@@ -215,12 +218,12 @@ export const onRefresh = (etaSize) => {
                 }
                 
                 if (isNotSmallMode) {
-                    result.push(
+                    resultTop.push(
                         `<div class="cde-generic-panel">${pKphStr}<span class="skill-label"> (</span>${pMediaArea}${pCountAreaStr}${pMediaMonster}${pCountMonsterStr}<span class="skill-label"> )</span></div>`
                     );
                 }
                 
-                result.push(
+                resultTop.push(
                     `<div class="cde-generic-panel">
                         ${URL_STATISTICS ? `<img class="skill-media" src="${URL_STATISTICS}" />` : `<span class="skill-media"></span>`}
                         <span class="skill-label">Fight Duration ➜ </span>
@@ -262,11 +265,11 @@ export const onRefresh = (etaSize) => {
 
                     /* If there are any active skills */
                     if (resultSkills.length > 0) {
-                        result.push(labelTime);
-                        result.push(...resultSkills);
+                        resultTop.push(labelTime);
+                        resultTop.push(...resultSkills);
                     }
                 }
-                etaData = `<div class="cde-generic-panel">${result.join("")}</div>`;
+                etaData = `<div class="cde-generic-panel">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}</div>`;
                 updated = true;
             }
         }

@@ -167,8 +167,9 @@ export function createInstance(innerType) {
                     const activities = scanWithActivity.currentActivity;
 
                     /* ETA - Non-Combat */
-                    const result = [];
-                    const resultFooter = [];
+                    const resultTop = [];
+                    const resultCenter = [];
+                    const resultEnd = [];
                     const lazySkills = [];
 
                     self._game().skills?.registeredObjects.forEach((skill) => {
@@ -195,7 +196,7 @@ export function createInstance(innerType) {
                                         // const skillID = currentSkill.skillID;
                                         const skillLabel = activeSkill.name;
                                         const skillMedia = activeSkill.media;
-                                        result.push(
+                                        resultTop.push(
                                             `<div class="cde-generic-panel">
                                                 ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : '<span class="skill-media"></span>'}
                                                 <span class="skill-value vph-skill">${skillLabel ?? "N/A"}</span>
@@ -210,7 +211,7 @@ export function createInstance(innerType) {
                                             const secondsToNextLevel = currentSkill.secondsToNextLevel;
                                             const timeSkill = mods.getUtils().formatDuration(secondsToNextLevel * 1000, "vph-skill-fade");
                                             if (diffTime && diffTime > 0) {
-                                                resultFooter.push(
+                                                resultEnd.push(
                                                     `<div class="cde-generic-panel cde-generic-header">
                                                         <span class="skill-label">Craft Duration :</span>
                                                         <span class="skill-value vph">${diffTimeStr ?? "N/A"}</span>
@@ -232,7 +233,7 @@ export function createInstance(innerType) {
                                                     pSkillProgess += `<span class="skill-value vph vph-small vph-skill-fade">%</span>`;
                                                     pSkillProgess += `<span class="skill-label">)</span>`;
                                                 }
-                                                result.push(
+                                                resultTop.push(
                                                     `<div class="cde-generic-panel">
                                                         <span class="skill-label"> • to </span>
                                                         <span class="skill-value vph-skill">${currentSkill.skillLevel+1}</span>
@@ -262,7 +263,7 @@ export function createInstance(innerType) {
                                                                 </div>`;
                                                         }
                                                     });
-                                                    result.push(levelCap);
+                                                    resultTop.push(levelCap);
                                                     updated = true;
                                                 }
                                             }   
@@ -335,7 +336,7 @@ export function createInstance(innerType) {
                                             }
 
                                             if (isNotSmallMode) {
-                                                result.push(
+                                                resultTop.push(
                                                     `<div class="cde-generic-panel">
                                                         ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : `<span class="skill-media"></span>`}
                                                         <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>
@@ -343,7 +344,7 @@ export function createInstance(innerType) {
                                                 );
                                             }
                                             if (pcStr && pcStr.length > 0) {
-                                                resultFooter.push(
+                                                resultCenter.push(
                                                     `<div class="cde-generic-panel">
                                                         <span class="skill-label">Products :</span>${pcStr}
                                                     </div>`
@@ -356,14 +357,6 @@ export function createInstance(innerType) {
                                                 /* Can't estimate item cost for Summoning right now */
                                                 const isNoDisplayItemCosts = parentSkillID == "Summoning";
 
-                                                /* Preservation */
-                                                if (isNotSmallMode && preservationChance) {
-                                                    let pPreservation = ``;
-                                                    pPreservation += `<span class="skill-label">Preservation : </span>`;
-                                                    pPreservation += `<span class="skill-value vph vph-small vph-mastery">${preservationChance.toFixed(2)}</span>`;
-                                                    pPreservation += `<span class="skill-value vph vph-tiny vph-mastery-fade">%</span>`;
-                                                    resultFooter.push(`<div class="cde-generic-panel">${pPreservation}</div>`);
-                                                }
                                                 /* RECIPE ITEMS */
                                                 let pRecipeItems = ``;
                                                 if (isNotSmallMode && itemCosts && itemCosts.length > 0) {
@@ -387,12 +380,21 @@ export function createInstance(innerType) {
                                                     }
                                                 }
                                                 if (isNotSmallMode && pRecipeItems.length > 0) {
-                                                    resultFooter.push(
+                                                    resultCenter.push(
                                                         `<div class="cde-generic-panel">
                                                             <span class="skill-label">Recipe :</span>
                                                             ${pRecipeItems}
                                                         </div>`
                                                     );
+                                                }
+
+                                                /* Preservation */
+                                                if (isNotSmallMode && preservationChance) {
+                                                    let pPreservation = ``;
+                                                    pPreservation += `<span class="skill-label">Preservation : </span>`;
+                                                    pPreservation += `<span class="skill-value vph vph-small vph-mastery">${preservationChance.toFixed(2)}</span>`;
+                                                    pPreservation += `<span class="skill-value vph vph-tiny vph-mastery-fade">%</span>`;
+                                                    resultCenter.push(`<div class="cde-generic-panel">${pPreservation}</div>`);
                                                 }
 
                                                 /* ACTION LEFT */
@@ -521,7 +523,7 @@ export function createInstance(innerType) {
                                                                     <span class="skill-value vph vph-mastery">${pActionIntervalEta ?? "N/A"}</span>
                                                                 </div>`;
                                                         }
-                                                        resultFooter.push(actionResult);    
+                                                        resultCenter.push(actionResult);    
                                                     }
                                                 }
                                             } 
@@ -544,7 +546,7 @@ export function createInstance(innerType) {
                                                 }
                                                 /* Display next mastery level */
                                                 const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
-                                                result.push(
+                                                resultTop.push(
                                                     `<div class="cde-generic-panel">
                                                         <span class="skill-label"> • to </span>
                                                         <span class="skill-value vph-mastery">${nextMasteryLvl ?? "N/A"}</span>
@@ -563,7 +565,7 @@ export function createInstance(innerType) {
                                                     const secondsToCap = value?.secondsToCap;
                                                     if (secondsToCap && isFinite(secondsToCap)) {
                                                         const timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, "vph-mastery-fade");
-                                                        result.push(
+                                                        resultTop.push(
                                                             `<div class="cde-generic-panel">
                                                                 <span class="skill-label"> • to </span>
                                                                 <span class="skill-value vph-mastery">${level}</span>
@@ -581,7 +583,7 @@ export function createInstance(innerType) {
                             }
                         }
                     });
-                    etaData = `<div class="cde-generic-list">${result.join("")}${resultFooter.join("")}</div>`;
+                    etaData = `<div class="cde-generic-list">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}</div>`;
                 }
                 parent.innerHTML = self.container(parent, summaryId, identity);
             }

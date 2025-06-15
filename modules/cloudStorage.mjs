@@ -9,6 +9,7 @@ const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data";
 const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data";
 const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
 const CS_CURRENT_ETA_SIZE = "cde_current_eta_size";
+const CS_CURRENT_NOTIFICATION = "cde_current_notification";
 
 let mods = null;
 let cloudStorage = null;
@@ -198,4 +199,20 @@ export function setCurrentETASize(cursor, size="large") {
  */
 export function getCurrentETASize(cursor) {
 	return cloudStorage?.getItem(CS_CURRENT_ETA_SIZE+"-"+cursor) ?? "large";
+}
+
+export function setCurrentNotification(notificationData) {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] currentNotification changed:" + notificationData);
+	}
+	cloudStorage?.setItem(CS_CURRENT_NOTIFICATION, notificationData);
+}
+export function getCurrentNotification() {
+	try {
+		const raw = cloudStorage?.getItem(CS_CURRENT_NOTIFICATION);
+		return typeof raw === "string" ? JSON.parse(raw) : raw;
+	} catch (e) {
+		console.warn("[CDE] Invalid notification data in characterStorage");
+		return null;
+	}
 }

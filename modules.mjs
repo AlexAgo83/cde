@@ -159,4 +159,6 @@ export async function onViewLoad(ctx) {
 
     mViewer.load(ctx);
     mPages.load(ctx);
+
+    mNotification.load(ctx);
 }

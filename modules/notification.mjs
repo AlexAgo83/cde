@@ -6,6 +6,7 @@
 
 let mods = null;
 let _internalTimer = null;
+let _builder = null;
 let _notify = null;
 
 const registeredNotifications = new Map();
@@ -103,17 +104,62 @@ const onClickCallback = (dataObject) => {
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
             if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
-            const label = `${getCharName()} complete "${dataObject.etaName}" action.`;
-            const desc = `Your "${dataObject.etaName}" action is complete.`;
-            const media = dataObject.media ?? URL_MELVORIDLE_ICON;
-            const notif = newNotificationCb(label, desc, media);
-            registerNotify(notif, dataObject.timeInMs);
-            mods.getViewer().popupSuccess('Timer set to: ' + new Date(Date.now() + dataObject.timeInMs).toLocaleString());        
+            /* Load & save current builder */
+            const newBuilder = initBuilder(dataObject);
+            loadBuilder(newBuilder, true);
+            saveBuilder();
         } else {
             if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
         }
     });
     if (mods.getSettings().isDebug()) console.log("[CDE] Notification:onClickCallback:", dataObject);
+}
+
+/**
+ * Loads a notification builder and schedules the notification for display.
+ * Optionally displays a success popup indicating the timer has been set.
+ * @param {object} builder - The notification builder object containing properties for the notification.
+ * @param {string} builder.label - The notification title.
+ * @param {string} builder.desc - The notification description.
+ * @param {string} builder.media - The notification icon URL.
+ * @param {number} builder.timeInMs - The delay in milliseconds for notification display.
+ * @param {string} builder.etaStr - The ETA string to show in the success popup.
+ * @param {boolean} [withPoupup=false] - Whether to display a success popup after scheduling the notification.
+ * @returns {object} The notification builder object.
+ */
+function loadBuilder(builder, withPoupup=false) {
+    _builder = builder;
+    const notif = newNotificationCb(builder.label, builder.desc, builder.media);
+    registerNotify(notif, builder.timeInMs);
+    if (withPoupup) mods.getViewer().popupSuccess('Timer set to: ' + builder.etaStr);
+    return builder;
+}
+
+/**
+ * Saves the current notification builder to cloud storage.
+ * @private
+ */
+function saveBuilder() {
+    mods.getCloudStorage().setCurrentNotification(_builder);
+}
+
+/**
+ * Builds a notification object from the given dataObject.
+ * @param {object} dataObject - An object containing data for the notification.
+ * @param {string} dataObject.etaName - The name of the crafting action.
+ * @param {string} dataObject.media - The media associated with the notification.
+ * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
+ * @returns {object} An object with the notification properties (label, desc, media, etaStr).
+ */
+function initBuilder(dataObject) {
+    const notifBuilder = {
+        timeInMs: dataObject.timeInMs,
+        label: `${getCharName()} complete "${dataObject.etaName}" action.`,
+        desc: `Your "${dataObject.etaName}" action is complete.`,
+        media: dataObject.media ?? URL_MELVORIDLE_ICON,
+        etaStr: new Date(Date.now() + dataObject.timeInMs).toLocaleString()
+    };
+    return notifBuilder;
 }
 
 /**
@@ -175,4 +221,29 @@ export function onClick(buttonId, dataObject=null) {
             }
         }
     }
+}
+
+
+/**
+ * Loads the saved notification builder from cloud storage and schedules the notification for display.
+ * If a notification is already loaded with the same timing, no action is taken.
+ * Requests notification permission from the user before proceeding.
+ * @param {*} ctx - The context object used for the load operation.
+ */
+export function load(ctx) {
+    const savedBuilder = mods.getCloudStorage().getCurrentNotification();
+    
+    /* No notification saved to reload */
+    if (savedBuilder === null || savedBuilder === undefined) return;
+    /* All notifications are already loaded */
+    if (_builder && _builder.timeInMs === savedBuilder.timeInMs) return;
+
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
+            loadBuilder(savedBuilder, false);
+        } else {
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
+        }
+    });
 }
