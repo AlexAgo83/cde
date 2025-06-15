@@ -50,30 +50,12 @@ function isCfg(reference) {
 }
 
 /**
- * Requests permission to display notifications.
- * @param {Function} onRequest - The function to call if permission is granted.
- * @param {Function} onError - The function to call if permission is not granted.
- */
-export function requestPermission(onRequest, onError) {
-    Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
-            onRequest();
-        } else {
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
-            onError();
-        }
-    });
-}
-
-
-/**
  * Registers a new notification to be executed after a specified delay.
  * If a notification is already pending, it cancels the previous one and schedules the new one.
  * @param {Function} newNotification - The function to execute for the new notification.
  * @param {number} [when=0] - The delay in milliseconds after which the notification should be executed.
  */
-export function registerNotify(newNotification, when=0) {
+function registerNotify(newNotification, when=0) {
     /* If a notification is already pending, remove it */
     if (_internalTimer) clearNotify();
     _notify = newNotification;
@@ -91,6 +73,50 @@ export function registerNotify(newNotification, when=0) {
 }
 
 /**
+ * Creates a new notification to be displayed.
+ * @param {string} notifLabel - The notification title.
+ * @param {string} notifDescription - The notification description.
+ * @param {string} [media=URL_MELVORIDLE_ICON] - The notification icon URL.
+ * @returns {Function} A function that can be executed to display the notification.
+ */
+function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_ICON) {
+    return () => {
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:newNotificationCb:execute", notifLabel, notifDescription, media);
+        return new Notification(notifLabel, {
+            body: notifDescription,
+            icon: media
+        });
+    }
+}
+
+/**
+ * Creates and registers a notification to be displayed when the given crafting action is complete.
+ * The notification has a title of `"${dataObject.etaName}" ETA Reached!` and a description of `Your "${dataObject.etaName}" action is complete.`,
+ * and is registered to be displayed after a delay of `dataObject.timeInMs` milliseconds.
+ * @param {object} dataObject - An object containing data for the notification.
+ * @param {string} dataObject.etaName - The name of the crafting action.
+ * @param {string} dataObject.media - The media associated with the notification.
+ * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
+ */
+const onClickCallback = (dataObject) => {
+    if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) return;
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
+            const label = `${getCharName()} complete "${dataObject.etaName}" action.`;
+            const desc = `Your "${dataObject.etaName}" action is complete.`;
+            const media = dataObject.media ?? URL_MELVORIDLE_ICON;
+            const notif = newNotificationCb(label, desc, media);
+            registerNotify(notif, dataObject.timeInMs);
+            mods.getViewer().popupSuccess('Timer set to: ' + new Date(Date.now() + dataObject.timeInMs).toLocaleString());        
+        } else {
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
+        }
+    });
+    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:onClickCallback:", dataObject);
+}
+
+/**
  * Cancels any pending notifications.
  * If a notification was previously registered using registerNotify, this method
  * will prevent it from being shown.
@@ -99,24 +125,8 @@ export function clearNotify() {
     if (_internalTimer) {
         clearTimeout(_internalTimer);
         _internalTimer = null;
+        _notify = null;
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:clearNotify");
-    }
-}
-
-/**
- * Creates a new notification to be displayed.
- * @param {string} notifLabel - The notification title.
- * @param {string} notifDescription - The notification description.
- * @param {string} [media=URL_MELVORIDLE_ICON] - The notification icon URL.
- * @returns {Function} A function that can be executed to display the notification.
- */
-export function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_ICON) {
-    return () => {
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:newNotificationCb:execute", notifLabel, notifDescription, media);
-        return new Notification(notifLabel, {
-            body: notifDescription,
-            icon: media
-        });
     }
 }
 
@@ -145,28 +155,6 @@ export function registerButton(buttonId, dataObject, customClickCallback=null) {
         data: dataObject, 
         event: customClickCallback ?? onClickCallback
     });
-    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:registerButton ->" + buttonId);
-}
-
-
-/**
- * Creates and registers a notification to be displayed when the given crafting action is complete.
- * The notification has a title of `"${dataObject.etaName}" ETA Reached!` and a description of `Your "${dataObject.etaName}" action is complete.`,
- * and is registered to be displayed after a delay of `dataObject.timeInMs` milliseconds.
- * @param {object} dataObject - An object containing data for the notification.
- * @param {string} dataObject.etaName - The name of the crafting action.
- * @param {string} dataObject.media - The media associated with the notification.
- * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
- */
-export const onClickCallback = (dataObject) => {
-    if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) return;
-    // const label = `"${dataObject.etaName}" ETA Reached!`;
-    const label = `${getCharName()} complete "${dataObject.etaName}" action.`;
-    const desc = `Your "${dataObject.etaName}" action is complete.`;
-    const media = dataObject.media ?? URL_MELVORIDLE_ICON;
-    const notif = newNotificationCb(label, desc, media);
-    registerNotify(notif, dataObject.timeInMs);
-    // if (mods.getSettings().isDebug()) console.log("[CDE] Notification:onClickCallback:", dataObject);
 }
 
 /**
