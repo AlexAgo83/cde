@@ -230,7 +230,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			m.currentActionInterval = activity?.actionInterval ?? 0;
 
 			// ETA - Predict next masteries lvl
-			m.predictLevels = new Map();
+			m.predictLevels = {};
 			const prdArr = utl.parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] ETA Mastery Predicts for ("+currMasteryLvl+"/"+currMasteryMaxLvl+")", prdArr, m);
@@ -247,7 +247,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 				value.secondsToCap = +secondsToCapLevel.toFixed(0);
 				value.timeToCapStr = utl.formatDuration(value.secondsToCap * 1000);
 
-				m.predictLevels.set(item, value);
+				m.predictLevels[item] = value;
 			});
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] ETA Mastery Predict entries", m);
@@ -498,7 +498,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 	data.xpLeft = nextLevelXp > currentXp ? nextLevelXp - currentXp : 0;
 	data.nextLevelXp = nextLevelXp > currentXp ? nextLevelXp : 0;
 
-	data.predictLevels = new Map();
+	data.predictLevels = {};
 	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
 		let predictNextLevels = mods.getUtils().parseNextLevels(currLevel, maxLevel);
 		if (mods.getSettings().isDebug()) {
@@ -510,7 +510,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 				xpCap: xpCap,
 				xpDiff: xpCap - currentXp
 			};
-			if (cap <= maxLevel) data.predictLevels.set(cap, predictItem);
+			if (cap <= maxLevel) data.predictLevels[cap] = predictItem;
 		});
 	}
 
@@ -651,8 +651,12 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 			data.timeToNextLevelStr = mods.getUtils().formatDuration(data.secondsToNextLevel * 1000);
 		}
 
-		if (isCfg(Stg().ETA_LEVEL_PREDICT) && data.predictLevels?.size > 0) {
-			data.predictLevels.forEach((value) => {
+		/* ETA Prediction */
+		const predictObj = mods.getUtils().getIfExist(data, "predictLevels");
+		const predictkeys = predictObj ? Object.keys(predictObj) : null;
+		if (isCfg(Stg().ETA_LEVEL_PREDICT) && predictkeys !== null && predictkeys?.length > 0) {
+			predictkeys.forEach((key) => {
+				const value = predictObj.get(key);
 				const secondsToCapLevel = value.xpDiff / (data.xph / 3600);
 				value.secondsToCap = +secondsToCapLevel.toFixed(0);
 				value.timeToCapStr = mods.getUtils().formatDuration(value.secondsToCap * 1000);
