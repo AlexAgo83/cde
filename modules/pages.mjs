@@ -443,6 +443,9 @@ function pageContainer(targetPage, identifier, currPanel) {
                     if (etaSize === "large") mods.getCloudStorage().setCurrentETASize(sizeCursor, "small");
                     if (etaSize === "small") mods.getCloudStorage().setCurrentETASize(sizeCursor, "large");
                 }
+
+                /* Notification */
+                mods.getNotification().onClick(id);
             }
         });
 

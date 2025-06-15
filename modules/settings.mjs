@@ -207,6 +207,15 @@ export const SettingsReference = {
 		toggle: true
 	},
 	// ETA
+	ETA_NOTIFICATION: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-notification",
+		label: "Allow Notification for ETA",
+		hint: "Toggle to allow notifications for ETA.",
+		toggle: true
+	},
+	// ETA
 	ETA_LEVEL_PREDICT: {
 		section: Sections.ETA,
 		type: "switch",

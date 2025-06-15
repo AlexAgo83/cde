@@ -303,6 +303,8 @@ export function createInstance(innerType) {
                                         const lessActionItem = m?.itemLessAction;
                                         const masteryProgress = m?.maxteryNextLevelProgress;
                                         const preservationChance = m?.preservationChance;
+                                        const notifyLabel = productName ?? masteryLabel;
+                                        const notifyMedia = productMedia ?? masteryMedia;
 
                                         const hasProduct = (productCount && isFinite(productCount)) || productsCount?.length > 0;
 
@@ -406,6 +408,7 @@ export function createInstance(innerType) {
 
                                                     let pActionInterval = ``;
                                                     let pActionIntervalEta = ``;
+                                                    let notifyEta = ``;
                                                     if (actionInterval && actionInterval > 0) {
                                                         /* Action left flat */
                                                         if (isNotSmallMode) pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lMoreThan} </span>`;
@@ -416,11 +419,20 @@ export function createInstance(innerType) {
                                                         /* ETA Flat */
                                                         const etaTime = new Date(actionInterval+currTime.getTime());
                                                         pActionIntervalEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
+
+                                                        /* ETA Flat Notif */
+                                                        if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
+                                                            const buttonId = "cde-btn-flat-notif-" + notifyLabel;
+                                                            const buttonButton = mods.getNotification().createButton(buttonId);
+                                                            pActionIntervalEta += ` ${buttonButton}`;
+                                                            mods.getNotification().registerButton(buttonId, {etaName: notifyLabel, media: notifyMedia, timeInMs: actionInterval});
+                                                        }
                                                     }
                                                     
                                                     const actionIntervalPres = m?.actionTimeMsWithPreservation;
                                                     let pActionIntervalPres = ``;
                                                     let pActionIntervalPresEta = ``;
+                                                    let notifyEtaPres = ``;
                                                     if (actionIntervalPres && actionIntervalPres > 0) {
                                                         /* Action left preserv */
                                                         if (isNotSmallMode) pActionIntervalPres += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lExpected} </span>`;
@@ -431,6 +443,14 @@ export function createInstance(innerType) {
                                                         /* ETA Preserv */
                                                         const etaTime = new Date(actionIntervalPres+currTime.getTime());
                                                         pActionIntervalPresEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
+
+                                                        /* ETA Flat Notif */
+                                                        if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
+                                                            const buttonId = "cde-btn-pres-notif-" + notifyLabel;
+                                                            const buttonButton = mods.getNotification().createButton(buttonId);
+                                                            pActionIntervalPresEta += ` ${buttonButton}`;
+                                                            mods.getNotification().registerButton(buttonId, {etaName: notifyLabel, media: notifyMedia, timeInMs: actionIntervalPres});
+                                                        }
                                                     }
 
                                                     const actionLeft = lessActionItem.itemQteActions;
@@ -494,7 +514,7 @@ export function createInstance(innerType) {
                                                             /* Without preserv */
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Actions Left : </span>
-                                                                    <span class="skill-value vph vph-small vph-mastery">${actionLeft ?? "N/A"}</span>
+                                                                    <span class="skill-value vph vph-tiny vph-mastery">${actionLeft ?? "N/A"}</span>
                                                                 </div>`;
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Time left : </span>
