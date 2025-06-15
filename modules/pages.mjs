@@ -269,7 +269,8 @@ export function worker(ctx) {
         /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
     }))
 
-    ctx.patch(_CraftingSkill(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
+    /** Crafting - action */
+    ctx.patch(_CraftingSkill(), 'action').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Craft action finished:", args);
         }
@@ -284,9 +285,39 @@ export function worker(ctx) {
         /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
     }))
 
+    /** Crafting - stop */
+    ctx.patch(_CraftingSkill(), 'stop').after(patcher((userPage, isCombat, activeAction, ...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:Craft action stopped:", args);
+        }
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
+        /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
+        /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
+        /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
+        /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
+        /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
+        /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
+        /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
+    }))
+
+    /** Gathering - action */
     ctx.patch(_GatheringSkill(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Gathering action finished:", args);
+        }
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
+        /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
+        /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
+        /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
+        /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
+    }));
+
+    /** Gathering - stop */
+    ctx.patch(_GatheringSkill(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:Gathering action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
@@ -303,10 +334,24 @@ export function worker(ctx) {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
     }));
+    ctx.patch(_AltMagic(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:AltMagic action stopped:", args);
+        }
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
+    }));
 
     ctx.patch(_Thieving(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Thieving action finished:", args);
+        }
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
+    }));
+    ctx.patch(_Thieving(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:Thieving action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
@@ -319,10 +364,24 @@ export function worker(ctx) {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
     }));
+    ctx.patch(_Archaeology(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:Archaeology action stopped:", args);
+        }
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
+    }));
 
     ctx.patch(_Cartography(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Cartography action finished:", args);
+        }
+        if (!isCfg(Stg().ETA_SKILLS)) return;
+        /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
+    }));
+    ctx.patch(_Cartography(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:Cartography action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");

@@ -40,16 +40,23 @@
 // Stage 22 - ETA - Recipe duration & PpH
 // Stage 23 - Display ETA Panel
 
-// === Plan to 2.0.0 ===
+// === Plan to 2.0.X ===
 // Stage 23 - ETA - Mastery
 // Stage 24 - ETA - Next Skill & Mastery Levels
 
-// === Plan to 2.1.0 ===
+// === Plan to 2.1.X ===
 // Stage 25 - ETA - Recipe Queue & bank
 // Stage 26 - Live DPS
+// Stage 27 - ETA Display Mode
+// Stage 28 - Notification
+
+// === Plan to 2.2.X ===
+// Stage 29 - Improve Summoning ETA
+// Stage 30 - Cartography Paper Please!
+// Stage 31 - Agility ETA
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.23";
+const MOD_VERSION = "v2.1.24";
 
 // --- Module Imports ---
 let mModules = null;
