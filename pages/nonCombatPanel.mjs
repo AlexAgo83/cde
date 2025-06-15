@@ -287,7 +287,6 @@ export function createInstance(innerType) {
                                             console.log("[CDE] nonCombatPanel:onRefresh:mastery", m);
                                         }
 
-                                        // Next mastery level
                                         const seconds = m?.secondsToNextLvl;
                                         const isAltMagic = m?.skillID === "Magic";
                                         const isCartography = m?.skillID === "Cartography";
@@ -308,7 +307,10 @@ export function createInstance(innerType) {
 
                                         const hasProduct = (productCount && isFinite(productCount)) || productsCount?.length > 0;
 
+                                        /* Next mastery level */
                                         if (masteryID) {
+
+                                            /* Product count */
                                             let pcStr = ``;
                                             if (hasProduct) {
                                                 if (productsCount?.length > 0) {
@@ -341,7 +343,7 @@ export function createInstance(innerType) {
                                                 );
                                             }
                                             if (pcStr && pcStr.length > 0) {
-                                                result.push(
+                                                resultFooter.push(
                                                     `<div class="cde-generic-panel">
                                                         <span class="skill-label">Products :</span>${pcStr}
                                                     </div>`
@@ -531,6 +533,7 @@ export function createInstance(innerType) {
                                                 console.log("[CDE] nonCombatPanel:onRefresh:seconds is not finite", seconds);
                                             }
                                         } else if (isNotSmallMode) {
+                                            /* Display mastery progress */
                                             if (nextMasteryLvl <= 99 && !isAltMagic && !isCartography) {
                                                 let pMasteryProgess = ``;
                                                 if (masteryProgress) {
@@ -539,6 +542,7 @@ export function createInstance(innerType) {
                                                     pMasteryProgess += `<span class="skill-value vph vph-small vph-mastery-fade">%</span>`;
                                                     pMasteryProgess += `<span class="skill-label">)</span>`;
                                                 }
+                                                /* Display next mastery level */
                                                 const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
                                                 result.push(
                                                     `<div class="cde-generic-panel">
@@ -552,7 +556,7 @@ export function createInstance(innerType) {
                                                 updated = true;
                                             }
 
-                                            // Predict next masteries level
+                                            /* Predict next masteries level */
                                             const predictLevels = m?.predictLevels;
                                             if (!isAltMagic && !isCartography && predictLevels && predictLevels.size > 0) {
                                                 [...predictLevels.entries()].reverse().forEach(([level, value]) => {
