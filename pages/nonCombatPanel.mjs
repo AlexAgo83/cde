@@ -182,12 +182,15 @@ export function createInstance(innerType) {
          */
         onRefresh(etaSize) {
             let updated = false;
-            const isSmallMode = (etaSize === "small");
-            const isNotSmallMode = !isSmallMode;
+
+            /* Data Refresh */
+            const dr = {};
+            dr.isSmallMode = (etaSize === "small");
+            dr.isNotSmallMode = !dr.isSmallMode;
+            dr.currTime = new Date();
             
-            const currTime = new Date();
-            if (lastCallTime == null || (lastCallTime.getTime() + 25) < currTime.getTime()) {
-                lastCallTime = currTime;
+            if (lastCallTime == null || (lastCallTime.getTime() + 25) < dr.currTime.getTime()) {
+                lastCallTime = dr.currTime;
             } else {
                 if (mods.getSettings().isDebug()) console.log("[CDE] onRefresh skipped for: " + identity);
                 return null;
@@ -245,7 +248,7 @@ export function createInstance(innerType) {
                                                 <span class="skill-value vph-skill">${skillLabel ?? "N/A"}</span>
                                             </div>`
                                         );
-                                        if (isSmallMode) {
+                                        if (dr.isSmallMode) {
                                             updated = true;
                                         } else {
                                             /* Craft duration */
@@ -378,7 +381,7 @@ export function createInstance(innerType) {
                                                 }
                                             }
 
-                                            if (isNotSmallMode) {
+                                            if (dr.isNotSmallMode) {
                                                 resultTop.push(
                                                     `<div class="cde-generic-panel">
                                                         ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : `<span class="skill-media"></span>`}
@@ -402,7 +405,7 @@ export function createInstance(innerType) {
 
                                                 /* RECIPE ITEMS */
                                                 let pRecipeItems = ``;
-                                                if (isNotSmallMode && itemCosts && itemCosts.length > 0) {
+                                                if (dr.isNotSmallMode && itemCosts && itemCosts.length > 0) {
                                                     let firstTurn = true;
                                                     if (isNoDisplayItemCosts) {
                                                         /* Show only item cost media */
@@ -422,7 +425,7 @@ export function createInstance(innerType) {
                                                         })
                                                     }
                                                 }
-                                                if (isNotSmallMode && pRecipeItems.length > 0) {
+                                                if (dr.isNotSmallMode && pRecipeItems.length > 0) {
                                                     resultCenter.push(
                                                         `<div class="cde-generic-panel">
                                                             <span class="skill-label">Recipe :</span>
@@ -432,7 +435,7 @@ export function createInstance(innerType) {
                                                 }
 
                                                 /* Preservation */
-                                                if (isNotSmallMode && preservationChance) {
+                                                if (dr.isNotSmallMode && preservationChance) {
                                                     let pPreservation = ``;
                                                     pPreservation += `<span class="skill-label">Preservation : </span>`;
                                                     pPreservation += `<span class="skill-value vph vph-small vph-mastery">${preservationChance.toFixed(2)}</span>`;
@@ -455,13 +458,13 @@ export function createInstance(innerType) {
 
                                                     if (actionInterval && actionInterval > 0) {
                                                         /* Action left flat */
-                                                        if (isNotSmallMode) pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lMoreThan} </span>`;
+                                                        if (dr.isNotSmallMode) pActionInterval += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lMoreThan} </span>`;
                                                         const inter = mods.getUtils().formatDuration(actionInterval, "vph-mastery-fade");
                                                         pActionInterval += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
-                                                        if (isNotSmallMode) pActionInterval += `<span class="skill-label">)</span>`;
+                                                        if (dr.isNotSmallMode) pActionInterval += `<span class="skill-label">)</span>`;
 
                                                         /* ETA Flat */
-                                                        const etaTime = new Date(actionInterval+currTime.getTime());
+                                                        const etaTime = new Date(actionInterval+dr.currTime.getTime());
                                                         pActionIntervalEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
 
                                                         /* ETA Flat Notif */
@@ -485,13 +488,13 @@ export function createInstance(innerType) {
                                                     let notifyEtaPres = ``;
                                                     if (actionIntervalPres && actionIntervalPres > 0) {
                                                         /* Action left preserv */
-                                                        if (isNotSmallMode) pActionIntervalPres += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lExpected} </span>`;
+                                                        if (dr.isNotSmallMode) pActionIntervalPres += `<span class="skill-label">(</span><span class="skill-label vph-tiny">${lExpected} </span>`;
                                                         const inter = mods.getUtils().formatDuration(actionIntervalPres, "vph-mastery-fade");
                                                         pActionIntervalPres += `<span class="skill-value vph vph-tiny vph-mastery">${inter ?? "N/A"}</span>`;
-                                                        if (isNotSmallMode) pActionIntervalPres += `<span class="skill-label">)</span>`;
+                                                        if (dr.isNotSmallMode) pActionIntervalPres += `<span class="skill-label">)</span>`;
 
                                                         /* ETA Preserv */
-                                                        const etaTime = new Date(actionIntervalPres+currTime.getTime());
+                                                        const etaTime = new Date(actionIntervalPres+dr.currTime.getTime());
                                                         pActionIntervalPresEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
 
                                                         /* ETA Preserv Notif */
@@ -515,7 +518,7 @@ export function createInstance(innerType) {
                                                     if (actionLeft) {
                                                         let actionResult = ``;
                                                         /** LARGE MODE */
-                                                        if (isNotSmallMode) {
+                                                        if (dr.isNotSmallMode) {
                                                             actionResult += `<div class="cde-generic-panel">
                                                                     <span class="skill-label">Actions left :</span>
                                                                 </div>`;
@@ -600,7 +603,7 @@ export function createInstance(innerType) {
                                             if (mods.getSettings().isDebug()) {
                                                 console.log("[CDE] nonCombatPanel:onRefresh:seconds is not finite", seconds);
                                             }
-                                        } else if (isNotSmallMode) {
+                                        } else if (dr.isNotSmallMode) {
                                             /* Display mastery progress */
                                             if (nextMasteryLvl <= 99 && !isAltMagic && !isCartography) {
                                                 let pMasteryProgess = ``;
@@ -654,6 +657,14 @@ export function createInstance(innerType) {
                 parent.innerHTML = self.container(parent, summaryId, identity);
             }
             return updated;
+        },
+
+        onRefreshSkill() {
+
+        },
+
+        onRefreshMastery() {
+
         }
     }
 
