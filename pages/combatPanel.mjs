@@ -156,22 +156,22 @@ export const onRefresh = (etaSize) => {
             console.log("[CDE] Process quick scan:", scan);
         }
         
+        const activities = mods.getUtils().getIfExist(scan, "currentActivity");
+        const activity = mods.getUtils().getIfExist(activities, "Combat");
+
         if (
             scan 
             && typeof scan === "object" 
             && scan !== null 
-            && Object.prototype.hasOwnProperty.call(scan, "currentActivity")
+            && activities
         ) {
             /* Focus on Activity (only): Combat */
-            const activities = scan?.currentActivity;
             if (
                 activities 
                 && typeof activities === "object" 
                 && activities !== null 
-                && Object.prototype.hasOwnProperty.call(activities, "Combat")) {
+                && activity) {
             
-                const activity = activities.Combat;
-                
                 const kph = activity.monster?.kph;
                 const dCount = activity.monster?.area?.areaCompletion;
                 const kCount = activity.monster?.killCount;
@@ -231,8 +231,11 @@ export const onRefresh = (etaSize) => {
                     </div>`
                 );
 
-                if (isNotSmallMode && activity && Object.prototype.hasOwnProperty.call(activity, "skills")) {
-                    const skills = activity.skills;
+
+                const skills = mods.getUtils().getIfExist(activity, "skills");
+                if (isNotSmallMode 
+                    && activity 
+                    && skills) {
                     const labelTime = 
                         `<div class="cde-generic-panel cde-generic-header">
                             <span class="skill-label">Time to Next Level:</span>
@@ -240,8 +243,8 @@ export const onRefresh = (etaSize) => {
                     
                     const resultSkills = [];
                     _game().skills?.registeredObjects.forEach((skill) => {
-                        if (skill.isCombat && Object.prototype.hasOwnProperty.call(skills, skill.localID)) {
-                            const current = skills[skill.localID];
+                        const current = mods.getUtils().getIfExist(skills, skill.localID);
+                        if (skill.isCombat && current) {
                             const progression = typeof current.skillNextLevelProgress === "number"
                                 ? (Math.round(current.skillNextLevelProgress * 100) / 100).toFixed(2)
                                 : "N/A";

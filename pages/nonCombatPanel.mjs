@@ -181,7 +181,7 @@ export function createInstance(innerType) {
          * @returns {boolean|null} True if the panel was updated, null if skipped due to refresh throttling.
          */
         onRefresh(etaSize) {
-            
+
             /* Data Refresh */
             const dr = {};
             dr.updated = false;
@@ -203,17 +203,11 @@ export function createInstance(innerType) {
                     console.log("[CDE] Process quick scan:", dr.scan);
                 }
                 
-                if (
-                    dr.scan && typeof dr.scan === "object" && dr.scan !== null &&
-                    mods.getUtils().existIn(dr.scan, "currentActivity")
-                ) {
-                    /* Select scan activity */
-                    /** @type {{ currentActivity: any }} */
-                    dr.activities = mods.getUtils().getIfExist(dr.scan, "currentActivity");
-
-                    /* Setup scanWithActivity */
-                    dr.scanWithActivity = dr.scan;
-
+                /* Select scan activity */
+                /** @type {{ currentActivity: any }} */
+                dr.activities = mods.getUtils().getIfExist(dr.scan, "currentActivity");
+                
+                if (dr.activities) {
                     /* ETA - Non-Combat */
                     dr.resultTop = [];
                     dr.resultCenter = [];
@@ -224,11 +218,14 @@ export function createInstance(innerType) {
                     self._game().skills?.registeredObjects.forEach((skill) => {
                         
                         /* Focus on Activities (only): Non-Combat */
+
                         const activity = mods.getUtils().getIfExist(dr.activities, skill.localID);
+                        const skills = mods.getUtils().getIfExist(activity, "skills");
+
+                        /* Has activity to display ? */
                         if (activity) {
 
                             /* Has skills to display ? */
-                            const skills = mods.getUtils().getIfExist(activity, "skills");
                             if (skills) {
 
                                 // Parse Skills
@@ -247,6 +244,7 @@ export function createInstance(innerType) {
 
                             /* Has mastery to display ? */
                             const masteries = mods.getUtils().getIfExist(activity, "recipeQueue");
+
                             if (masteries) {
 
                                 // Parse Mastery
@@ -257,9 +255,14 @@ export function createInstance(innerType) {
                                 Object.keys(masteries)?.forEach((key) => {    
                                     const masteryObject = masteries[key];
                                     const parentSkillID = masteryObject.skillID;
-                                    if (masteryObject.active && dr.lazySkills.includes(parentSkillID)) {
+                                    
+                                    /* Only display active or multi-recipe mastery */
+                                    const allowed = masteryObject.active || masteryObject.isMultiRecipe;
+
+                                    if (allowed && dr.lazySkills.includes(parentSkillID)) {
                                         this.onRefreshMastery(dr, masteryObject, parentSkillID);
-                                    }
+                                    } else if (mods.getSettings().isDebug()) 
+                                        console.log("[CDE] nonCombatPanel:onRefresh:refreshNotAllowed", masteryObject);
                                 });
                             }
                         }
@@ -382,6 +385,7 @@ export function createInstance(innerType) {
             }
 
             const seconds = masteryObject?.secondsToNextLvl;
+            const isMultiRecipe = masteryObject?.isMultiRecipe;
             const isAltMagic = masteryObject?.skillID === "Magic";
             const isCartography = masteryObject?.skillID === "Cartography";
             const masteryID = masteryObject?.masteryID;
@@ -406,7 +410,7 @@ export function createInstance(innerType) {
 
                 /* Product count */
                 let pcStr = ``;
-                if (hasProduct) {
+                if (!isMultiRecipe && hasProduct) {
                     if (productsCount?.length > 0) {
                         let firstTurn = true;
                         productsCount.forEach((product) => {
@@ -445,7 +449,7 @@ export function createInstance(innerType) {
                 }
 
                 /** CRAFT */
-                if (itemCosts && lessActionItem) {
+                if (!isMultiRecipe && itemCosts && lessActionItem) {
 
                     /* Can't estimate item cost for Summoning right now */
                     const isNoDisplayItemCosts = skillID == "Summoning";
@@ -653,6 +657,7 @@ export function createInstance(innerType) {
             } else if (dr.isNotSmallMode) {
                 /* Display mastery progress */
                 if (nextMasteryLvl <= 99 && !isAltMagic && !isCartography) {
+
                     let pMasteryProgess = ``;
                     if (masteryProgress) {
                         pMasteryProgess += `<span class="skill-label">(</span>`;

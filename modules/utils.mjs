@@ -582,7 +582,7 @@ export function getPreservationChance(skillObject, recipeObject) {
  * @returns {boolean} true if the object has the property, false otherwise
  */
 export function existIn(objectToTest, keyInStr) {
-	return Object.prototype.hasOwnProperty.call(objectToTest, keyInStr);
+	return objectToTest && keyInStr ? Object.prototype.hasOwnProperty.call(objectToTest, keyInStr) : false;
 }
 
 /**
