@@ -233,12 +233,14 @@ export function onClick(buttonId, dataObject=null) {
 export function load(ctx) {
     const savedBuilder = mods.getCloudStorage().getCurrentNotification();
     
+    /* Notification is disabled */
+    if (!isCfg(Stg().ETA_NOTIFICATION)) return;
     /* No notification saved to reload */
     if (savedBuilder === null || savedBuilder === undefined) return;
     /* All notifications are already loaded */
     if (_builder && _builder.timeInMs === savedBuilder.timeInMs) return;
-    /* Notification is disabled */
-    if (!isCfg(Stg().ETA_NOTIFICATION)) return;
+    /* Notification is already expired */
+    if (savedBuilder.timeInMs <= new Date().getTime()) return;
 
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
