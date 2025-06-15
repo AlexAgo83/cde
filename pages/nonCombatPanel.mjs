@@ -570,7 +570,7 @@ export function createInstance(innerType) {
                                                         updated = true;
                                                     }
                                                 });
-                                            }  
+                                            } 
                                         } 
                                     }
                                 });

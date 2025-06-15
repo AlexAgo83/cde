@@ -58,6 +58,9 @@ export function getCurrentMonsterData() {
  * @param {*} monsterData - The monster data object to store.
  */
 export function setCurrentMonsterData(monsterData)  {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] currentMonsterData changed:"+monsterData);
+	}
 	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, JSON.stringify(monsterData));
 }
 
@@ -65,6 +68,9 @@ export function setCurrentMonsterData(monsterData)  {
  * Removes the current monster data from cloud storage.
  */
 export function removeCurrentMonsterData() {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] currentMonsterData removed");
+	}
 	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
 }
 
@@ -87,6 +93,9 @@ export function getCurrentActivityData() {
  * @param {*} activityData - The activity data object to store.
  */
 export function setCurrentActivityData(activityData)  {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] currentActivityData changed:"+activityData);
+	}
 	cloudStorage?.setItem(CS_CURRENT_ACTIVITY_DATA, JSON.stringify(activityData));
 }
 
@@ -94,6 +103,9 @@ export function setCurrentActivityData(activityData)  {
  * Removes the current activity data from cloud storage.
  */
 export function removeCurrentActivityData() {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] currentActivityData removed");
+	}
 	cloudStorage?.removeItem(CS_CURRENT_ACTIVITY_DATA);
 }
 

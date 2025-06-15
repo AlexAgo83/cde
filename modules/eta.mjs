@@ -516,7 +516,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 	let currentActivityData = mods.getCloudStorage().getCurrentActivityData();
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] onActiveSkill:Read (instance/new) skill data", data);
-		console.log("[CDE] onActiveSkill:Read (saved/old) skill data", currentActivityData);
+		console.log("[CDE] onActiveSkill:Read (saved/latest) skill data", currentActivityData);
 	}
 	let skill = {};
 

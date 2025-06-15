@@ -512,9 +512,9 @@ export function getCfg(settingRef) {
 			console.log("[CDE] Get CFG(firstinit)"+settingRef.key, settingRef.toggle);
 		}
 	}
-	if (isDebug()) {
-		console.log("[CDE] Get CFG:"+settingRef.key, result);
-	}
+	// if (isDebug()) {
+	// 	console.log("[CDE] Get CFG:"+settingRef.key, result);
+	// }
 	return (result != null) ? result : settingRef.toggle;
 }
 
@@ -532,9 +532,9 @@ export function setCfg(settingRef, value) {
 		console.error("[CDE] Invalid section reference:", section);
 		return null;
 	}
-	if (isDebug()) {
-		console.log("[CDE] Set CFG:"+settingRef.key, value);
-	}
+	// if (isDebug()) {
+	// 	console.log("[CDE] Set CFG:"+settingRef.key, value);
+	// }
 	// return mods.getCloudStorage().saveSetting(settingRef, value);
 	settings.section(settingRef.section).set(settingRef.key, value);
 	mods.getCloudStorage().saveSetting(settingRef, value);

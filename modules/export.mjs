@@ -168,7 +168,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		|| timeBuffer == 0) {
 		lastTimeBuffer = date;
 		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] ETA - start new trace: ", date);
+			console.log("[CDE] ETA - Update trace: ", date);
 		}
 	} else if (extractEta) {
 		if (mods.getSettings().isDebug()) {

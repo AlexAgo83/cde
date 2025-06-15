@@ -248,6 +248,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:onStop:", args);
         }
         if (!isCfg(Stg().ETA_COMBAT)) return;
+        mods.getCloudStorage().removeCurrentMonsterData();
         /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
     }))
 
@@ -291,6 +292,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Craft action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
+        mods.getCloudStorage().removeCurrentActivityData();
         /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
         /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
         /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
@@ -320,6 +322,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Gathering action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
+        mods.getCloudStorage().removeCurrentActivityData();
         /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
         /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
         /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
@@ -339,6 +342,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:AltMagic action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
+        mods.getCloudStorage().removeCurrentActivityData();
         /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
     }));
 
@@ -354,6 +358,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Thieving action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
+        mods.getCloudStorage().removeCurrentActivityData();
         /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
     }));
 
@@ -369,6 +374,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Archaeology action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
+        mods.getCloudStorage().removeCurrentActivityData();
         /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
     }));
 
@@ -384,6 +390,7 @@ export function worker(ctx) {
             console.log("[CDE] doWorker:Cartography action stopped:", args);
         }
         if (!isCfg(Stg().ETA_SKILLS)) return;
+        mods.getCloudStorage().removeCurrentActivityData();
         /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
     }));
 
