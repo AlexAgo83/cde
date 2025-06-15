@@ -346,14 +346,14 @@
   z-index: 10;
 }
 .cde-eta-btn {
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   background-color: #caac02;
   border-radius: .40rem;
   border-color:#caac02;
   justify-content: center;
   padding-left: 5px;
   padding-right: 5px;
-  padding-top: 1px;
+  padding-top: 2px;
   padding-bottom: 1px;
 }
 .cde-generic-panel {
@@ -496,4 +496,9 @@
   height: 16px;
   border-radius: 2px;
   margin: 0 4px;
+}
+
+.cde-eta-notif {
+  padding-top: 3px;
+  padding-bottom: 2px;
 }
