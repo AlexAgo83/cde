@@ -522,6 +522,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 	let skill = {};
 
 	if (currentActivityData) {
+		/* SETUP Current Activity Data */
 		let current = currentActivityData[skillId];
 		if (current && isMultiRecipe && current.isMultiRecipe) {
 			current = current[data.recipe];
@@ -541,9 +542,6 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 			if (isMultiRecipe || (isSameLevel && isSameRecipe)) {
 				if (mods.getSettings().isDebug())
 					console.log("[CDE] onActiveSkill:matching skill(isAgility:"+isMultiRecipe+")", current);
-				if (isMultiRecipe) {
-					// ...
-				}
 		 	} else {
 				// Reset if level or recipe change
 				if (mods.getSettings().isDebug()) {
@@ -587,7 +585,6 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		skill.startRecipeXp = data.recipeXp;
 		skill.startRecipeLevel = data.recipeLevel;
 		skill.isMultiRecipe = isMultiRecipe;
-		
 		if (isMultiRecipe) {
 			if (currentActivityData[skillId] == null) {
 				currentActivityData[skillId] = {};	

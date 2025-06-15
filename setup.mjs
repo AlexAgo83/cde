@@ -51,9 +51,9 @@
 // Stage 28 - Notification
 
 // === Plan to 2.2.X ===
-// Stage 29 - Improve Summoning ETA
-// Stage 30 - Cartography Paper Please!
-// Stage 31 - Agility ETA
+// Stage 29 - Agility ETA
+// Stage 30 - Improve Summoning ETA
+// Stage 31 - Cartography Paper Please!
 
 // --- Configuration ---
 const MOD_VERSION = "v2.1.56";
