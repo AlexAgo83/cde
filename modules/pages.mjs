@@ -198,8 +198,12 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         const etaSize = mods.getCloudStorage().getCurrentETASize(sizeCursor);
 
         /** Refresh & update visibility */
-        updated = panel.onRefresh(etaSize);
-        if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh("+etaSize+"):"+localID+" -> "+updated);
+        try {
+            updated = panel.onRefresh(etaSize);
+            if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh("+etaSize+"):"+localID+" -> "+updated);
+        } catch (error) {
+            console.error("[CDE] doWorker:onRefresh:" + localID, error);
+        }
         if (updated != null) panel.show(updated);
         if (typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
