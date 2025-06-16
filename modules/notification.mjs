@@ -380,21 +380,18 @@ export const handleOnCheck = (key, builder) => {
         const targetTime = builder.requestAt + builder.timeInMs;
         const now = Date.now();
         const remainingTime = targetTime - now;
-        if (remainingTime > -5000) {
-            if (remainingTime > 10000) {
-                // ... in the future
+        if (remainingTime > -5000) { /* ... is not int the past */
+            if (remainingTime > 10000) { /* in the future */
                 if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:in the future:", {key, builder, remainingTime});
-            } else {
-                // ... now !
+            } else { /* ... now ! */
                 if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:now:", {key, builder, remainingTime});
-                const notif = newNotificationCb(key, builder);
+                const notif = newNotificationCb(builder.label, builder.desc, builder.media);
                 requestPermission(() => {
                     notif();    
                 });
                 mods.getCloudStorage().removeOtherPlayerPendingNotification(key);    
             }
-        } else {
-            // ... in the past
+        } else { /* ... in the past */
             if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:in the past:", {key, builder, remainingTime});
             mods.getCloudStorage().removeOtherPlayerPendingNotification(key);
         }
