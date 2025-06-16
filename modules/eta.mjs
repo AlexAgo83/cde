@@ -489,6 +489,8 @@ function getMaxItems(itemInBank, itemPerCast) {
  */
 export function onActiveSkill(skillId, data, syncDate=new Date()) {
 	const isMultiRecipe = skillId === "Agility" || skillId  === "Woodcutting";
+	const isParallelRecipe = skillId  === "Woodcutting";
+	
 	const now = syncDate;
 
 	const currLevel = data.skillLevel;

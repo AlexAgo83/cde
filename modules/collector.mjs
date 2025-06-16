@@ -52,11 +52,19 @@ function isCfg(reference) {
 export function clearMutable() {
 	if (Object.keys(mutableRecipeEta).length > 0) {
 		mutableRecipeEta = {};
-		console.log("[CDE] Collector: Mutable recipe eta cleared");
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] Collector: Mutable recipe eta cleared");
+		}
 	}
 }
 export function saveMutableRecipe(skillID, value) {
 	if (skillID) mutableRecipeEta[skillID] = value;
+}
+export function applyWoodcutting(woodcuttingSkill) {
+	woodcuttingSkill.activeTrees.forEach((tree) => {
+		const mutable = loadMutableRecipe(woodcuttingSkill.localID);
+		if (!mutable[tree.localID]) mutable[tree.localID] = {};
+	})
 }
 export function loadMutableRecipe(skillID) {
 	if (!skillID) return {};
@@ -644,6 +652,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					}
 					
 					item.isMultiRecipe = item.skillID === "Agility" || item.skillID === "Woodcutting";
+					item.isParallelRecipe = item.skillID === "Woodcutting";
 					item.recipe = recipeID;
 					item.recipeCursor = selectedRecipeCursor; 
 					item.recipeMaxLevel = recipeMaxLvl;
@@ -651,6 +660,10 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					/* Mutable recipe ETA & cache */
 					if (!item.recipeEta) {
 						item.recipeEta = loadMutableRecipe(skill.localID);
+						if (item.isParallelRecipe) {
+							/* Woodcutting */
+							applyWoodcutting(skill);
+						}
 					}
 					item.recipeEta[recipeID] = {
 						xp: mastery?.xp,
@@ -728,6 +741,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						item.masteryID = queryCache.localID;
 						item.active = selectedRecipe?.localID === item.masteryID;
 						item.isMultiRecipe = item.skillID === "Agility" || item.skillID === "Woodcutting";
+						item.isParallelRecipe = item.skillID === "Woodcutting";
 						item.masteryLabel = queryCache.name;
 						item.maxteryXp = mastery.xp;
 						item.masteryMedia = queryCache.media;
@@ -752,7 +766,14 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 				};
 
 				/* Parse all action in query cache */
-				if (a.acionItemQueryCache && a.acionItemQueryCache.size > 0) {
+				if (a.localID == "Woodcutting") {
+					/* (Specific Woodcutting) Parse activeTrees as mastery */
+					a.activeTrees.forEach((queryCache) => {
+						const mastery = a.actionMastery?.get(queryCache);
+						const resultItem = registerItemQueue(mastery, queryCache);
+						if (resultItem) queue[queryCache.localID] = resultItem;	
+					})
+				} else if (a.acionItemQueryCache && a.acionItemQueryCache.size > 0) {
 					/* For each active action mastery/recipe/spells */
 					a.acionItemQueryCache?.keys().forEach((queryCache) => {
 						const mastery = a.actionMastery?.get(queryCache);

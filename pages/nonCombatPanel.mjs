@@ -257,7 +257,15 @@ export function createInstance(innerType) {
                                     const parentSkillID = masteryObject.skillID;
                                     
                                     /* Only display active or multi-recipe mastery */
-                                    const allowed = masteryObject.active || masteryObject.isMultiRecipe;
+                                    let multiTest = masteryObject.isMultiRecipe;
+                                    if (multiTest) {
+                                        const refSkill = mods.getUtils().getIfExist(skills, parentSkillID);
+                                        const recipeEta = mods.getUtils().getIfExist(refSkill, "recipeEta");
+                                        multiTest = recipeEta && Object.keys(recipeEta).includes(masteryObject.masteryID);
+                                        if (mods.getSettings().isDebug()) 
+                                            console.log("[CDE] nonCombatPanel:onRefresh:not allowed / not in recipe eta", masteryObject, recipeEta);
+                                    }
+                                    const allowed = masteryObject.active || multiTest;
 
                                     if (allowed && dr.lazySkills.includes(parentSkillID)) {
                                         this.onRefreshMastery(dr, masteryObject, parentSkillID);
