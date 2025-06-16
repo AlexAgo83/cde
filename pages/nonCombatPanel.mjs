@@ -465,7 +465,7 @@ export function createInstance(innerType) {
                 if (pcStr && pcStr.length > 0) {
                     dr.resultTop.push(
                         `<div class="cde-generic-panel">
-                            <span class="skill-label ${forceDisplayInactive}">In bank :</span>${pcStr}
+                            <span class="skill-label ${forceDisplayInactive}"> • </span><span class="skill-label vph-small ${forceDisplayInactive}">In bank</span><span class="skill-label ${forceDisplayInactive}">  ➜ </span>${pcStr}
                         </div>`
                     );
                 }

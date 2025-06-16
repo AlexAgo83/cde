@@ -49,6 +49,11 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference) ?? false;
 }
 
+/**
+ * Clears the mutable recipe eta cache.
+ * This is used to clear old mutable recipes from the cache.
+ * If the cache is not empty, it will clear the cache and log a message to the console if the module is in debug mode.
+ */
 export function clearMutable() {
 	if (Object.keys(mutableRecipeEta).length > 0) {
 		mutableRecipeEta = {};
@@ -57,15 +62,54 @@ export function clearMutable() {
 		}
 	}
 }
+
+/**
+ * Save a mutable recipe for a skill.
+ * @param {string} skillID - The local ID of the skill.
+ * @param {Object} value - The mutable recipe to save.
+ */
 export function saveMutableRecipe(skillID, value) {
 	if (skillID) mutableRecipeEta[skillID] = value;
 }
+/**
+ * Applies mutable recipes to active trees in the woodcutting skill.
+ * For each active tree, it loads the mutable recipe using the woodcutting skill's local ID.
+ * If no mutable recipe exists for a tree, it initializes an empty object for that tree.
+ * 
+ * @param {Object} woodcuttingSkill - The woodcutting skill object containing active trees.
+ */
 export function applyWoodcutting(woodcuttingSkill) {
+	if (!woodcuttingSkill || woodcuttingSkill.localID !== "Woodcutting") return;
 	woodcuttingSkill.activeTrees.forEach((tree) => {
 		const mutable = loadMutableRecipe(woodcuttingSkill.localID);
 		if (!mutable[tree.localID]) mutable[tree.localID] = {};
 	})
 }
+
+/**
+ * Applies mutable recipes to active obstacles in the agility skill.
+ * For each active obstacle, it loads the mutable recipe using the obstacle's local ID.
+ * If no mutable recipe exists for an obstacle, it initializes an empty object for that obstacle.
+ * 
+ * @param {Object} agilitySkill - The agility skill object containing active obstacles.
+ */
+export function applyAgility(agilitySkill) {
+	if (!agilitySkill || agilitySkill.localID !== "Agility") return;
+	if (agilitySkill.activeCourse && agilitySkill.activeCourse.builtObstacles) {
+		agilitySkill.activeCourse.builtObstacles.forEach((obstacle) => {
+			const mutable = loadMutableRecipe(agilitySkill.localID);
+			if (!mutable[obstacle.localID]) mutable[obstacle.localID] = {};
+		})
+	}
+}
+
+/**
+ * Load a mutable recipe for a specific skill.
+ * If the skillID is not provided, returns an empty object.
+ * If no mutable recipe exists for the given skillID, initializes an empty object.
+ * @param {string} skillID - The local ID of the skill.
+ * @returns {Object} The mutable recipe associated with the skillID.
+ */
 export function loadMutableRecipe(skillID) {
 	if (!skillID) return {};
 	if (mutableRecipeEta[skillID] === undefined) mutableRecipeEta[skillID] = {};
@@ -660,10 +704,8 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					/* Mutable recipe ETA & cache */
 					if (!item.recipeEta) {
 						item.recipeEta = loadMutableRecipe(skill.localID);
-						if (item.isParallelRecipe) {
-							/* Woodcutting */
-							applyWoodcutting(skill);
-						}
+						/* Woodcutting */ applyWoodcutting(skill);
+						/* Agility */ applyAgility(skill);
 					}
 					item.recipeEta[recipeID] = {
 						xp: mastery?.xp,
