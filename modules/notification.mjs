@@ -8,6 +8,7 @@ let mods = null;
 let _internalTimer = null;
 let _builder = null;
 let _notify = null;
+let _permGranted = null;
 
 const registeredNotifications = new Map();
 
@@ -105,16 +106,10 @@ let onNotifyAction = (dataObject, withPoupup=true) => {
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:data object invalide", dataObject);
         return;
     }
-    Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
-            /* Load & save current builder */
-            const newBuilder = initBuilder(dataObject);
-            loadBuilder(newBuilder, withPoupup);
-            saveBuilder();
-        } else {
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
-        }
+    requestPermission(() => {
+        const newBuilder = initBuilder(dataObject);
+        loadBuilder(newBuilder, withPoupup);
+        saveBuilder();
     });
     if (mods.getSettings().isDebug()) console.log("[CDE] Notification:onClickCallback:", dataObject);
 }
@@ -287,6 +282,7 @@ export function load(ctx) {
     /* Notification is disabled */
     if (!isCfg(Stg().ETA_NOTIFICATION)) { 
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:disabled");
+    
         return;
     }
     /* No notification saved to reload */
@@ -294,11 +290,13 @@ export function load(ctx) {
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:no saved builder found");
         return;
     }
+
     /* All notifications are already loaded */
     if (_builder && _builder.timeInMs === savedBuilder.timeInMs) {
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:builder already setup", savedBuilder);
         return;
     }
+
     /* Notification is already expired */
     const now = Date.now();
     const targetTime = savedBuilder.requestAt + savedBuilder.timeInMs;
@@ -313,15 +311,27 @@ export function load(ctx) {
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:update current builder", savedBuilder, remainingTime);
     }
 
-    Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
-            loadBuilder(savedBuilder, false);
-            saveBuilder();
-        } else {
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
-        }
+    requestPermission(() => {
+        loadBuilder(savedBuilder, false);
+        saveBuilder();
     });
 
     if (mods.getSettings().isDebug()) console.log("[CDE] Notification:loaded", savedBuilder);
+}
+
+export function requestPermission(onSuccess) {
+    if (!_permGranted) {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                _permGranted = true;
+                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
+                onSuccess();
+            } else {
+                _permGranted = false;
+                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
+            }
+        });
+    } else {
+        onSuccess();
+    }
 }

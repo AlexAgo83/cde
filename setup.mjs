@@ -56,7 +56,7 @@
 // Stage 31 - Cartography Paper Please!
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.79";
+const MOD_VERSION = "v2.1.81";
 
 // --- Module Imports ---
 let mModules = null;
