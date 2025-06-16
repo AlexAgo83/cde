@@ -402,6 +402,7 @@ export function createInstance(innerType) {
             let seconds = masteryObject?.secondsToNextLvl;
             const isActive = masteryObject?.active;
             const isMultiRecipe = masteryObject?.isMultiRecipe;
+            const isParallelRecipe = masteryObject?.isParallelRecipe;
             const isAltMagic = masteryObject?.skillID === "Magic";
             const isCartography = masteryObject?.skillID === "Cartography";
             const masteryID = masteryObject?.masteryID;
@@ -418,7 +419,7 @@ export function createInstance(innerType) {
             const preservationChance = masteryObject?.preservationChance;
             const notifyLabel = productName ?? masteryLabel;
             const notifyMedia = productMedia ?? masteryMedia;
-            const forceDisplayInactive = !isActive ? "vph-mastery-fade" : "";
+            const forceDisplayInactive = !isActive && !isParallelRecipe ? "vph-mastery-fade" : "";
 
             const hasProduct = (productCount && isFinite(productCount)) || productsCount?.length > 0;
 
@@ -427,7 +428,7 @@ export function createInstance(innerType) {
 
                 /* Product count */
                 let pcStr = ``;
-                if (!isMultiRecipe && hasProduct) {
+                if ((isParallelRecipe || !isMultiRecipe) && hasProduct) {
                     if (productsCount?.length > 0) {
                         let firstTurn = true;
                         productsCount.forEach((product) => {
@@ -435,7 +436,7 @@ export function createInstance(innerType) {
                                 if (!firstTurn) pcStr += `,`;
                                 pcStr += product.itemMedia ? `<img class="skill-media" src="${product.itemMedia}" />` : `<span class="skill-media"></span>`
                                 pcStr += `<span class="skill-value vph-tiny vph-mastery-fade">x</span>`;
-                                pcStr += `<span class="skill-value vph-tiny vph-mastery">${product.itemQte}</span>`;
+                                pcStr += `<span class="skill-value vph-tiny vph-mastery ${forceDisplayInactive}">${product.itemQte}</span>`;
                                 firstTurn = false;
                             }
                         })
@@ -451,7 +452,7 @@ export function createInstance(innerType) {
 
                 if (dr.isNotSmallMode) {
                     let pMultiActive = ``;
-                    if (isMultiRecipe && isActive) {
+                    if ((!isParallelRecipe && isMultiRecipe) && isActive) {
                         pMultiActive += `<span class="skill-value vph-tiny vph-mastery-fade"> (active)</span>`;
                     }
                     dr.resultTop.push(
@@ -462,9 +463,9 @@ export function createInstance(innerType) {
                     );
                 }
                 if (pcStr && pcStr.length > 0) {
-                    dr.resultCenter.push(
+                    dr.resultTop.push(
                         `<div class="cde-generic-panel">
-                            <span class="skill-label">Products :</span>${pcStr}
+                            <span class="skill-label ${forceDisplayInactive}">In bank :</span>${pcStr}
                         </div>`
                     );
                 }

@@ -261,26 +261,51 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
     if (isCfg(Stg().ETA_CRAFT)) {
 		Object.keys(masteries)?.forEach((key) => {
 			const m = masteries[key];
-			if (!m.active) return;
-			const univRecipe = utl.getRecipeForAction(m);
-			if (univRecipe && m.masteryID == univRecipe.localID) {
-				if (mods.getSettings().isDebug()) {
-					console.log("[CDE] ETA Crafting, univRecipe:", {m, univRecipe});
-				}
-				const produces = utl.getProducesForRecipe(univRecipe);
-				if (produces) {
+
+			if (!m.active && !m.isParallelRecipe) return;
+
+			// Current values
+			// const skillEntry = entry.skills ? entry.skills[m.skillID] : null;
+			// const currRecipes = mods.getUtils().getIfExist(skillEntry, "recipeEta");
+			// const currEta = mods.getUtils().getIfExist(currRecipes, m.masteryID);
+			const skillObject = mods.getUtils().getSkillByLocalID(m.skillID);
+			
+			const onRecipe = (univRecipe) => {
+				if (univRecipe && m.masteryID == univRecipe.localID) {
 					if (mods.getSettings().isDebug()) {
-						console.log("[CDE] ETA Crafting, produces:", {m, univRecipe, produces});
+						console.log("[CDE] ETA Crafting, univRecipe:", {m, univRecipe});
 					}
-					/* Collect itemCosts & products */
-					trustRecipeProducts(m, produces, univRecipe);
+					const produces = utl.getProducesForRecipe(univRecipe);
+					if (produces) {
+						if (mods.getSettings().isDebug()) {
+							console.log("[CDE] ETA Crafting, produces:", {m, univRecipe, produces});
+						}
+						/* Collect itemCosts & products */
+						trustRecipeProducts(m, produces, univRecipe);
+					}
+					trustRecipeItemCosts(m, univRecipe);
+				} else {
+					if (mods.getSettings().isDebug()) {
+						console.log("[CDE] ETA Crafting, can't match:", {m, univRecipe});
+					}
+				}	
+			};
+
+			const recipes = [];
+			if (m.isParallelRecipe) {
+				/* Woodcutting */
+				if (m.skillID == "Woodcutting") {
+					skillObject.activeTrees.forEach((tree) => {
+						onRecipe(tree);
+					})
 				}
-				trustRecipeItemCosts(m, univRecipe);
 			} else {
-				if (mods.getSettings().isDebug()) {
-					console.log("[CDE] ETA Crafting, can't match:", {m, univRecipe});
-				}
+				recipes.push(utl.getRecipeForAction(m))
 			}
+			recipes.forEach((recipe) => {
+				onRecipe(recipe);
+			})
+
 		});
 	}
 }
@@ -488,8 +513,8 @@ function getMaxItems(itemInBank, itemPerCast) {
  * @param {Date} [syncDate=new Date()] - The timestamp for the event.
  */
 export function onActiveSkill(skillId, data, syncDate=new Date()) {
-	const isMultiRecipe = skillId === "Agility" || skillId  === "Woodcutting";
-	const isParallelRecipe = skillId  === "Woodcutting";
+	const isMultiRecipe = mods.getUtils().isMultiRecipe(skillId);
+	const isParallelRecipe = mods.getUtils().isParallelRecipe(skillId);
 	
 	const now = syncDate;
 
@@ -589,6 +614,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		skill.startLevel = data.skillLevel;
 		skill.startRecipe = data.recipe;
 		skill.isMultiRecipe = isMultiRecipe;
+		skill.isParallelRecipe = isParallelRecipe;
 
 		const skillRecipeEta = mods.getUtils().getIfExist(data, "recipeEta");
 		const recipeEta = mods.getUtils().getIfExist(skillRecipeEta, data.recipe);
@@ -602,7 +628,8 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		if (isMultiRecipe) {
 			if (currentActivityData[skillId] == null) {
 				currentActivityData[skillId] = {};	
-				currentActivityData[skillId].isMultiRecipe = true;
+				currentActivityData[skillId].isMultiRecipe = isMultiRecipe;
+				currentActivityData[skillId].isParallelRecipe = isParallelRecipe;
 			}
 			currentActivityData[skillId][data.recipe] = skill;
 		} else {

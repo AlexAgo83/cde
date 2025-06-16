@@ -594,3 +594,22 @@ export function existIn(objectToTest, keyInStr) {
 export function getIfExist(objectToTest, keyInStr) {
 	return existIn(objectToTest, keyInStr) ? objectToTest[keyInStr] : null;
 }
+
+
+/**
+ * Check if a skill has multiple recipes
+ * @param {string} skillId - The skill ID
+ * @returns {boolean} true if the skill has multiple recipes, false otherwise
+ */
+export function isMultiRecipe(skillId) {
+	return skillId === "Agility" || isParallelRecipe(skillId);
+}
+
+/**
+ * Check if a skill is a parallel recipe skill
+ * @param {string} skillId - The skill ID
+ * @returns {boolean} true if the skill is a parallel recipe skill, false otherwise
+ */
+export function isParallelRecipe(skillId) {
+	return skillId === "Woodcutting";
+}
