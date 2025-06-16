@@ -56,7 +56,7 @@
 // Stage 31 - Cartography Paper Please!
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.125";
+const MOD_VERSION = "v2.1.128";
 
 // --- Module Imports ---
 let mModules = null;
@@ -172,6 +172,53 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 		},
 		getVersion: () => {
 			return MOD_VERSION;
+		},
+
+		
+		/**
+		 * Debug function to print the current notification storage data.
+		 * It displays the current player notification and all other player notifications.
+		 * @function debugNotification_readStorage
+		 */
+		debugNotification_readStorage: () => {
+			// ############	DEBUG NOTIFICATION ############
+			console.log("[CDE] Notification:Player:", mModules.getCloudStorage().getPlayerPendingNotification());
+			const otherData = mModules.getCloudStorage().getOtherPlayerPendingNotifications();
+			Object.keys(otherData).forEach((key) => {  
+				console.log("[CDE] Notification:Other:", key, otherData[key]);
+			})
+		},
+
+		
+		/**
+		 * Debug function to print the current ETA for player notifications.
+		 * It displays the current player notification and all other player notifications.
+		 * @function debugNotification_readETA
+		 */
+		debugNotification_readETA: () => {
+			// ############	DEBUG NOTIFICATION ############
+			const pNotif = mModules.getCloudStorage().getPlayerPendingNotification();
+			if (pNotif
+				&& pNotif.requestAt
+				&& pNotif.timeInMs
+				&& pNotif.label
+			) {
+				const etaStr = new Date(pNotif.requestAt + pNotif.timeInMs).toLocaleString();
+				console.log("[CDE] Notification:Player:ETA:", pNotif.label, etaStr);
+			}
+
+			const oNotif = mModules.getCloudStorage().getOtherPlayerPendingNotifications();
+			Object.keys(oNotif).forEach((key) => {
+				const notification = oNotif[key];
+				if (notification
+					&& notification.requestAt
+					&& notification.timeInMs
+					&& notification.label
+				) {
+					const etaStr = new Date(notification.requestAt + notification.timeInMs).toLocaleString();
+					console.log("[CDE] Notification:Other:ETA:", notification.label, etaStr);
+				}
+			})
 		}
 	});
 }

@@ -206,11 +206,14 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         }
         if (updated != null) {
             panel.show(updated);
-            try {
-                const tickShared = mods.getNotification().handleOnCheck;
-                mods.getNotification().checkSharedNotification(tickShared);
-            } catch (error) {
-                console.error("[CDE] doWorker:checkSharedNotification:" + localID, error);
+            if (updated) {
+                /* Try to refresh shared notifications */
+                try {
+                    const tickShared = mods.getNotification().handleOnCheck;
+                    mods.getNotification().checkSharedNotification(tickShared);
+                } catch (error) {
+                    console.error("[CDE] doWorker:checkSharedNotification:" + localID, error);
+                }
             }
         }
         if (typeof panel.getParent === "function") {
