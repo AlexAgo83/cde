@@ -571,7 +571,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			const skillsToUpdate = []
 			
 			const selectedRecipe = utl.getRecipeForAction(a);
-			const selectedRecupeCursor = utl.getRecipeCursorForAction(a);
+			const selectedRecipeCursor = utl.getRecipeCursorForAction(a);
 			let selectedRecipeSkill = selectedRecipe?.skill
 			if (selectedRecipe && !selectedRecipeSkill) {
 				selectedRecipeSkill = a;
@@ -629,10 +629,14 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					
 					item.isMultiRecipe = item.skillID === "Agility";
 					item.recipe = recipeID;
-					item.recipeCursor = selectedRecupeCursor; 
+					item.recipeCursor = selectedRecipeCursor; 
 					item.recipeMaxLevel = recipeMaxLvl;
-					item.recipeXp = mastery?.xp;
-					item.recipeLevel = mastery?.level;
+
+					if (!item.recipeEta) item.recipeEta = {};
+					item.recipeEta[recipeID] = {
+						xp: mastery?.xp,
+						level: mastery?.level
+					};
 				}
 				
 				items[skill.localID] = item;

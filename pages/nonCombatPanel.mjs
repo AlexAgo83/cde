@@ -433,10 +433,14 @@ export function createInstance(innerType) {
                 }
 
                 if (dr.isNotSmallMode) {
+                    let pMultiActive = ``;
+                    if (isMultiRecipe && masteryObject.active) {
+                        pMultiActive += `<span class="skill-value vph-tiny vph-mastery-fade"> (active)</span>`;
+                    }
                     dr.resultTop.push(
                         `<div class="cde-generic-panel">
                             ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : `<span class="skill-media"></span>`}
-                            <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}</span>
+                            <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}${pMultiActive}</span>
                         </div>`   
                     );
                 }
