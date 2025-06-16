@@ -501,8 +501,7 @@ export function createInstance(innerType) {
                     if (dr.isNotSmallMode && pRecipeItems.length > 0) {
                         dr.resultCenter.push(
                             `<div class="cde-generic-panel">
-                                <span class="skill-label">Recipe :</span>
-                                ${pRecipeItems}
+                                <span class="skill-label ${forceDisplayInactive}"> • </span><span class="skill-label vph-tiny ${forceDisplayInactive}">Recipe</span><span class="skill-label ${forceDisplayInactive}">  ➜ </span>${pRecipeItems}
                             </div>`
                         );
                     }
