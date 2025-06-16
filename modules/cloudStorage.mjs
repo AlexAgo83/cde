@@ -32,6 +32,13 @@ function _game() {
 	// @ts-ignore
 	return game;
 }
+/**
+ * Retrieves the name of the current character from the game.
+ * @returns {string} The character's name.
+ */
+function getCharName() {
+    return mods.getUtils().sanitizeCharacterName(_game().characterName);
+}
 
 /**
  * Get the settings reference object.
@@ -241,7 +248,7 @@ export function getCurrentNotification() {
  * Retrieves the pending notification data from account storage.
  * @returns {Object|null} The pending notification data object, or null if not found or invalid.
  */
-export function getPendingNotification() {
+function getPendingNotification() {
 	try {
 		const raw = sharedStorage?.getItem(AS_PENDING_NOTIFICATION);
 		return typeof raw === "string" ? JSON.parse(raw) : raw;
@@ -255,9 +262,31 @@ export function getPendingNotification() {
  * Stores the given pending notification data in account storage.
  * @param {*} pendingNotification - The pending notification data to store.
  */
-export function setPendingNotification(pendingNotification)  {
+function setPendingNotification(pendingNotification)  {
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] Pending notification changed:"+pendingNotification);
 	}
 	sharedStorage?.setItem(AS_PENDING_NOTIFICATION, JSON.stringify(pendingNotification));
+}
+
+/**
+ * Updates the pending notification data for the current character.
+ * If the pending notification data for the current character does not exist, it initializes it.
+ * Applies the provided update function to the pending notification data for the current character.
+ * 
+ * @param {Function} pendingNotificationUpdate - A function that takes the current character's pending notification
+ *                                               data and returns an updated version.
+ */
+export function updatePendingNotificationForCurrentCharacter(pendingNotificationUpdate) {
+	if (!pendingNotificationUpdate || typeof pendingNotificationUpdate !== "function") return;
+	const currentCharacterName = getCharName();
+	let pendingNotifications = getPendingNotification();
+	if (pendingNotifications === null) pendingNotifications = {};
+	if (!pendingNotifications[currentCharacterName]) pendingNotifications[currentCharacterName] = {};
+	pendingNotifications[currentCharacterName] = pendingNotificationUpdate(pendingNotifications[currentCharacterName]) ?? {};
+	try {
+		setPendingNotification(pendingNotifications);
+	} catch (e) {
+		console.error("[CDE] Error updating pending notification for character " + currentCharacterName, e);
+	}
 }

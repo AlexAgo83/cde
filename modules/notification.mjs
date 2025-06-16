@@ -32,7 +32,7 @@ function _game() {
  * @returns {string} The character's name.
  */
 function getCharName() {
-    return _game().characterName;
+    return mods.getUtils().sanitizeCharacterName(_game().characterName);
 }
 
 /**
@@ -106,8 +106,8 @@ let onNotifyAction = (dataObject, withPoupup=true) => {
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:data object invalide", dataObject);
         return;
     }
+    const newBuilder = initBuilder(dataObject);
     requestPermission(() => {
-        const newBuilder = initBuilder(dataObject);
         loadBuilder(newBuilder, withPoupup);
         saveBuilder();
     });
