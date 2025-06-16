@@ -56,7 +56,7 @@
 // Stage 31 - Cartography Paper Please!
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.111";
+const MOD_VERSION = "v2.1.118";
 
 // --- Module Imports ---
 let mModules = null;
@@ -120,11 +120,12 @@ export const doCollectData = (extractEta=false, timeBuffer=50) => {
  * @param {Object} context.settings - The settings object for the mod.
  * @param {Object} context.api - The API registration function.
  * @param {Object} context.characterStorage - The character storage object.
+ * @param {Object} context.accountStorage - The account storage object.
  * @param {function(Object): Promise<void>} context.onModsLoaded - Called when all mods are loaded, receives the context.
  * @param {function(Object): Promise<void>} context.onCharacterLoaded - Called when the character is loaded, receives the context.
  * @param {function(Object): Promise<void>} context.onInterfaceReady - Called when the interface is ready, receives the context.
  */
-export function setup({settings, api, characterStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
+export function setup({settings, api, characterStorage, accountStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
 		mModules = await ctx.loadModule("modules.mjs");
@@ -134,7 +135,7 @@ export function setup({settings, api, characterStorage, onModsLoaded, onCharacte
 
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async (ctx) => {
-		mModules.onDataLoad(settings, characterStorage);
+		mModules.onDataLoad(settings, characterStorage, accountStorage);
 		if (isCfg(Stg().AUTO_EXPORT_ONLOAD)) {
 			doCollectData();
 		}

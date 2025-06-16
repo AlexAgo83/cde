@@ -10,18 +10,27 @@ const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data_X1";
 const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
 const CS_CURRENT_ETA_SIZE = "cde_current_eta_size";
 const CS_CURRENT_NOTIFICATION = "cde_current_notification";
+const AS_PENDING_NOTIFICATION = "cde_pending_notification";
 
 let mods = null;
 let cloudStorage = null;
+let sharedStorage = null;
 
 /**
  * Initialize the cloud storage module.
  * @param {Object} modules - The modules object containing dependencies.
  * @param {Object} characterStorage - The character storage object for cloud operations.
  */
-export function init(modules, characterStorage) {
+export function init(modules, characterStorage, accountStorage) {
     mods = modules;
 	cloudStorage = characterStorage;
+	sharedStorage = accountStorage;
+}
+
+// --- MOCK ---
+function _game() {
+	// @ts-ignore
+	return game;
 }
 
 /**
@@ -201,12 +210,22 @@ export function getCurrentETASize(cursor) {
 	return cloudStorage?.getItem(CS_CURRENT_ETA_SIZE+"-"+cursor) ?? "large";
 }
 
+
+/**
+ * Stores the given notification data in cloud storage.
+ * @param {*} notificationData - The notification data to store.
+ */
 export function setCurrentNotification(notificationData) {
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] currentNotification changed:" + notificationData);
 	}
 	cloudStorage?.setItem(CS_CURRENT_NOTIFICATION, notificationData);
 }
+
+/**
+ * Retrieves the current notification data from cloud storage.
+ * @returns {Object|null} The current notification data object, or null if not found or invalid.
+ */
 export function getCurrentNotification() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_NOTIFICATION);
@@ -215,4 +234,30 @@ export function getCurrentNotification() {
 		console.warn("[CDE] Invalid notification data in characterStorage");
 		return null;
 	}
+}
+
+
+/**
+ * Retrieves the pending notification data from account storage.
+ * @returns {Object|null} The pending notification data object, or null if not found or invalid.
+ */
+export function getPendingNotification() {
+	try {
+		const raw = sharedStorage?.getItem(AS_PENDING_NOTIFICATION);
+		return typeof raw === "string" ? JSON.parse(raw) : raw;
+	} catch (e) {
+		console.warn("[CDE] Invalid pending notification data in accountStorage");
+		return null;
+	}
+}
+
+/**
+ * Stores the given pending notification data in account storage.
+ * @param {*} pendingNotification - The pending notification data to store.
+ */
+export function setPendingNotification(pendingNotification)  {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] Pending notification changed:"+pendingNotification);
+	}
+	sharedStorage?.setItem(AS_PENDING_NOTIFICATION, JSON.stringify(pendingNotification));
 }

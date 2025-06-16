@@ -214,6 +214,14 @@ export const SettingsReference = {
 		hint: "Toggle to allow notifications for ETA.",
 		toggle: true
 	},
+	ETA_SHARED_NOTIFY: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-shared-notify",
+		label: "Allow to share notification between characters",
+		hint: "Toggle to allow shared notifications between characters.",
+		toggle: true
+	},
 	ETA_AUTO_NOTIFY: {
 		section: Sections.ETA,
 		type: "switch",

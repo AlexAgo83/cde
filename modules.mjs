@@ -123,8 +123,9 @@ export async function onModuleLoad(ctx, modVersion) {
  * Should be called after the character and settings are loaded.
  * @param {*} settings - The settings object for the mod.
  * @param {*} characterStorage - The storage object for the current character.
+ * @param {*} accountStorage - The storage object for the current account.
  */
-export async function onDataLoad(settings, characterStorage) {
+export async function onDataLoad(settings, characterStorage, accountStorage) {
     /// Initialize settings module
     mSettings.init(this, settings);
     mSettings.createSettings();
@@ -132,7 +133,7 @@ export async function onDataLoad(settings, characterStorage) {
     // Core modules initialization
     mUtils.init(this);
     mLocalStorage.init(this);
-    mCloudStorage.init(this, characterStorage);
+    mCloudStorage.init(this, characterStorage, accountStorage);
     mNotification.init(this);
 
     // Game data modules initialization
