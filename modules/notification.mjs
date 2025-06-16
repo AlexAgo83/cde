@@ -9,6 +9,8 @@ let _internalTimer = null;
 let _builder = null;
 let _notify = null;
 let _permGranted = null;
+let _sharedBuilder = null;
+let _lastChecked = null;
 
 const registeredNotifications = new Map();
 
@@ -150,6 +152,8 @@ function loadBuilder(builder, withPoupup=false) {
  */
 function saveBuilder() {
     mods.getCloudStorage().setCurrentNotification(_builder);
+    if (isCfg(Stg().ETA_SHARED_NOTIFY))
+        mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
 }
 
 /**
@@ -316,9 +320,42 @@ export function load(ctx) {
         saveBuilder();
     });
 
+    /* Load shared builder */
+    loadSharedBuilder();
+
     if (mods.getSettings().isDebug()) console.log("[CDE] Notification:loaded", savedBuilder);
 }
 
+/**
+ * Loads the shared notification builder from cloud storage if the shared notification setting is enabled.
+ * If not enabled, initializes an empty object for the shared builder.
+ * This function updates the global `_sharedBuilder` variable with the loaded or initialized data.
+ */
+function loadSharedBuilder() {
+    if (isCfg(Stg().ETA_SHARED_NOTIFY)) {
+        _sharedBuilder = mods.getCloudStorage().getOtherPlayerPendingNotifications();
+    } else {
+        _sharedBuilder = {}
+    }
+}
+
+/**
+ * Retrieves the shared notification builder, loading it from cloud storage if necessary.
+ * @returns {Object} The shared notification builder object.
+ */
+function getSharedBuilder() {
+    if (_sharedBuilder === null || _sharedBuilder === undefined) {
+        loadSharedBuilder();
+    }
+    return _sharedBuilder;
+}
+
+/**
+ * Requests notification permission from the user.
+ * If permission is granted, executes the provided onSuccess callback.
+ * Logs the permission result if debug mode is enabled.
+ * @param {Function} onSuccess - The callback to execute if permission is granted.
+ */
 export function requestPermission(onSuccess) {
     if (!_permGranted) {
         Notification.requestPermission().then(permission => {
@@ -334,4 +371,83 @@ export function requestPermission(onSuccess) {
     } else {
         onSuccess();
     }
+}
+
+/**
+ * Default callback for checkSharedNotification.
+ * Logs the notification data for each player if debug mode is enabled.
+ * @param {string} key - The key for the notification data.
+ * @param {Object} builder - The notification builder object.
+ */
+export const defaultOnCheck = (key, builder) => {
+    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:", {charName: key, builder: builder});
+}
+
+
+/**
+ * Callback for checkSharedNotification.
+ * Checks if the notification is in the past, the future, or nearly due.
+ * If nearly due, requests permission and displays the notification.
+ * Logs the notification data for each player if debug mode is enabled.
+ * @param {string} key - The key for the notification data.
+ * @param {Object} builder - The notification builder object.
+ */
+export const handleOnCheck = (key, builder) => {
+    if (builder
+        && builder.hasOwnProperty("desc")
+        && builder.hasOwnProperty("label")
+        && builder.hasOwnProperty("media")
+        && builder.hasOwnProperty("requestAt")
+        && builder.hasOwnProperty("timeInMs")) {
+        const targetTime = builder.requestAt + builder.timeInMs;
+        const now = Date.now();
+        const remainingTime = targetTime - now;
+        if (remainingTime > -5000) {
+            if (remainingTime > 10000) {
+                // ... in the future
+                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:in the future:", {key, builder, remainingTime});
+            } else {
+                // ... now !
+                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:now:", {key, builder, remainingTime});
+                const notif = newNotificationCb(key, builder);
+                requestPermission(() => {
+                    notif();    
+                });
+                mods.getCloudStorage().removeOtherPlayerPendingNotification(key);    
+            }
+        } else {
+            // ... in the past
+            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:in the past:", {key, builder, remainingTime});
+            mods.getCloudStorage().removeOtherPlayerPendingNotification(key);
+        }
+    }
+}
+
+
+/**
+ * Checks shared notifications for all players and triggers the provided callback for each.
+ * Ensures that notifications are not checked more frequently than once per second.
+ * If the shared notification and ETA notification settings are enabled, iterates over
+ * all shared notifications and invokes the onCheck callback with the player's key 
+ * and builder object.
+ * 
+ * @param {Function} [onCheck=defaultOnCheck] - The callback function to handle each player's notification.
+ *                                              Defaults to the defaultOnCheck function if not provided.
+ */
+export function checkSharedNotification(onCheck = defaultOnCheck) {
+    const time = Date.now();
+    if (!_lastChecked) _lastChecked = time;
+    if (time - _lastChecked < 1000) return;
+    if (!onCheck || typeof onCheck !== "function") return;
+    if (isCfg(Stg().ETA_NOTIFICATION)
+        && isCfg(Stg().ETA_SHARED_NOTIFY)) {
+        const sharedBuilder = getSharedBuilder();
+        if (Object.keys(sharedBuilder).length > 0) {
+            Object.keys(sharedBuilder).forEach((key) => {
+                const playerBuilder = sharedBuilder[key];
+                onCheck(key, playerBuilder);
+            })
+        }
+    }
+    _lastChecked = time;
 }

@@ -9,8 +9,8 @@ const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data_X1";
 const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data_X1";
 const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
 const CS_CURRENT_ETA_SIZE = "cde_current_eta_size";
-const CS_CURRENT_NOTIFICATION = "cde_current_notification";
-const AS_PENDING_NOTIFICATION = "cde_pending_notification";
+const CS_CURRENT_NOTIFICATION = "cde_current_notif";
+const AS_PENDING_NOTIFICATION = "cde_pending_notif";
 
 let mods = null;
 let cloudStorage = null;
@@ -243,7 +243,6 @@ export function getCurrentNotification() {
 	}
 }
 
-
 /**
  * Retrieves the pending notification data from account storage.
  * @returns {Object|null} The pending notification data object, or null if not found or invalid.
@@ -270,23 +269,62 @@ function setPendingNotification(pendingNotification)  {
 }
 
 /**
- * Updates the pending notification data for the current character.
- * If the pending notification data for the current character does not exist, it initializes it.
- * Applies the provided update function to the pending notification data for the current character.
- * 
- * @param {Function} pendingNotificationUpdate - A function that takes the current character's pending notification
- *                                               data and returns an updated version.
+ * Updates the pending notification data for the current character using the given function.
+ * @param {function({}):{}} [updatePendingNotification] - The function to update the pending notification data.
  */
-export function updatePendingNotificationForCurrentCharacter(pendingNotificationUpdate) {
-	if (!pendingNotificationUpdate || typeof pendingNotificationUpdate !== "function") return;
-	const currentCharacterName = getCharName();
-	let pendingNotifications = getPendingNotification();
-	if (pendingNotifications === null) pendingNotifications = {};
-	if (!pendingNotifications[currentCharacterName]) pendingNotifications[currentCharacterName] = {};
-	pendingNotifications[currentCharacterName] = pendingNotificationUpdate(pendingNotifications[currentCharacterName]) ?? {};
-	try {
+export function updatePendingNotificationForCurrentCharacter(updatePendingNotification = (valueToEdit) => valueToEdit) {
+	const charName = getCharName();
+	let pendingNotifications = getPendingNotification() ?? {};
+	if (!pendingNotifications[charName]) pendingNotifications[charName] = {};
+	pendingNotifications[charName] = updatePendingNotification(pendingNotifications[charName]) ?? {};
+	setPendingNotification(pendingNotifications);
+}
+
+/**
+ * Retrieves the pending notification data for the current character from account storage.
+ * @returns {Object|null} The pending notification data object for the current character, or null if not found or invalid.
+ */
+export function getPlayerPendingNotification() {
+	const charName = getCharName();
+	const pendingNotifications = getPendingNotification() ?? {};
+	return pendingNotifications[charName] ?? {};
+}
+
+/**
+ * Removes the pending notification data for the current character from account storage.
+ * If the character has no pending notifications, no action is taken.
+ */
+export function removePlayerPendingNotification() {
+	const charName = getCharName();
+	let pendingNotifications = getPendingNotification() ?? {};
+	if (pendingNotifications?.hasOwnProperty(charName)) {
+		delete pendingNotifications[charName];
 		setPendingNotification(pendingNotifications);
-	} catch (e) {
-		console.error("[CDE] Error updating pending notification for character " + currentCharacterName, e);
+	}
+}
+
+/**
+ * Retrieves all pending notifications for characters other than the current one.
+ * It removes the current character's notifications from the list before returning.
+ * @returns {Object} An object containing pending notifications for other characters.
+ */
+export function getOtherPlayerPendingNotifications() {
+	const charName = getCharName();
+	let pendingNotifications = getPendingNotification() ?? {};
+	if (pendingNotifications?.hasOwnProperty(charName)) delete pendingNotifications[charName];
+	return pendingNotifications;
+}
+
+/**
+ * Removes the pending notification data for a specified character from account storage.
+ * If the specified character has no pending notifications, no action is taken.
+ * @param {string} playerName - The name of the character for which to remove notifications.
+ */
+export function removeOtherPlayerPendingNotification(playerName) {
+	if (playerName === null || playerName === getCharName()) return;
+	let pendingNotifications = getPendingNotification() ?? {};
+	if (pendingNotifications?.hasOwnProperty(playerName)) {
+		delete pendingNotifications[playerName];
+		setPendingNotification(pendingNotifications);
 	}
 }

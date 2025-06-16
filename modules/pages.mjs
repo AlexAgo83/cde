@@ -204,7 +204,15 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         } catch (error) {
             console.error("[CDE] doWorker:onRefresh:" + localID, error);
         }
-        if (updated != null) panel.show(updated);
+        if (updated != null) {
+            panel.show(updated);
+            try {
+                const tickShared = mods.getNotification().handleOnCheck;
+                mods.getNotification().checkSharedNotification(tickShared);
+            } catch (error) {
+                console.error("[CDE] doWorker:checkSharedNotification:" + localID, error);
+            }
+        }
         if (typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
             displayEtaAt(panel.getParent(), position);
