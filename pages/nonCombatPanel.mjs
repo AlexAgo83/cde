@@ -384,7 +384,7 @@ export function createInstance(innerType) {
                 console.log("[CDE] nonCombatPanel:onRefresh:mastery", masteryObject);
             }
 
-            const seconds = masteryObject?.secondsToNextLvl;
+            let seconds = masteryObject?.secondsToNextLvl;
             const isMultiRecipe = masteryObject?.isMultiRecipe;
             const isAltMagic = masteryObject?.skillID === "Magic";
             const isCartography = masteryObject?.skillID === "Cartography";
@@ -654,11 +654,7 @@ export function createInstance(innerType) {
                 dr.updated = true;
             }
             
-            if (!seconds || !isFinite(seconds)) {
-                if (mods.getSettings().isDebug()) {
-                    console.log("[CDE] nonCombatPanel:onRefresh:seconds is not finite", seconds);
-                }
-            } else if (dr.isNotSmallMode) {
+            if (dr.isNotSmallMode) {
                 /* Display mastery progress */
                 if (nextMasteryLvl <= 99 && !isAltMagic && !isCartography) {
 
@@ -669,7 +665,14 @@ export function createInstance(innerType) {
                         pMasteryProgess += `<span class="skill-value vph vph-small vph-mastery-fade">%</span>`;
                         pMasteryProgess += `<span class="skill-label">)</span>`;
                     }
+
                     /* Display next mastery level */
+                    if (!seconds || !isFinite(seconds)) {
+                        if (mods.getSettings().isDebug()) {
+                            console.log("[CDE] nonCombatPanel:onRefresh:seconds is not finite", seconds);
+                        }
+                        seconds = "NaN"
+                    } 
                     const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
                     dr.resultTop.push(
                         `<div class="cde-generic-panel">
