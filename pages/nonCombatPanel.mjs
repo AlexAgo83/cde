@@ -340,12 +340,14 @@ export function createInstance(innerType) {
                     dr.updated = true;
 
                     /** Next Levels & cap */
-                    if (currentSkill.predictLevels?.size > 0) {
+                    const predictSkillLevels = currentSkill.predictLevels;
+                    if (predictSkillLevels && Object.keys(predictSkillLevels).length > 0) {
                         if (mods.getSettings().isDebug()) {
                             console.log("[CDE] nonCombatPanel:onRefresh:predictLevels", currentSkill.predictLevels);
                         }
                         let levelCap = ``;
-                        [...currentSkill.predictLevels.entries()].reverse().forEach(([level, value]) => {
+                        Object.keys(predictSkillLevels).forEach((level) => {
+                            const value = predictSkillLevels[level];
                             const seconds = value.secondsToCap;
                             if (seconds && seconds > 0) {
                                 const timeToCapStr = mods.getUtils().formatDuration(seconds * 1000, "vph-skill-fade");
@@ -673,13 +675,16 @@ export function createInstance(innerType) {
                         }
                         seconds = "NaN"
                     } 
-                    const nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
+                    let nextLvlStr = mods.getUtils().formatDuration(seconds * 1000, "vph-mastery-fade");
+                    if (nextLvlStr === null || nextLvlStr.length === 0) {
+                        nextLvlStr = `<span class="vph vph-tiny vph-combat-fade">Compute ⏱️</span>`;
+                    }
                     dr.resultTop.push(
                         `<div class="cde-generic-panel">
                             <span class="skill-label"> • to </span>
                             <span class="skill-value vph-mastery">${nextMasteryLvl ?? "N/A"}</span>
                             <span class="skill-label"> ➜ </span>
-                            <span class="skill-value vph vph-mastery">${nextLvlStr ?? "N/A"}</span>
+                            <span class="skill-value vph vph-mastery">${nextLvlStr}</span>
                             ${pMasteryProgess}
                         </div>`
                     );
@@ -688,23 +693,38 @@ export function createInstance(innerType) {
 
                 /* Predict next masteries level */
                 const predictLevels = masteryObject?.predictLevels;
-                if (!isAltMagic && !isCartography && predictLevels && predictLevels.size > 0) {
-                    [...predictLevels.entries()].reverse().forEach(([level, value]) => {
+                if (!isAltMagic && !isCartography && predictLevels && Object.keys(predictLevels).length > 0) {
+                    Object.keys(predictLevels).forEach((level) => {
+                        const value = predictLevels[level];
+                        if (mods.getSettings().isDebug()) {
+                            console.log("[CDE] nonCombatPanel:onRefresh:predictLevels read entry:", predictLevels, level, value);
+                        }   
                         const secondsToCap = value?.secondsToCap;
                         if (secondsToCap && isFinite(secondsToCap)) {
-                            const timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, "vph-mastery-fade");
+                            let timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, "vph-mastery-fade");
+                            if (timeToCapStr === null || timeToCapStr.length === 0) {
+                                timeToCapStr = `<span class="vph vph-tiny vph-combat-fade">Compute ⏱️</span>`;
+                            }
                             dr.resultTop.push(
                                 `<div class="cde-generic-panel">
                                     <span class="skill-label"> • to </span>
                                     <span class="skill-value vph-mastery">${level}</span>
                                     <span class="skill-label vph-tiny"> ➜ (less than) </span>
-                                    <span class="skill-value vph vph-mastery">${timeToCapStr ?? "N/A"}</span>
+                                    <span class="skill-value vph vph-mastery">${timeToCapStr}</span>
                                 </div>`
                             );
                             dr.updated = true;
+                        } else {
+                            if (mods.getSettings().isDebug()) {
+                                console.log("[CDE] nonCombatPanel:onRefresh:predictLevels skipped, seconds is not finite", level, value, secondsToCap);
+                            }       
                         }
                     });
-                } 
+                } else {
+                    if (mods.getSettings().isDebug()) {
+                        console.log("[CDE] nonCombatPanel:onRefresh:predictLevels skipped", {isAltMagic, isCartography}, masteryObject, predictLevels);
+                    }
+                }
             } 
         }
     }

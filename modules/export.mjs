@@ -269,6 +269,7 @@ export function resetExportData() {
 	exportData = {};
 	changesData = [];
 	changesHistory = null;
+	mods.getCollector().clearMutable();
 	mods.getLocalStorage().saveExportToStorage(null);
 	mods.getLocalStorage().saveChangesToStorage(null);
 	if (mods.getSettings().isDebug()) {

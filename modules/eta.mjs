@@ -219,7 +219,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			const currRecipes = mods.getUtils().getIfExist(skillEntry, "recipeEta");
 			const currEta = mods.getUtils().getIfExist(currRecipes, m.masteryID);
 			
-			const currMph = currEta?.mph ?? 0;
+			m.mphValue = currEta?.mph ?? 0;
 			const currMasteryLvl = m.masteryLevel;
 			const currMasteryMaxLvl = m.masteryMaxLevel;
 			const currMasteryXP = m.maxteryXp;
@@ -228,7 +228,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			m.masteryNextLvl = currMasteryLvl + 1;
 			m.masteryNextLvlXp = utl.getXpForLevel(m.masteryNextLvl);
 			m.masteryNextXpDiff = m.masteryNextLvlXp - currMasteryXP;
-			m.secondsToNextLvl = +(m.masteryNextXpDiff / (currMph / 3600)).toFixed(0);
+			m.secondsToNextLvl = +(m.masteryNextXpDiff / (m.mphValue / 3600)).toFixed(0);
 			m.timeToNextLvlStr = utl.formatDuration(m.secondsToNextLvl * 1000);
 			m.currentActionInterval = activity?.actionInterval ?? 0;
 
@@ -246,7 +246,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 					xpDiff: xpCap - currMasteryXP
 				};
 
-				const secondsToCapLevel = currMph > 0 ? value.xpDiff / (currMph / 3600) : 0;
+				const secondsToCapLevel = m.mphValue > 0 ? value.xpDiff / (m.mphValue / 3600) : 0;
 				value.secondsToCap = +secondsToCapLevel.toFixed(0);
 				value.timeToCapStr = utl.formatDuration(value.secondsToCap * 1000);
 

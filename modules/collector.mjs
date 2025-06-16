@@ -5,6 +5,7 @@
 // collector.mjs
 
 let mods = null;
+let mutableRecipeEta = {};
 
 /**
  * Initialize the collector module.
@@ -46,6 +47,21 @@ function Stg() {
  */
 function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference) ?? false;
+}
+
+export function clearMutable() {
+	if (Object.keys(mutableRecipeEta).length > 0) {
+		mutableRecipeEta = {};
+		console.log("[CDE] Collector: Mutable recipe eta cleared");
+	}
+}
+export function saveMutableRecipe(skillID, value) {
+	if (skillID) mutableRecipeEta[skillID] = value;
+}
+export function loadMutableRecipe(skillID) {
+	if (!skillID) return {};
+	if (mutableRecipeEta[skillID] === undefined) mutableRecipeEta[skillID] = {};
+	return mutableRecipeEta[skillID];
 }
 
 /**
@@ -632,11 +648,15 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					item.recipeCursor = selectedRecipeCursor; 
 					item.recipeMaxLevel = recipeMaxLvl;
 
-					if (!item.recipeEta) item.recipeEta = {};
+					/* Mutable recipe ETA & cache */
+					if (!item.recipeEta) {
+						item.recipeEta = loadMutableRecipe(skill.localID);
+					}
 					item.recipeEta[recipeID] = {
 						xp: mastery?.xp,
 						level: mastery?.level
 					};
+					saveMutableRecipe(skill.localID, item.recipeEta);
 				}
 				
 				items[skill.localID] = item;
