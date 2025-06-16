@@ -319,8 +319,13 @@ export function createInstance(innerType) {
                 const skillProgress = currentSkill.skillNextLevelProgress;
 
                 if (isMaxed) {
+                    if (mods.getSettings().isDebug()) {
+                        console.log("[CDE] nonCombatPanel:onRefreshSkill:isMaxed", 
+                            {level: currentSkill.skillLevel, maxLevel: currentSkill.skillMaxLevel},
+                            currentSkill);
+                    }
                     dr.updated = true;
-                } else if (!isMaxed) {
+                } else {
                     let pSkillProgess = ``;
                     if (skillProgress) {
                         pSkillProgess += `<span class="skill-label">(</span>`;
