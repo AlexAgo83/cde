@@ -412,6 +412,7 @@ export function worker(ctx) {
  * Resets the current monster data and activity data in cloud storage, and clears the in-game notification.
  */
 function onStop() {
+    if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onStop called");
     mods.getCollector().clearMutable();
     mods.getCloudStorage().removeCurrentMonsterData();
     mods.getCloudStorage().removeCurrentActivityData();

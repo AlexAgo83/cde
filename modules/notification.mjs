@@ -9,7 +9,6 @@ let _internalTimer = null;
 let _builder = null;
 let _notify = null;
 let _permGranted = null;
-let _sharedBuilder = null;
 let _lastChecked = null;
 
 const registeredNotifications = new Map();
@@ -98,6 +97,7 @@ function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_IC
  * The notification has a title of `"${dataObject.etaName}" ETA Reached!` and a description of `Your "${dataObject.etaName}" action is complete.`,
  * and is registered to be displayed after a delay of `dataObject.timeInMs` milliseconds.
  * @param {object} dataObject - An object containing data for the notification.
+ * @param {number} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete.
  * @param {string} dataObject.etaName - The name of the crafting action.
  * @param {string} dataObject.media - The media associated with the notification.
  * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
@@ -152,8 +152,7 @@ function loadBuilder(builder, withPoupup=false) {
  */
 function saveBuilder() {
     mods.getCloudStorage().setCurrentNotification(_builder);
-    if (isCfg(Stg().ETA_SHARED_NOTIFY))
-        mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
+    if (isCfg(Stg().ETA_SHARED_NOTIFY)) mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
 }
 
 /**
@@ -257,10 +256,17 @@ export function onClick(buttonId, dataObject=null) {
  * Automatically triggers all registered notifications with an etaName matching the given dataObject.
  * This is called when an action is nearly complete.
  * @param {object} dataObject - An object containing data for the notification.
+ * @param {string} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete. 
  * @param {string} dataObject.etaName - The name of the crafting action.
+ * @param {string} dataObject.media - The media associated with the notification.
+ * @param {string} dataObject.timeInMs - The delay in milliseconds for notification display.
  */
 export function onAutoNotify(dataObject) {
-    if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) return;
+    if (dataObject === null 
+        || dataObject === undefined 
+        || dataObject.etaName === undefined 
+        || dataObject.media === undefined
+        || dataObject.timeInMs === undefined) return;
     if (isCfg(Stg().ETA_NOTIFICATION) === false) return;
     if (isCfg(Stg().ETA_AUTO_NOTIFY) === false) return;
     registeredNotifications.forEach((object, buttonId) => {
@@ -320,34 +326,7 @@ export function load(ctx) {
         saveBuilder();
     });
 
-    /* Load shared builder */
-    loadSharedBuilder();
-
     if (mods.getSettings().isDebug()) console.log("[CDE] Notification:loaded", savedBuilder);
-}
-
-/**
- * Loads the shared notification builder from cloud storage if the shared notification setting is enabled.
- * If not enabled, initializes an empty object for the shared builder.
- * This function updates the global `_sharedBuilder` variable with the loaded or initialized data.
- */
-function loadSharedBuilder() {
-    if (isCfg(Stg().ETA_SHARED_NOTIFY)) {
-        _sharedBuilder = mods.getCloudStorage().getOtherPlayerPendingNotifications();
-    } else {
-        _sharedBuilder = {}
-    }
-}
-
-/**
- * Retrieves the shared notification builder, loading it from cloud storage if necessary.
- * @returns {Object} The shared notification builder object.
- */
-function getSharedBuilder() {
-    if (_sharedBuilder === null || _sharedBuilder === undefined) {
-        loadSharedBuilder();
-    }
-    return _sharedBuilder;
 }
 
 /**
@@ -382,7 +361,6 @@ export function requestPermission(onSuccess) {
 export const defaultOnCheck = (key, builder) => {
     if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:", {charName: key, builder: builder});
 }
-
 
 /**
  * Callback for checkSharedNotification.
@@ -441,7 +419,7 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
     if (!onCheck || typeof onCheck !== "function") return;
     if (isCfg(Stg().ETA_NOTIFICATION)
         && isCfg(Stg().ETA_SHARED_NOTIFY)) {
-        const sharedBuilder = getSharedBuilder();
+        const sharedBuilder = mods.getCloudStorage().getOtherPlayerPendingNotifications();
         if (Object.keys(sharedBuilder).length > 0) {
             Object.keys(sharedBuilder).forEach((key) => {
                 const playerBuilder = sharedBuilder[key];
