@@ -426,3 +426,64 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
     }
     _lastChecked = time;
 }
+
+
+/**
+ * Returns an array of strings representing the notifications to be displayed in the notification panel.
+ * Iterates over the player's pending notification and all other player's pending notifications,
+ * and formats them into a string that can be displayed in the notification panel.
+ * If the ETA notification setting is disabled, returns an empty array.
+ * @returns {string[]} An array of strings representing the notifications to be displayed.
+ */
+export function displayNotification() {
+    let result = [];
+    if (!isCfg(Stg().ETA_NOTIFICATION)) return result;
+    
+    const notifs = [];
+    const pNotif = mods.getCloudStorage().getPlayerPendingNotification();
+    if (pNotif
+        && pNotif.requestAt
+        && pNotif.timeInMs
+        && pNotif.label
+    ) {
+        notifs.push({
+            player: getCharName(),
+            eta: new Date(pNotif.requestAt + pNotif.timeInMs),
+            media: pNotif.media
+        });
+    }
+
+    const oNotif = mods.getCloudStorage().getOtherPlayerPendingNotifications();
+    Object.keys(oNotif).forEach((key) => {
+        const notification = oNotif[key];
+        if (notification
+            && notification.requestAt
+            && notification.timeInMs
+            && notification.label
+        ) {
+            notifs.push({
+                player: key,
+                eta: new Date(notification.requestAt + notification.timeInMs),
+                media: notification.media
+            });
+        }
+    })
+
+    if (notifs && notifs.length > 0) {
+        /** PRINT SHARED NOTIFICATION */
+        notifs.forEach((notif) => {
+            const mediaImg = notif.media ? `<img class="skill-media skill-media-short" src="${notif.media}" />` : `<span class="skill-media"></span>`;
+            // const etaStr = mods.getUtils().formatDuration(notif.eta, "vph-notif-fade");
+            const etaStr = notif.eta ? notif.eta.toLocaleString() : "N/A";
+            result.push(`<div class="cde-generic-panel cde-notif-panel">
+                <span class="skill-label vph-notif vph-tiny">⏰</span>
+                ${mediaImg}
+                <span class="skill-label vph-notif vph-tiny">${notif.player}</span>
+                <span class="skill-label"> ➜ </span>
+                <span class="skill-label vph-notif vph-tiny">${etaStr}</span>
+            </div>`);
+        }) 
+    }
+    
+    return result;
+}

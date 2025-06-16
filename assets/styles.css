@@ -415,6 +415,10 @@
   color: #fff;
 }
 
+.cde-notif-panel {
+  font-family: inherit;
+}
+
 /**
  * Value vph & duration field
  */
@@ -483,6 +487,16 @@
 }
 
 /**
+ * Notification
+ */
+.vph-notif {
+  color: #ff8ff0;
+}
+.vph-notif-fade {
+  color: #ff8ff087;
+}
+
+/**
  * Generic List
  */
 .cde-generic-list  {
@@ -500,6 +514,12 @@
   height: 16px;
   border-radius: 2px;
   margin: 0 4px;
+}
+.skill-media-short {
+  height: 16px;
+  width: 16px;
+  border-radius: 2px;
+  margin: 0 0px;
 }
 
 .cde-eta-notif {

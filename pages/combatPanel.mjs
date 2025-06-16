@@ -185,6 +185,7 @@ export const onRefresh = (etaSize) => {
                 const resultTop = [];
                 const resultCenter = [];
                 const resultEnd = [];
+                const resultNotification = mods.getNotification().displayNotification();
                 
                 
                 let pKphStr = `${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : `<span class="skill-media"></span>`}`;
@@ -272,7 +273,7 @@ export const onRefresh = (etaSize) => {
                         resultTop.push(...resultSkills);
                     }
                 }
-                etaData = `<div class="cde-generic-panel">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}</div>`;
+                etaData = `<div class="cde-generic-panel">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}${resultNotification.join("")}</div>`;
                 updated = true;
             }
         }

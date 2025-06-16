@@ -207,7 +207,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         if (updated != null) {
             panel.show(updated);
             if (updated) {
-                /* Try to refresh shared notifications */
+                /* Try to soft-refresh shared notifications */
                 try {
                     const tickShared = mods.getNotification().handleOnCheck;
                     mods.getNotification().checkSharedNotification(tickShared);

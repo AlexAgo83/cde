@@ -56,7 +56,7 @@
 // Stage 31 - Cartography Paper Please!
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.128";
+const MOD_VERSION = "v2.1.133";
 
 // --- Module Imports ---
 let mModules = null;
@@ -173,7 +173,6 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 		getVersion: () => {
 			return MOD_VERSION;
 		},
-
 		
 		/**
 		 * Debug function to print the current notification storage data.

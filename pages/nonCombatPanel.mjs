@@ -212,6 +212,7 @@ export function createInstance(innerType) {
                     dr.resultTop = [];
                     dr.resultCenter = [];
                     dr.resultEnd = [];
+                    dr.resultNotification = mods.getNotification().displayNotification();
                     dr.lazySkills = [];
                     dr.registeredNotify = new Map();
 
@@ -275,7 +276,7 @@ export function createInstance(innerType) {
                             }
                         }
                     });
-                    etaData = `<div class="cde-generic-list">${dr.resultTop.join("")}${dr.resultCenter.join("")}${dr.resultEnd.join("")}</div>`;
+                    etaData = `<div class="cde-generic-list">${dr.resultTop.join("")}${dr.resultCenter.join("")}${dr.resultEnd.join("")}${dr.resultNotification.join("")}</div>`;
                 }
                 parent.innerHTML = self.container(parent, summaryId, identity);
             }
