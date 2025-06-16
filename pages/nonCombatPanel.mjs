@@ -392,6 +392,7 @@ export function createInstance(innerType) {
             }
 
             let seconds = masteryObject?.secondsToNextLvl;
+            const isActive = masteryObject?.active;
             const isMultiRecipe = masteryObject?.isMultiRecipe;
             const isAltMagic = masteryObject?.skillID === "Magic";
             const isCartography = masteryObject?.skillID === "Cartography";
@@ -409,6 +410,7 @@ export function createInstance(innerType) {
             const preservationChance = masteryObject?.preservationChance;
             const notifyLabel = productName ?? masteryLabel;
             const notifyMedia = productMedia ?? masteryMedia;
+            const forceDisplayInactive = !isActive ? "vph-mastery-fade" : "";
 
             const hasProduct = (productCount && isFinite(productCount)) || productsCount?.length > 0;
 
@@ -441,13 +443,13 @@ export function createInstance(innerType) {
 
                 if (dr.isNotSmallMode) {
                     let pMultiActive = ``;
-                    if (isMultiRecipe && masteryObject.active) {
+                    if (isMultiRecipe && isActive) {
                         pMultiActive += `<span class="skill-value vph-tiny vph-mastery-fade"> (active)</span>`;
                     }
                     dr.resultTop.push(
                         `<div class="cde-generic-panel">
                             ${masteryMedia ? `<img class="skill-media" src="${masteryMedia}" />` : `<span class="skill-media"></span>`}
-                            <span class="skill-value vph-mastery">${masteryLabel ?? "N/A"}${pMultiActive}</span>
+                            <span class="skill-value vph-mastery ${forceDisplayInactive}">${masteryLabel ?? "N/A"}${pMultiActive}</span>
                         </div>`   
                     );
                 }
@@ -667,10 +669,10 @@ export function createInstance(innerType) {
 
                     let pMasteryProgess = ``;
                     if (masteryProgress) {
-                        pMasteryProgess += `<span class="skill-label">(</span>`;
-                        pMasteryProgess += `<span class="skill-value vph vph-tiny vph-mastery">${masteryProgress?.toFixed(2)}</span>`;
+                        pMasteryProgess += `<span class="skill-label ${forceDisplayInactive}">(</span>`;
+                        pMasteryProgess += `<span class="skill-value vph vph-tiny vph-mastery ${forceDisplayInactive}">${masteryProgress?.toFixed(2)}</span>`;
                         pMasteryProgess += `<span class="skill-value vph vph-small vph-mastery-fade">%</span>`;
-                        pMasteryProgess += `<span class="skill-label">)</span>`;
+                        pMasteryProgess += `<span class="skill-label ${forceDisplayInactive}">)</span>`;
                     }
 
                     /* Display next mastery level */
@@ -686,10 +688,10 @@ export function createInstance(innerType) {
                     }
                     dr.resultTop.push(
                         `<div class="cde-generic-panel">
-                            <span class="skill-label"> • to </span>
-                            <span class="skill-value vph-mastery">${nextMasteryLvl ?? "N/A"}</span>
-                            <span class="skill-label"> ➜ </span>
-                            <span class="skill-value vph vph-mastery">${nextLvlStr}</span>
+                            <span class="skill-label ${forceDisplayInactive}"> • to </span>
+                            <span class="skill-value vph-mastery ${forceDisplayInactive}">${nextMasteryLvl ?? "N/A"}</span>
+                            <span class="skill-label ${forceDisplayInactive}"> ➜ </span>
+                            <span class="skill-value vph vph-mastery ${forceDisplayInactive}">${nextLvlStr}</span>
                             ${pMasteryProgess}
                         </div>`
                     );
@@ -708,14 +710,14 @@ export function createInstance(innerType) {
                         if (secondsToCap && isFinite(secondsToCap)) {
                             let timeToCapStr = mods.getUtils().formatDuration(secondsToCap * 1000, "vph-mastery-fade");
                             if (timeToCapStr === null || timeToCapStr.length === 0) {
-                                timeToCapStr = `<span class="vph vph-tiny vph-combat-fade">Compute ⏱️</span>`;
+                                timeToCapStr = `<span class="vph vph-tiny vph-mastery-fade">Compute ⏱️</span>`;
                             }
                             dr.resultTop.push(
                                 `<div class="cde-generic-panel">
-                                    <span class="skill-label"> • to </span>
-                                    <span class="skill-value vph-mastery">${level}</span>
-                                    <span class="skill-label vph-tiny"> ➜ (less than) </span>
-                                    <span class="skill-value vph vph-mastery">${timeToCapStr}</span>
+                                    <span class="skill-label ${forceDisplayInactive}"> • to </span>
+                                    <span class="skill-value vph-mastery ${forceDisplayInactive}">${level}</span>
+                                    <span class="skill-label ${forceDisplayInactive}"> ➜ (less than) </span>
+                                    <span class="skill-value vph vph-mastery ${forceDisplayInactive}">${timeToCapStr}</span>
                                 </div>`
                             );
                             dr.updated = true;

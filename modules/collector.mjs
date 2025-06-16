@@ -643,7 +643,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						}
 					}
 					
-					item.isMultiRecipe = item.skillID === "Agility";
+					item.isMultiRecipe = item.skillID === "Agility" || item.skillID === "Woodcutting";
 					item.recipe = recipeID;
 					item.recipeCursor = selectedRecipeCursor; 
 					item.recipeMaxLevel = recipeMaxLvl;
@@ -727,7 +727,7 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 						item.skillID = a.localID;
 						item.masteryID = queryCache.localID;
 						item.active = selectedRecipe?.localID === item.masteryID;
-						item.isMultiRecipe = item.skillID === "Agility";
+						item.isMultiRecipe = item.skillID === "Agility" || item.skillID === "Woodcutting";
 						item.masteryLabel = queryCache.name;
 						item.maxteryXp = mastery.xp;
 						item.masteryMedia = queryCache.media;

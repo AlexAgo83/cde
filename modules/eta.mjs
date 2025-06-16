@@ -488,7 +488,7 @@ function getMaxItems(itemInBank, itemPerCast) {
  * @param {Date} [syncDate=new Date()] - The timestamp for the event.
  */
 export function onActiveSkill(skillId, data, syncDate=new Date()) {
-	const isMultiRecipe = skillId === "Agility";
+	const isMultiRecipe = skillId === "Agility" || skillId  === "Woodcutting";
 	const now = syncDate;
 
 	const currLevel = data.skillLevel;
