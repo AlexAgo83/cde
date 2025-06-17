@@ -214,6 +214,14 @@ export const SettingsReference = {
 		hint: "Toggle to allow notifications for ETA.",
 		toggle: true
 	},
+	ETA_BROWSER_NOTIFY: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-browser-notify",
+		label: "Allow Browser Notifications for ETA",
+		hint: "Toggle to allow browser notifications for ETA.",
+		toggle: true
+	},
 	ETA_SHARED_NOTIFY: {
 		section: Sections.ETA,
 		type: "switch",

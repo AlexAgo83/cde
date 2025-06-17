@@ -99,9 +99,8 @@ function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_IC
         /* Ingame notification */
         const popupTitre = notifLabel;
         let popupHtml = `<div class="cde-generic-panel cde-notif-panel">`;
-        popupHtml += `<span class="ignotif">⏰</span>`;
-        popupHtml += `<img class="ignotif-media" src="${media}" />`;
-        popupHtml += `<span class="ignotif">${notifDescription}</span>`;
+        popupHtml += `<img class="cde-ignotif-media" src="${media}" />`;
+        popupHtml += `<span class="cde-ignotif">${notifDescription}</span>`;
         popupHtml += `</div>`;
         return mods.getViewer().popupSuccess(popupTitre, popupHtml);
     }
@@ -362,7 +361,7 @@ export function isPermissionGranted() {
  * @returns {boolean} True if the method is supported, false otherwise.
  */
 export function isRequestPermissionAllowed() {
-    return 'Notification' in window && 'requestPermission' in Notification;
+    return isCfg(Stg().ETA_BROWSER_NOTIFY) && 'Notification' in window && 'requestPermission' in Notification;
 }
 
 /**
@@ -510,14 +509,14 @@ export function displayNotification() {
         /** PRINT SHARED NOTIFICATION */
         notifs.forEach((notif) => {
             const mediaImg = notif.media ? `<img class="skill-media skill-media-short" src="${notif.media}" />` : `<span class="skill-media"></span>`;
-            // const etaStr = mods.getUtils().formatDuration(notif.eta, "vph-notif-fade");
+            // const etaStr = mods.getUtils().formatDuration(notif.eta, "span-notif-fade");
             const etaStr = notif.eta ? notif.eta.toLocaleString() : "N/A";
             result.push(`<div class="cde-generic-panel cde-notif-panel">
-                <span class="skill-label vph-notif vph-tiny">⏰</span>
+                <span class="skill-label span-notif vph-tiny">⏰</span>
                 ${mediaImg}
-                <span class="skill-label vph-notif vph-tiny">${notif.player}</span>
+                <span class="skill-label span-notif vph-tiny">${notif.player}</span>
                 <span class="skill-label"> ➜ </span>
-                <span class="skill-label vph-notif vph-tiny">${etaStr}</span>
+                <span class="skill-label span-notif vph-tiny">${etaStr}</span>
             </div>`);
         }) 
     }

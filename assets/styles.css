@@ -415,10 +415,6 @@
   color: #fff;
 }
 
-.cde-notif-panel {
-  font-family: inherit;
-}
-
 /**
  * Value vph & duration field
  */
@@ -487,16 +483,6 @@
 }
 
 /**
- * Notification
- */
-.vph-notif {
-  color: #ff8ff0;
-}
-.vph-notif-fade {
-  color: #ff8ff087;
-}
-
-/**
  * Generic List
  */
 .cde-generic-list  {
@@ -522,7 +508,32 @@
   margin: 0 0px;
 }
 
+/* Notif */
+.cde-notif-panel {
+  font-family: inherit;
+}
 .cde-eta-notif {
   padding-top: 3px;
   padding-bottom: 2px;
+}
+.span-notif {
+  color: #ff8ff0;
+}
+.span-notif-fade {
+  color: #ff8ff087;
+}
+
+/* Ingame notification */
+
+.cde-ignotif {
+  font-family: inherit;
+  font-size: 20px;
+  margin: 5px;
+}
+.cde-ignotif-media {
+  width: 30px;
+  height: 36px;
+  padding-bottom: 6px;
+  border-radius: 2px;
+  margin: 0 0px;
 }
