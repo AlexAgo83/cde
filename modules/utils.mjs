@@ -613,3 +613,26 @@ export function isMultiRecipe(skillId) {
 export function isParallelRecipe(skillId) {
 	return skillId === "Woodcutting";
 }
+
+/**
+ * Determines if the current device is running iOS.
+ *
+ * This function checks the platform and user agent to identify whether the
+ * device is an iOS device, including iPads, iPhones, and iPods. It also
+ * accounts for iPads running iOS 13 and later, which can report a platform
+ * of "Mac" with touch capabilities.
+ *
+ * @returns {boolean} True if the device is an iOS device, false otherwise.
+ */
+export function iOS() {
+  return [
+    'iPad Simulator',
+    'iPhone Simulator',
+    'iPod Simulator',
+    'iPad',
+    'iPhone',
+    'iPod'
+  ].includes(navigator.platform)
+  // iPad on iOS 13 detection
+  || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+}

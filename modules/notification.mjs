@@ -335,8 +335,8 @@ export function load(ctx) {
  * Logs the permission result if debug mode is enabled.
  * @param {Function} onSuccess - The callback to execute if permission is granted.
  */
-export function requestPermission(onSuccess) {
-    if (!_permGranted) {
+export function requestPermission(onSuccess, onFail=() => {}) {
+    if (!_permGranted || mods.getUtils().iOS()) {
         Notification.requestPermission().then(permission => {
             if (permission === "granted") {
                 _permGranted = true;
