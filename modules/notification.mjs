@@ -23,6 +23,10 @@ export function init(modules) {
   mods = modules;
 }
 
+export function logger(step, from, to, ...args) {
+    mods.getUtils().logger("Notif", step, "pages", from, to, ...args);
+}
+
 // --- MOCK ---
 function _game() {
 	// @ts-ignore
@@ -60,23 +64,28 @@ function isCfg(reference) {
  */
 function registerNotify(newNotification, when=0) {
     /* If a notification is already pending, remove it */
-    if (_internalTimer) clearNotify();
+    if (_internalTimer) {
+        logger("New notif", "registerNotify", "Internal timer already found, ask for clear!");
+        clearNotify();
+    }
     _notify = newNotification;
+
+    logger("New notif", "registerNotify", "Schedule notification!", newNotification, when);
     /* Schedule the notification */
     _internalTimer = setTimeout(() => {
         if (_notify) {
+            logger("Push Notif", "registerNotify", "Time to push notification!", _notify);
             /* Display the notification */
             const notif = _notify();
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:notify", notif);
             /* Clean up */
             clearNotify();
         }
     }, when);
-    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:registerNotify");
+    logger("New notif", "registerNotify", "State of timer & notify:", _notify, _internalTimer);
 }
 
 /**
- * Creates a new notification to be displayed.
+ * Creates a new callback function for a notification.
  * @param {string} notifLabel - The notification title.
  * @param {string} notifDescription - The notification description.
  * @param {string} [media=URL_MELVORIDLE_ICON] - The notification icon URL.
@@ -84,16 +93,16 @@ function registerNotify(newNotification, when=0) {
  */
 function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_ICON) {
     return () => {
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:newNotificationCb:execute", notifLabel, notifDescription, media);
-
+        logger("New notif", "newNotificationCb", "Start to init the notification to display!", notifLabel, notifDescription, media);
         if (isRequestPermissionAllowed()) {
             /* Native notification */
-            return new Notification(
+            const result = new Notification(
                 notifLabel, {
                     body: notifDescription,
                     icon: media
                 }
             );
+            return result;
         }
         
         /* Ingame notification */
@@ -115,19 +124,24 @@ function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_IC
  * @param {string} dataObject.etaName - The name of the crafting action.
  * @param {string} dataObject.media - The media associated with the notification.
  * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
- * @param {boolean} [withPoupup=true] - Whether to show a popup notification or not.
+ * @param {boolean} [withPopup=true] - Whether to show a popup notification or not.
  */
-let onNotifyAction = (dataObject, withPoupup=true) => {
+let onNotifyAction = (dataObject, withPopup=true) => {
     if (dataObject === undefined || dataObject === null || dataObject.etaName === undefined) {
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:data object invalide", dataObject);
+        logger("New notif", "onNotifyAction", "Invalide data object... STOP", dataObject);
         return;
     }
+
+    logger("New notif", "onNotifyAction", "(Call)initBuilder", dataObject);
     const newBuilder = initBuilder(dataObject);
     requestPermission(() => {
-        loadBuilder(newBuilder, withPoupup);
+        logger("New notif", "onNotifyAction", "(Call)loadBuilder", newBuilder, withPopup);
+        loadBuilder(newBuilder, withPopup);
+        logger("New notif", "onNotifyAction", "(Call)saveBuilder");
         saveBuilder();
     });
-    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:onClickCallback:", dataObject);
+
+    logger("New notif", "onNotifyAction", "End of process...");
 }
 /**
  * Surcharge the default onClick callback function with a custom callback.
@@ -151,8 +165,10 @@ export function surchargeOnNotify(callback) {
  */
 function loadBuilder(builder, withPoupup=false) {
     _builder = builder;
-    const notif = newNotificationCb(builder.label, builder.desc, builder.media);
-    registerNotify(notif, builder.timeInMs);
+    logger("Loading Builder", "loadBuilder", "(Call)newNotificationCb", builder.label, builder.desc, builder.media);
+    const newNotif = newNotificationCb(builder.label, builder.desc, builder.media);
+    logger("Loading Builder", "loadBuilder", "(Call)registerNotify", newNotif, builder.timeInMs);
+    registerNotify(newNotif, builder.timeInMs);
     if (withPoupup) {
         const etaStr = new Date(builder.requestAt + builder.timeInMs).toLocaleString();
         mods.getViewer().popupSuccess('Timer set to: ' + etaStr);
@@ -166,10 +182,16 @@ function loadBuilder(builder, withPoupup=false) {
  * If the builder is null, any pending notification for the current character is removed.
  */
 function saveBuilder() {
+    logger("Save", "saveBuilder", "(Call)setCurrentNotification", _builder);
     mods.getCloudStorage().setCurrentNotification(_builder);
     if (isCfg(Stg().ETA_SHARED_NOTIFY)) {
-        if (_builder) mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
-        else mods.getCloudStorage().removePlayerPendingNotification();
+        if (_builder) {
+            logger("Save", "saveBuilder", "(Call)updatePendingNotificationForCurrentCharacter", _builder);
+            mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
+        } else {
+            logger("Save", "saveBuilder", "(Call)removePlayerPendingNotification");
+            mods.getCloudStorage().removePlayerPendingNotification();
+        }
     }   
 }
 
@@ -196,7 +218,8 @@ function initBuilder(dataObject) {
         media: dataObject.media ?? URL_MELVORIDLE_ICON,
         requestAt: now
     };
-    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:initBuilder:", notifBuilder);
+    
+    logger("*", "initBuilder", "New builder created:", notifBuilder);
     return notifBuilder;
 }
 
@@ -211,14 +234,15 @@ export function clearNotify() {
         clearTimeout(_internalTimer);
         _internalTimer = null;
         lChange = true;
+        logger("Clear", "clearNotify", "Internal timer reset!");
     }
-    if (_notify || _builder) {
+    if (_notify) {
         _notify = null;
-        _builder = null;
         saveBuilder();
         lChange = true;
+        logger("Clear", "clearNotify", "Notification reset!");
     }
-    if (lChange && mods.getSettings().isDebug()) console.log("[CDE] Notification:clearNotify");
+    if (lChange) logger("Clear", "clearNotify", "clear was called with success!");
 }
 
 /**
@@ -258,6 +282,7 @@ export function registerButton(buttonId, dataObject, customClickCallback=null) {
  * @param {object} dataObject - An object containing data for the notification.
  */
 export function onClick(buttonId, dataObject=null) {
+    logger("Click", "onClick", "Something trigger onClick with buttonId: " + buttonId + "!", dataObject);
     if (buttonId && registeredNotifications.has(buttonId)) {
         const object = registeredNotifications.get(buttonId);
         if (object) {
@@ -265,9 +290,12 @@ export function onClick(buttonId, dataObject=null) {
             const data = dataObject ? dataObject : object.data;
             const callback = object.event;
             if (data && callback) {
+                logger("Click", "onClick", "callBack (Id: " + buttonId + " match with button)", data);
                 callback(data);
             }
         }
+    } else {
+        logger("Click", "onClick", "No button found for id: " + buttonId + "!", dataObject);
     }
 }
 
@@ -293,8 +321,8 @@ export function onAutoNotify(dataObject) {
             && object.data 
             && object.data.autoNotify 
             && object.data?.etaName === dataObject.etaName) {
+            logger("Auto Notify", "onAutoNotify", "(Call)onClick", buttonId, dataObject);
             onClick(buttonId, dataObject);
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:autoNotify", dataObject);
         }
     })
 }
@@ -311,7 +339,6 @@ export function load(ctx) {
     /* Notification is disabled */
     if (!isCfg(Stg().ETA_NOTIFICATION)) { 
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:disabled");
-    
         return;
     }
     /* No notification saved to reload */
@@ -375,11 +402,11 @@ export function requestPermission(onSuccess, onFail=() => {}) {
         Notification.requestPermission().then(permission => {
             if (permission === "granted") {
                 _permGranted = true;
-                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission granted");
+                logger("*", "requestPermission", "Success!");
                 onSuccess();
             } else {
                 _permGranted = false;
-                if (mods.getSettings().isDebug()) console.warn("[CDE] Notification:permission not granted");
+                logger("*", "requestPermission", "Failed!");
                 onFail();
             }
         });
@@ -396,7 +423,7 @@ export function requestPermission(onSuccess, onFail=() => {}) {
  * @param {Object} builder - The notification builder object.
  */
 export const defaultOnCheck = (key, builder) => {
-    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:", {charName: key, builder: builder});
+    logger("Check Shared", "defaultOnCheck", "Default callback for key: " + key, builder);
 }
 
 /**
@@ -408,6 +435,7 @@ export const defaultOnCheck = (key, builder) => {
  * @param {Object} builder - The notification builder object.
  */
 export const handleOnCheck = (key, builder) => {
+    logger("Check Shared", "handleOnCheck", "Starting callback for key: " + key);
     if (builder
         && builder.hasOwnProperty("desc")
         && builder.hasOwnProperty("label")
@@ -417,21 +445,18 @@ export const handleOnCheck = (key, builder) => {
         const targetTime = builder.requestAt + builder.timeInMs;
         const now = Date.now();
         const remainingTime = targetTime - now;
-        if (remainingTime > -5000) { /* ... is not int the past */
-            if (remainingTime > 10000) { /* in the future */
-                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:in the future:", {key, builder, remainingTime});
-            } else { /* ... now ! */
-                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:now:", {key, builder, remainingTime});
-                const notif = newNotificationCb(builder.label, builder.desc, builder.media);
-                requestPermission(() => {
-                    notif();    
-                });
-                mods.getCloudStorage().removeOtherPlayerPendingNotification(key);    
-            }
-        } else { /* ... in the past */
-            if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:in the past:", {key, builder, remainingTime});
-            mods.getCloudStorage().removeOtherPlayerPendingNotification(key);
+
+        if (remainingTime < 0) { /* ... is in the past */
+            logger("Check Shared", "handleOnCheck", "Matching notification to publish, key:" + key, builder, remainingTime);
+            const notif = newNotificationCb(builder.label, builder.desc, builder.media);
+            requestPermission(() => {
+                notif();    
+            });
+            mods.getCloudStorage().removeOtherPlayerPendingNotification(key);  
         }
+
+    } else {
+        logger("Check Shared", "handleOnCheck", "Wrong builder for key: " + key, builder);
     }
 }
 
@@ -452,7 +477,7 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
     if (!onCheck || typeof onCheck !== "function") return;
     if (isCfg(Stg().ETA_NOTIFICATION)
         && isCfg(Stg().ETA_SHARED_NOTIFY)) {
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:startRoutine");
+        logger("Check Shared", "checkSharedNotification", "Start checking shared notifications");
         const sharedBuilder = mods.getCloudStorage().getOtherPlayerPendingNotifications();
         if (Object.keys(sharedBuilder).length > 0) {
             Object.keys(sharedBuilder).forEach((key) => {

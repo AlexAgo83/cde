@@ -240,6 +240,23 @@ export function sanitizeCharacterName(name) {
 }
 
 /**
+ * Sanitizes a localID for use as a storage key or identifier.
+ * Removes diacritics, replaces spaces with underscores, removes non-alphanumeric characters,
+ * and limits the result to 32 characters.
+ * @param {string} localID - The localID to sanitize.
+ * @returns {string} The sanitized localID.
+ */
+export function sanitizeLocalID(localID) {
+	if (!localID) return "unknown";
+	return localID
+	.normalize("NFD")
+	.replace(/[\u0300-\u036f]/g, "")
+	.replace(/\s+/g, "_")
+	.replace(/[^a-zA-Z0-9_\-]/g, "")
+	.substring(0, 32);
+}
+
+/**
  * Uploads text to Hastebin and returns the link.
  * @param {string} text - The text to upload.
  * @returns {Promise<string>} - The Hastebin link.
@@ -635,4 +652,25 @@ export function iOS() {
   ].includes(navigator.platform)
   // iPad on iOS 13 detection
   || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+}
+
+/**
+ * Logs a debug message if the 'isDebug' setting is enabled.
+ *
+ * The message is prefixed with "[CDE/" + label + "] [Step: " + step + "] (" + func + ")".
+ * If arguments are provided, ", args:" is appended to the prefix and the arguments are logged
+ * after the prefix.
+ *
+ * @param {string} label - The label for the debug message.
+ * @param {string} step - The step for the debug message.
+ * @param {string} className - The class name for the debug message.
+ * @param {string} action - The action to describe for the debug message.
+ * @param {string} func - The function name for the debug message.
+ * @param {...*} args - The arguments to log.
+ */
+export function logger(label, step, className, func, action, ...args) {
+    if (mods.getSettings().isDebug()) {
+		const raw = `[CDE/${label}] [Step: ${step}] (${className}:${func}):${action}}`;
+        console.log(raw, ...args);
+    }
 }

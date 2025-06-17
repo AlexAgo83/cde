@@ -526,8 +526,8 @@ export function createInstance(innerType) {
                         let pActionInterval = ``;
                         let pActionIntervalEta = ``;
 
-                        const etaFlatButtonId = "cde-btn-flat-notif-" + notifyLabel;
-                        const etaPresButtonId = "cde-btn-pres-notif-" + notifyLabel;
+                        const etaFlatButtonId = "cde-btn-flat-notif-" + mods.getUtils().sanitizeLocalID(notifyLabel);
+                        const etaPresButtonId = "cde-btn-pres-notif-" + mods.getUtils().sanitizeLocalID(notifyLabel);
 
                         if (actionInterval && actionInterval > 0) {
                             /* Action left flat */

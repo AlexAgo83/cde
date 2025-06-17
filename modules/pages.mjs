@@ -89,6 +89,10 @@ export function init(modules) {
   initSubModule(modules);
 }
 
+export function logger(label, step, from, to, ...args) {
+    mods.getUtils().logger(label, step, "pages", from, to, ...args);
+}
+
 /* @ts-ignore Handle DEVMODE */
 function _game()  {  return game;  }
 /* @ts-ignore Handle DEVMODE */
@@ -210,9 +214,11 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
                 /* Try to soft-refresh shared notifications */
                 try {
                     const tickShared = mods.getNotification().handleOnCheck;
+                    logger("Notif", "Check Shared triggered", "doWorker:updated=true", "getNotification().checkSharedNotification", tickShared);
                     mods.getNotification().checkSharedNotification(tickShared);
                 } catch (error) {
                     console.error("[CDE] doWorker:checkSharedNotification:" + localID, error);
+                    logger("Notif", "Check Shared triggered", "doWorker:checkSharedNotification", "error with localID("+localID+")", error);
                 }
             }
         }
@@ -419,6 +425,7 @@ function onStop() {
     mods.getCollector().clearMutable();
     mods.getCloudStorage().removeCurrentMonsterData();
     mods.getCloudStorage().removeCurrentActivityData();
+    logger("Notif", "Stop", "doWorker:onStop", "getNotification().clearNotify");
     mods.getNotification().clearNotify();
 }
 
@@ -548,6 +555,7 @@ function pageContainer(targetPage, identifier, currPanel) {
                 }
 
                 /* Notification */
+                logger("Notif", "Click", "pageContainer", "getNotification().onClick", id);
                 mods.getNotification().onClick(id);
             }
         });
@@ -717,3 +725,4 @@ export function setCollectCb(cb) {
         else console.log("[CDE] Page error", m);
     });
 }
+
