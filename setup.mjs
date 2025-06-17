@@ -203,7 +203,8 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 				&& pNotif.timeInMs
 				&& pNotif.label
 			) {
-				const etaStr = new Date(pNotif.requestAt + pNotif.timeInMs).toLocaleString();
+				const eta = new Date(pNotif.requestAt + pNotif.timeInMs);
+				const etaStr = mModules.getUtils().dateToLocalString(eta);
 				console.log("[CDE] Notification:Player:ETA:", pNotif.label, etaStr);
 			}
 
@@ -215,7 +216,8 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 					&& notification.timeInMs
 					&& notification.label
 				) {
-					const etaStr = new Date(notification.requestAt + notification.timeInMs).toLocaleString();
+					const eta = new Date(notification.requestAt + notification.timeInMs);
+					const etaStr = mModules.getUtils().dateToLocalString(eta);
 					console.log("[CDE] Notification:Other:ETA:", notification.label, etaStr);
 				}
 			})

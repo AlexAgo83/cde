@@ -129,9 +129,9 @@ export function collectBasics() {
 	const daysPlayed = Math.floor((now.getTime() - creation.getTime()) / (1000 * 60 * 60 * 24));
 	return {
 		general: {
-			currentTime: now.toLocaleString(),
+			currentTime: mods.getUtils().dateToLocalString(now),
 			daysPlayed,
-			creationDate: creation.toLocaleString(),
+			creationDate: mods.getUtils().dateToLocalString(creation),
 			character: _game().characterName,
 			gameMode: _game().currentGamemode.localID,
 			version: _game().lastLoadedGameVersion

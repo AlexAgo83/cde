@@ -239,7 +239,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		if (isCfg(Stg().GENERATE_DIFF)) {
 			const lastExport = mods.getLocalStorage().getLastExportFromStorage();	
 			const charName = _game().characterName || "Unknown";
-			const exportTime = new Date().toLocaleString();
+			const exportTime = mods.getUtils().dateToLocalString(new Date());
 			const header = `🧾 Changelog for: ${charName} — ${exportTime}`;
 			if (lastExport) {
 				changesData = [header, ...mods.getUtils().deepDiff(lastExport, copy)];

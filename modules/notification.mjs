@@ -170,7 +170,7 @@ function loadBuilder(builder, withPoupup=false) {
     logger("Loading Builder", "loadBuilder", "(Call)registerNotify", newNotif, builder.timeInMs);
     registerNotify(newNotif, builder.timeInMs);
     if (withPoupup) {
-        const etaStr = new Date(builder.requestAt + builder.timeInMs).toLocaleString();
+        const etaStr = mods.getUtils().dateToLocalString(new Date(builder.requestAt + builder.timeInMs));
         mods.getViewer().popupSuccess('Timer set to: ' + etaStr);
     }
     return builder;
@@ -544,7 +544,7 @@ export function displayNotification() {
         notifs.forEach((notif) => {
             const mediaImg = notif.media ? `<img class="skill-media skill-media-short" src="${notif.media}" />` : `<span class="skill-media"></span>`;
             // const etaStr = mods.getUtils().formatDuration(notif.eta, "span-notif-fade");
-            const etaStr = notif.eta ? notif.eta.toLocaleString() : "N/A";
+            const etaStr = notif.eta ? mods.getUtils().dateToLocalString(notif.eta) : "N/A";
             result.push(`<div class="cde-generic-panel cde-notif-panel">
                 <span class="skill-label span-notif vph-tiny">⏰</span>
                 ${mediaImg}

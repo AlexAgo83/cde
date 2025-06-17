@@ -674,3 +674,28 @@ export function logger(label, step, className, func, action, ...args) {
         console.log(raw, ...args);
     }
 }
+
+/**
+ * Converts a Date object to a localized string, using the user's locale.
+ * Falls back to the browser's default locale if unable to determine the user's locale.
+ * @param {Date} date - The date to convert.
+ * @returns {string|null} The localized string representation of the date.
+ */
+export function dateToLocalString(date) {
+	if (!date) return null;
+	try {
+		let userLocale = navigator.language 
+			// @ts-ignore
+			|| navigator.userLanguage;
+		if (!userLocale) {
+			const locales = navigator.languages;
+			if (locales && locales.length > 0) {
+				userLocale = locales[0];
+			}
+		}
+		if (userLocale) return date.toLocaleString(userLocale);
+	} catch (error) {
+		if (mods.getSettings().isDebug()) console.warn("Can't parse date", error);
+	}
+	return date.toLocaleString();
+}

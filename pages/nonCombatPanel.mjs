@@ -521,7 +521,7 @@ export function createInstance(innerType) {
 
                             /* ETA Flat */
                             const etaTime = new Date(actionInterval+dr.currTime.getTime());
-                            pActionIntervalEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
+                            pActionIntervalEta += `<span class="skill-value vph vph-tiny vph-mastery">${mods.getUtils().dateToLocalString(etaTime) ?? "N/A"}</span>`;
 
                             /* ETA Flat Notif */
                             if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
@@ -551,7 +551,7 @@ export function createInstance(innerType) {
 
                             /* ETA Preserv */
                             const etaTime = new Date(actionIntervalPres+dr.currTime.getTime());
-                            pActionIntervalPresEta += `<span class="skill-value vph vph-tiny vph-mastery">${etaTime.toLocaleString() ?? "N/A"}</span>`;
+                            pActionIntervalPresEta += `<span class="skill-value vph vph-tiny vph-mastery">${mods.getUtils().dateToLocalString(etaTime) ?? "N/A"}</span>`;
 
                             /* ETA Preserv Notif */
                             if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
