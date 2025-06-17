@@ -51,12 +51,13 @@
 // Stage 28 - Notification
 
 // === Plan to 2.2.X ===
-// Stage 29 - Agility ETA
-// Stage 30 - Improve Summoning ETA
-// Stage 31 - Cartography Paper Please!
+// Stage 29 - Shared Notification
+// Stage 30 - Agility ETA
+// Stage 31 - Improve Summoning ETA
+// Stage 32 - Cartography Paper Please!
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.134";
+const MOD_VERSION = "v2.1.137";
 
 // --- Module Imports ---
 let mModules = null;
@@ -177,9 +178,9 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 		/**
 		 * Debug function to print the current notification storage data.
 		 * It displays the current player notification and all other player notifications.
-		 * @function debugNotification_readStorage
+		 * @function debugNotif_readStorage
 		 */
-		debugNotification_readStorage: () => {
+		debugNotif_readStorage: () => {
 			// ############	DEBUG NOTIFICATION ############
 			console.log("[CDE] Notification:Player:", mModules.getCloudStorage().getPlayerPendingNotification());
 			const otherData = mModules.getCloudStorage().getOtherPlayerPendingNotifications();
@@ -192,9 +193,9 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 		/**
 		 * Debug function to print the current ETA for player notifications.
 		 * It displays the current player notification and all other player notifications.
-		 * @function debugNotification_readETA
+		 * @function debugNotif_readETA
 		 */
-		debugNotification_readETA: () => {
+		debugNotif_readETA: () => {
 			// ############	DEBUG NOTIFICATION ############
 			const pNotif = mModules.getCloudStorage().getPlayerPendingNotification();
 			if (pNotif
@@ -218,6 +219,52 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 					console.log("[CDE] Notification:Other:ETA:", notification.label, etaStr);
 				}
 			})
+		},
+
+		/**
+		 * Debug function to inject sample data into the notification storage.
+		 * The data consists of 6 sample notifications with different requestAt and timeInMs values,
+		 * allowing for testing of the notification ETA display.
+		 * The injected data is as follows:
+		 * - Joe: already past
+		 * - Max: now ?
+		 * - Denver: now ?
+		 * - Jack: in the future
+		 * - Steve: in the future
+		 * - Marc: in the future
+		 * @function debugNotif_injectData
+		 */
+		debugNotif_injectData: () => {
+			// ############	DEBUG NOTIFICATION ############
+			const now = Date.now();
+			const ms01min = 60 * 1000;
+			const ms05min =  5 * ms01min;
+			const ms10min = 10 * ms01min;
+			const ms20min = 20 * ms01min;
+			const ms30min = 30 * ms01min;
+
+			const objMaker = (num) => {
+				return {
+					desc:"desc_test_"+num,
+					label:"label_test_"+num,
+					media:"https://cdn2-main.melvor.net/assets/media/main/logo_no_text.png"
+				};
+			}
+
+			const fakePendingNotification = {
+				/* already past */
+				Joe: {...objMaker(1), requestAt:(now - ms30min), timeInMs:0},
+
+				/* now ? */
+				Max: {...objMaker(2), requestAt:(now - ms30min), timeInMs:ms20min},
+				Denver: {...objMaker(3), requestAt:(now - ms05min), timeInMs:ms05min},
+				
+				/* in the future */
+				Jack: {...objMaker(4), requestAt:(now - ms20min), timeInMs:ms20min+ms01min},
+				Steve: {...objMaker(5), requestAt:(now - ms10min), timeInMs:ms20min+ms05min},
+				Marc: {...objMaker(6), requestAt:(now - ms10min), timeInMs:ms20min+ms10min}
+			};
+			mModules.getCloudStorage().setPendingNotification(fakePendingNotification);
 		}
 	});
 }

@@ -85,10 +85,25 @@ function registerNotify(newNotification, when=0) {
 function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_ICON) {
     return () => {
         if (mods.getSettings().isDebug()) console.log("[CDE] Notification:newNotificationCb:execute", notifLabel, notifDescription, media);
-        return new Notification(notifLabel, {
-            body: notifDescription,
-            icon: media
-        });
+
+        if (isRequestPermissionAllowed()) {
+            /* Native notification */
+            return new Notification(
+                notifLabel, {
+                    body: notifDescription,
+                    icon: media
+                }
+            );
+        }
+        
+        /* Ingame notification */
+        const popupTitre = notifLabel;
+        let popupHtml = `<div class="cde-generic-panel cde-notif-panel">`;
+        popupHtml += `<span class="ignotif">⏰</span>`;
+        popupHtml += `<img class="ignotif-media" src="${media}" />`;
+        popupHtml += `<span class="ignotif">${notifDescription}</span>`;
+        popupHtml += `</div>`;
+        return mods.getViewer().popupSuccess(popupTitre, popupHtml);
     }
 }
 
@@ -148,11 +163,15 @@ function loadBuilder(builder, withPoupup=false) {
 
 /**
  * Saves the current notification builder to cloud storage.
- * @private
+ * If the ETA notification sharing setting is enabled, the builder is saved as a pending notification for the current character.
+ * If the builder is null, any pending notification for the current character is removed.
  */
 function saveBuilder() {
     mods.getCloudStorage().setCurrentNotification(_builder);
-    if (isCfg(Stg().ETA_SHARED_NOTIFY)) mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
+    if (isCfg(Stg().ETA_SHARED_NOTIFY)) {
+        if (_builder) mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
+        else mods.getCloudStorage().removePlayerPendingNotification();
+    }   
 }
 
 /**
@@ -220,9 +239,10 @@ export function createButton(buttonId) {
  *
  * @param {string} buttonId - The unique identifier for the notification button.
  * @param {object} dataObject - An object containing data for the notification.
- * @param {string} dataObject.etaName - The name of the crafting action.
- * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
  * @param {boolean} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete.
+ * @param {string} dataObject.etaName - The name of the crafting action.
+ * @param {string} dataObject.media - The delay in milliseconds for notification display.
+ * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
  */
 export function registerButton(buttonId, dataObject, customClickCallback=null) {
     registeredNotifications.set(buttonId, {
@@ -256,10 +276,10 @@ export function onClick(buttonId, dataObject=null) {
  * Automatically triggers all registered notifications with an etaName matching the given dataObject.
  * This is called when an action is nearly complete.
  * @param {object} dataObject - An object containing data for the notification.
- * @param {string} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete. 
+ * @param {boolean} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete. 
  * @param {string} dataObject.etaName - The name of the crafting action.
  * @param {string} dataObject.media - The media associated with the notification.
- * @param {string} dataObject.timeInMs - The delay in milliseconds for notification display.
+ * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
  */
 export function onAutoNotify(dataObject) {
     if (dataObject === null 
@@ -330,13 +350,29 @@ export function load(ctx) {
 }
 
 /**
+ * Returns true if the user has already granted notification permission, false otherwise.
+ * @returns {boolean} True if permission is granted, false otherwise.
+ */
+export function isPermissionGranted() {
+    return _permGranted
+}
+
+/**
+ * Checks if the browser supports the `requestPermission` method for the Notification API.
+ * @returns {boolean} True if the method is supported, false otherwise.
+ */
+export function isRequestPermissionAllowed() {
+    return 'Notification' in window && 'requestPermission' in Notification;
+}
+
+/**
  * Requests notification permission from the user.
  * If permission is granted, executes the provided onSuccess callback.
  * Logs the permission result if debug mode is enabled.
  * @param {Function} onSuccess - The callback to execute if permission is granted.
  */
 export function requestPermission(onSuccess, onFail=() => {}) {
-    if (!_permGranted || mods.getUtils().iOS()) {
+    if (isRequestPermissionAllowed() && !isPermissionGranted()) {
         Notification.requestPermission().then(permission => {
             if (permission === "granted") {
                 _permGranted = true;
@@ -344,10 +380,12 @@ export function requestPermission(onSuccess, onFail=() => {}) {
                 onSuccess();
             } else {
                 _permGranted = false;
-                if (mods.getSettings().isDebug()) console.log("[CDE] Notification:permission not granted");
+                if (mods.getSettings().isDebug()) console.warn("[CDE] Notification:permission not granted");
+                onFail();
             }
         });
     } else {
+        /* Force onSuccess, permission is already granted or native notification system not allowed */
         onSuccess();
     }
 }
@@ -398,7 +436,6 @@ export const handleOnCheck = (key, builder) => {
     }
 }
 
-
 /**
  * Checks shared notifications for all players and triggers the provided callback for each.
  * Ensures that notifications are not checked more frequently than once per second.
@@ -416,6 +453,7 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
     if (!onCheck || typeof onCheck !== "function") return;
     if (isCfg(Stg().ETA_NOTIFICATION)
         && isCfg(Stg().ETA_SHARED_NOTIFY)) {
+        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:checkSharedNotification:startRoutine");
         const sharedBuilder = mods.getCloudStorage().getOtherPlayerPendingNotifications();
         if (Object.keys(sharedBuilder).length > 0) {
             Object.keys(sharedBuilder).forEach((key) => {
@@ -426,7 +464,6 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
     }
     _lastChecked = time;
 }
-
 
 /**
  * Returns an array of strings representing the notifications to be displayed in the notification panel.

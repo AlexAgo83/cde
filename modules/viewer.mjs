@@ -89,6 +89,7 @@ export function load(ctx) {
  *
  * @param {string} titleStr - The title text to display in the popup.
  * @param {string|null} [content=null] - Optional HTML content for the popup. If provided, a modal popup is shown with a "Close" button. If not provided, a toast notification is shown.
+ * @returns {Object} The SweetAlert2 popup data object.
  */
 export function popupSuccess(titleStr, content = null) {
   const popup = {
@@ -106,6 +107,7 @@ export function popupSuccess(titleStr, content = null) {
     popup.timer = 1200;
   }
   _Swal().fire(popup);
+  return popup;
 }
 
 /**

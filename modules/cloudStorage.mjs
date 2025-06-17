@@ -261,7 +261,7 @@ function getPendingNotification() {
  * Stores the given pending notification data in account storage.
  * @param {*} pendingNotification - The pending notification data to store.
  */
-function setPendingNotification(pendingNotification)  {
+export function setPendingNotification(pendingNotification)  {
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] Pending notification changed:"+pendingNotification);
 	}
