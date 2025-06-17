@@ -264,24 +264,35 @@ export function createButton(buttonId) {
     return `<span class="btn-info m-1 cde-eta-btn clickable" title="New ETA Notification" id="${buttonId}">⏰</span>`;
 }
 
+
 /**
  * Registers a notification button with an associated onClick event handler.
- * The handler is created using the provided dataObject and is stored in the
- * registeredNotifications map with the specified buttonId as the key.
- *
+ * The handler is stored in the registeredNotifications map with the specified
+ * buttonId as the key.
+ * @param {string} buttonId - The unique identifier for the notification button.
+ * @param {object} actionObject - An object containing data for the notification.
+ * @returns {object} The registered notification action object.
+ */
+export function registerButton(buttonId, actionObject) {
+    registeredNotifications.set(buttonId, actionObject);
+    return registeredNotifications.get(buttonId);
+}
+
+/**
+ * Creates a click action object for a notification button.
+ * The object contains the buttonId, associated dataObject and a click event handler.
+ * If customClickCallback is null or undefined, the default onNotifyAction is used.
  * @param {string} buttonId - The unique identifier for the notification button.
  * @param {object} dataObject - An object containing data for the notification.
- * @param {boolean} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete.
- * @param {string} dataObject.etaName - The name of the crafting action.
- * @param {string} dataObject.media - The delay in milliseconds for notification display.
- * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
+ * @param {Function|null} [customClickCallback=null] - A custom click event handler.
+ * @returns {object} The click action object.
  */
-export function registerButton(buttonId, dataObject, customClickCallback=null) {
-    registeredNotifications.set(buttonId, {
+export function createClickAction(buttonId, dataObject, customClickCallback=null) {
+    return {
+        id: buttonId,
         data: dataObject, 
         event: customClickCallback ?? onNotifyAction
-    });
-    return registeredNotifications.get(buttonId);
+    };
 }
 
 /**
@@ -325,6 +336,7 @@ export function onAutoNotify(dataObject) {
         || dataObject.timeInMs === undefined) return;
     if (isCfg(Stg().ETA_NOTIFICATION) === false) return;
     if (isCfg(Stg().ETA_AUTO_NOTIFY) === false) return;
+    let lFound = false;
     registeredNotifications.forEach((object, buttonId) => {
         if (object 
             && object.data 
@@ -332,8 +344,10 @@ export function onAutoNotify(dataObject) {
             && object.data?.etaName === dataObject.etaName) {
             logger("Auto Notify", "onAutoNotify", "(Call)onClick", buttonId, dataObject);
             onClick(buttonId, dataObject);
+            lFound = true;
         }
     })
+    logger("Auto Notify", "onAutoNotify", "Auto notify was called with success, found: " + lFound, dataObject);
 }
 
 /**

@@ -71,6 +71,23 @@ export function load(ctx) {
 }
 
 /**
+ * Logs a debug message if the 'isDebug' setting is enabled.
+ *
+ * The message is prefixed with "[CDE/" + label + "] [Step: " + step + "] (" + func + ")".
+ * If arguments are provided, ", args:" is appended to the prefix and the arguments are logged
+ * after the prefix.
+ *
+ * @param {string} label - The label for the debug message.
+ * @param {string} step - The step for the debug message.
+ * @param {string} from - The starting position of the logged block.
+ * @param {string} to - The ending position of the logged block.
+ * @param {...*} args - The arguments to log.
+ */
+function logger(label, step, from, to, ...args) {
+    mods.getUtils().logger(label, step, "combatPanel", from, to, ...args);
+}
+
+/**
  * Sets the callback function used to collect ETA data for this panel.
  * @param {*} cb - Callback function that extracts ETA data.
  */

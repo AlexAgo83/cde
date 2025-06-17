@@ -425,6 +425,7 @@ function onStop() {
     mods.getCollector().clearMutable();
     mods.getCloudStorage().removeCurrentMonsterData();
     mods.getCloudStorage().removeCurrentActivityData();
+    
     logger("Notif", "Stop", "doWorker:onStop", "getNotification().clearNotify");
     mods.getNotification().clearNotify(true);
 }

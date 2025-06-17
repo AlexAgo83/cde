@@ -70,6 +70,24 @@ export function createInstance(innerType) {
             return mods.getSettings()?.isCfg(reference);
         },
 
+
+        /**
+         * Logs a debug message if the 'isDebug' setting is enabled.
+         *
+         * The message is prefixed with "[CDE/" + label + "] [Step: " + step + "] (" + func + ")".
+         * If arguments are provided, ", args:" is appended to the prefix and the arguments are logged
+         * after the prefix.
+         *
+         * @param {string} label - The label for the debug message.
+         * @param {string} step - The step for the debug message.
+         * @param {string} from - The starting position of the logged block.
+         * @param {string} to - The ending position of the logged block.
+         * @param {...*} args - The arguments to log.
+         */
+        logger(label, step, from, to, ...args) {
+            mods.getUtils().logger(label, step, "nonCombatPanel", from, to, ...args);
+        },
+
         /**
          * Sets the callback function used to collect ETA data for this panel.
          * @param {*} cb 
@@ -151,10 +169,10 @@ export function createInstance(innerType) {
                     const currentButton = registeredButtons.get(buttonId);
                     /* Request notify if time is over 5s and auto-notify is enabled */
                     if (currentButton.data.autoNotify && currentButton.data.timeInMs > minTimeInMs) {
-                        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:autoNotify:match="+buttonId, currentButton.data);
+                        this.logger("Notif", "Auto Notif", "autoNotify", "(Call)onClick", buttonId, currentButton.data);
                         currentButton.event(currentButton.data, false);
                     } else {
-                        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:autoNotify:invalide="+buttonId, currentButton.data);
+                        this.logger("Notif", "Auto Notif", "autoNotify", "Invalide data", buttonId, currentButton.data);
                     }
             }
         },
@@ -527,13 +545,14 @@ export function createInstance(innerType) {
                             if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
                                 const buttonHtml = mods.getNotification().createButton(etaFlatButtonId);
                                 pActionIntervalEta += `${buttonHtml}`;
-                                const registeredObject = mods.getNotification().registerButton(
-                                    etaFlatButtonId, 
+                                const clickAction = mods.getNotification().createClickAction(
+                                    etaFlatButtonId,
                                     mods.getNotification().newDataObject(notifyLabel, notifyMedia, actionInterval, true));
+                                const registeredObject = mods.getNotification().registerButton(etaFlatButtonId, clickAction);
                                 /* Register if auto notify is enabled */
                                 if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
                                     dr.registeredNotify.set(etaFlatButtonId, registeredObject);
-                                    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:etaButton:added:"+etaFlatButtonId, registeredObject);
+                                    this.logger("Notif", "Register", "onRefreshMastery", "etaButton:added, buttonId:" + etaFlatButtonId, registeredObject);
                                 }
                             }
                         }
@@ -557,13 +576,14 @@ export function createInstance(innerType) {
                             if (self.isCfg(self.Stg().ETA_NOTIFICATION)) {
                                 const buttonHtml = mods.getNotification().createButton(etaPresButtonId);
                                 pActionIntervalPresEta += ` ${buttonHtml}`;
-                                const registeredObject = mods.getNotification().registerButton(
+                                const clickAction = mods.getNotification().createClickAction(
                                     etaPresButtonId, 
                                     mods.getNotification().newDataObject(notifyLabel, notifyMedia, actionIntervalPres, true));
+                                const registeredObject = mods.getNotification().registerButton(etaPresButtonId, clickAction);
                                 /* Register if auto notify is enabled */
                                 if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
                                     dr.registeredNotify.set(etaPresButtonId, registeredObject);
-                                    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:etaButton:added:"+etaPresButtonId, registeredObject);
+                                    this.logger("Notif", "Auto Notif", "onRefreshMastery", "Button registered, buttonId:" + etaPresButtonId, registeredObject);
                                 }
                             }
                         }
