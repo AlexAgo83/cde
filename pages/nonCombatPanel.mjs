@@ -134,24 +134,6 @@ export function createInstance(innerType) {
             return `<div class="cde-${identity}-panel cde-eta-generic"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
         },
 
-
-        /**
-         * Creates a new dataObject for a non-combat panel.
-         * @param {string} label - The notification title.
-         * @param {string} media - The notification icon URL.
-         * @param {number} timeInMs - The delay in milliseconds for notification display.
-         * @param {boolean} [autoNotify=false] - Whether to automatically notify when the action is nearly complete.
-         * @returns {object} The new dataObject.
-         */
-        newDataObject(label, media, timeInMs, autoNotify=false) {
-            return {
-                etaName: label, 
-                media: media, 
-                timeInMs: timeInMs,
-                autoNotify: autoNotify
-            };
-        },
-
         /**
          * Auto-notify for the given buttonId in the registeredButtons map.
          * Checks if the ETA notification and auto-notify settings are enabled.
@@ -164,7 +146,8 @@ export function createInstance(innerType) {
         autoNotify(registeredButtons, buttonId, minTimeInMs=5000) {
             if (this.isCfg(this.Stg().ETA_NOTIFICATION) 
                 && this.isCfg(this.Stg().ETA_AUTO_NOTIFY)
-                && buttonId && registeredButtons.has(buttonId)) {
+                && buttonId 
+                && registeredButtons.has(buttonId)) {
                     const currentButton = registeredButtons.get(buttonId);
                     /* Request notify if time is over 5s and auto-notify is enabled */
                     if (currentButton.data.autoNotify && currentButton.data.timeInMs > minTimeInMs) {
@@ -546,7 +529,7 @@ export function createInstance(innerType) {
                                 pActionIntervalEta += `${buttonHtml}`;
                                 const registeredObject = mods.getNotification().registerButton(
                                     etaFlatButtonId, 
-                                    this.newDataObject(notifyLabel, notifyMedia, actionInterval, true));
+                                    mods.getNotification().newDataObject(notifyLabel, notifyMedia, actionInterval, true));
                                 /* Register if auto notify is enabled */
                                 if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
                                     dr.registeredNotify.set(etaFlatButtonId, registeredObject);
@@ -576,7 +559,7 @@ export function createInstance(innerType) {
                                 pActionIntervalPresEta += ` ${buttonHtml}`;
                                 const registeredObject = mods.getNotification().registerButton(
                                     etaPresButtonId, 
-                                    this.newDataObject(notifyLabel, notifyMedia, actionIntervalPres, true));
+                                    mods.getNotification().newDataObject(notifyLabel, notifyMedia, actionIntervalPres, true));
                                 /* Register if auto notify is enabled */
                                 if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
                                     dr.registeredNotify.set(etaPresButtonId, registeredObject);

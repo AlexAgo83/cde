@@ -66,7 +66,7 @@ function registerNotify(newNotification, when=0) {
     /* If a notification is already pending, remove it */
     if (_internalTimer) {
         logger("New notif", "registerNotify", "Internal timer already found, ask for clear!");
-        clearNotify();
+        clearNotify(false);
     }
     _notify = newNotification;
 
@@ -78,7 +78,7 @@ function registerNotify(newNotification, when=0) {
             /* Display the notification */
             const notif = _notify();
             /* Clean up */
-            clearNotify();
+            clearNotify(true);
         }
     }, when);
     logger("New notif", "registerNotify", "State of timer & notify:", _notify, _internalTimer);
@@ -223,12 +223,14 @@ function initBuilder(dataObject) {
     return notifBuilder;
 }
 
+
 /**
- * Cancels any pending notifications.
- * If a notification was previously registered using registerNotify, this method
- * will prevent it from being shown.
+ * Resets the internal timer and clears the current notification (if any).
+ * If `withBuilder` is true, also resets the current notification builder.
+ * Saves the new state to cloud storage.
+ * @param {boolean} [withBuilder=true] - Whether to reset the current notification builder.
  */
-export function clearNotify() {
+export function clearNotify(withBuilder=true) {
     let lChange = false;
     if (_internalTimer) {
         clearTimeout(_internalTimer);
@@ -238,11 +240,18 @@ export function clearNotify() {
     }
     if (_notify) {
         _notify = null;
-        saveBuilder();
         lChange = true;
         logger("Clear", "clearNotify", "Notification reset!");
     }
-    if (lChange) logger("Clear", "clearNotify", "clear was called with success!");
+    if (withBuilder && _builder) {
+        _builder = null;
+        lChange = true;
+        logger("Clear", "clearNotify", "Builder reset!");
+    }
+    if (lChange) {
+        saveBuilder();
+        logger("Clear", "clearNotify", "clear was called with success!");
+    }
 }
 
 /**
@@ -547,4 +556,21 @@ export function displayNotification() {
     }
     
     return result;
+}
+
+/**
+ * Creates a new dataObject for a non-combat panel.
+ * @param {string} label - The notification title.
+ * @param {string} media - The notification icon URL.
+ * @param {number} timeInMs - The delay in milliseconds for notification display.
+ * @param {boolean} [autoNotify=false] - Whether to automatically notify when the action is nearly complete.
+ * @returns {object} The new dataObject.
+ */
+export function newDataObject(label, media, timeInMs, autoNotify=false) {
+    return {
+        etaName: label, 
+        media: media, 
+        timeInMs: timeInMs,
+        autoNotify: autoNotify
+    };
 }

@@ -426,7 +426,7 @@ function onStop() {
     mods.getCloudStorage().removeCurrentMonsterData();
     mods.getCloudStorage().removeCurrentActivityData();
     logger("Notif", "Stop", "doWorker:onStop", "getNotification().clearNotify");
-    mods.getNotification().clearNotify();
+    mods.getNotification().clearNotify(true);
 }
 
 /**
@@ -725,4 +725,3 @@ export function setCollectCb(cb) {
         else console.log("[CDE] Page error", m);
     });
 }
-
