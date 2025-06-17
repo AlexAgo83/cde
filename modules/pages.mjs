@@ -203,6 +203,9 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
 
         /** Refresh & update visibility */
         try {
+            /* Soft-refresh shared notification */
+            softRefreshSharedNotification();
+            /* Run onRefresh */
             updated = panel.onRefresh(etaSize);
             if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh("+etaSize+"):"+localID+" -> "+updated);
         } catch (error) {
@@ -210,17 +213,6 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         }
         if (updated != null) {
             panel.show(updated);
-            if (updated) {
-                /* Try to soft-refresh shared notifications */
-                try {
-                    const tickShared = mods.getNotification().handleOnCheck;
-                    logger("Notif", "Check Shared triggered", "doWorker:updated=true", "getNotification().checkSharedNotification", tickShared);
-                    mods.getNotification().checkSharedNotification(tickShared);
-                } catch (error) {
-                    console.error("[CDE] doWorker:checkSharedNotification:" + localID, error);
-                    logger("Notif", "Check Shared triggered", "doWorker:checkSharedNotification", "error with localID("+localID+")", error);
-                }
-            }
         }
         if (typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
@@ -228,6 +220,21 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         }
     } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Can't execute refresh:"+localID, panel);
     return updated;
+}
+
+/**
+ * Soft-refreshes shared notifications by calling the handleOnCheck callback.
+ * @function
+ */
+function softRefreshSharedNotification() {
+    /* Try to soft-refresh shared notifications */
+    try {
+        const tickShared = mods.getNotification().handleOnCheck;
+        logger("Notif", "Check Shared triggered", "doWorker:updated=true", "getNotification().checkSharedNotification", tickShared);
+        mods.getNotification().checkSharedNotification(tickShared);
+    } catch (error) {
+        console.error("[CDE] doWorker:checkSharedNotification:", error);
+    }
 }
 
 /**
@@ -557,7 +564,12 @@ function pageContainer(targetPage, identifier, currPanel) {
 
                 /* Notification */
                 logger("Notif", "Click", "pageContainer", "getNotification().onClick", id);
-                mods.getNotification().onClick(id);
+                if (mods.getNotification().onClick(id)) {
+                    /* Soft-refresh shared notification */
+                    softRefreshSharedNotification();
+                    /* Refresh current panel */
+                    currPanel.onRefresh(etaSize);
+                }
             }
         });
 
@@ -696,6 +708,7 @@ function initObservers(etaDisplay = false, connect = false) {
         }
     }
 }
+
 /**
  * Enables or disables all registered page observers based on the provided value.
  * If value is falsy, disconnects all observers. If value is truthy and no observers exist, initializes them.

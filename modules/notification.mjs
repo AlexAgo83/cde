@@ -303,20 +303,23 @@ export function createClickAction(buttonId, dataObject, customClickCallback=null
  */
 export function onClick(buttonId, dataObject=null) {
     logger("Click", "onClick", "Something trigger onClick with buttonId: " + buttonId + "!", dataObject);
+    let lResult = false;
     if (buttonId && registeredNotifications.has(buttonId)) {
         const object = registeredNotifications.get(buttonId);
         if (object) {
             /* Surcharge the data object */
             const data = dataObject ? dataObject : object.data;
+            /* default: onNotifyAction */
             const callback = object.event;
             if (data && callback) {
                 logger("Click", "onClick", "callBack (Id: " + buttonId + " match with button)", data);
-                callback(data);
+                lResult = callback(data);
             }
         }
     } else {
         logger("Click", "onClick", "No button found for id: " + buttonId + "!", dataObject);
     }
+    return lResult;
 }
 
 /**
@@ -327,15 +330,16 @@ export function onClick(buttonId, dataObject=null) {
  * @param {string} dataObject.etaName - The name of the crafting action.
  * @param {string} dataObject.media - The media associated with the notification.
  * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
+ * @returns {boolean} True if a notification was triggered, false otherwise.
  */
 export function onAutoNotify(dataObject) {
     if (dataObject === null 
         || dataObject === undefined 
         || dataObject.etaName === undefined 
         || dataObject.media === undefined
-        || dataObject.timeInMs === undefined) return;
-    if (isCfg(Stg().ETA_NOTIFICATION) === false) return;
-    if (isCfg(Stg().ETA_AUTO_NOTIFY) === false) return;
+        || dataObject.timeInMs === undefined) return false;
+    if (isCfg(Stg().ETA_NOTIFICATION) === false) return false;
+    if (isCfg(Stg().ETA_AUTO_NOTIFY) === false) return false;
     let lFound = false;
     registeredNotifications.forEach((object, buttonId) => {
         if (object 
@@ -343,11 +347,11 @@ export function onAutoNotify(dataObject) {
             && object.data.autoNotify 
             && object.data?.etaName === dataObject.etaName) {
             logger("Auto Notify", "onAutoNotify", "(Call)onClick", buttonId, dataObject);
-            onClick(buttonId, dataObject);
-            lFound = true;
+            lFound = onClick(buttonId, dataObject);
         }
     })
     logger("Auto Notify", "onAutoNotify", "Auto notify was called with success, found: " + lFound, dataObject);
+    return lFound;
 }
 
 /**
