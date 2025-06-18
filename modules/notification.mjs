@@ -576,6 +576,15 @@ export function displayNotification() {
     })
 
     if (notifs && notifs.length > 0) {
+        /* Start sort array of notifs */
+        let order = "asc";
+        let newArraysSorted = notifs.sort((a, b) => {
+            return order === "asc" ?
+                    a.eta.getTime() - b.eta.getTime() : 
+                    b.eta.getTime() - a.eta.getTime();
+            return 0;
+        });
+
         /** PRINT SHARED NOTIFICATION */
         notifs.forEach((notif) => {
             const mediaImg = notif.media ? `<img class="skill-media skill-media-short" src="${notif.media}" />` : `<span class="skill-media"></span>`;
