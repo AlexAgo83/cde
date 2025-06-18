@@ -634,7 +634,7 @@ export function displayNotification() {
                 ${mediaImg}
                 <span class="skill-label span-notif vph-tiny">${notif.player}</span>
                 <span class="skill-label"> ➜ </span>
-                <span class="skill-label span-notif vph-tiny">${etaStr}</span>
+                <span class="skill-label span-notif vph-small">${etaStr}</span>
             </div>`);
         }) 
     }

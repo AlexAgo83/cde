@@ -305,6 +305,7 @@
   }
 }
 
+
 /* ETA PANEL */
 .no-click {
   pointer-events: none;
@@ -362,6 +363,9 @@
 }
 .cde-generic-panel {
   width: fit-content !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
 }
 .cde-eta-wrapper {
   position: relative;
@@ -410,9 +414,11 @@
 }
 .skill-label {
   color: #ffd700;
+  margin-right: 2px;
 }
 .skill-value {
   color: #fff;
+  margin-right: 2px;
 }
 
 /**
@@ -422,15 +428,19 @@
   color: #ff8f8f;
   font-family: inherit;
   font-size: 14px;
+  margin-right: 2px;
 }
 .vph-tiny {
   font-size: 12px;
+  margin-right: 2px;
 }
 .vph-small {
   font-size: 10px;
+  margin-right: 2px;
 }
 .vph-fade {
   color: #ff8f8f87;
+  margin-right: 2px;
 }
 
 /**
@@ -500,12 +510,14 @@
   height: 16px;
   border-radius: 2px;
   margin: 0 4px;
+  margin-right: 2px;
 }
 .skill-media-short {
   height: 16px;
   width: 16px;
   border-radius: 2px;
   margin: 0 0px;
+  margin-right: 2px;
 }
 
 /* Notif */
@@ -518,9 +530,11 @@
 }
 .span-notif {
   color: #ff8ff0;
+  margin-right: 2px;
 }
 .span-notif-fade {
   color: #ff8ff087;
+  margin-right: 2px;
 }
 
 /* Ingame notification */
@@ -536,4 +550,5 @@
   padding-bottom: 6px;
   border-radius: 2px;
   margin: 0 0px;
+  margin-right: 2px;
 }
