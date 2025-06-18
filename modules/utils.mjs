@@ -117,7 +117,13 @@ export function isObject(value) {
  * @param {*} ctx - The context object providing getResourceUrl.
  */
 export function createIconCSS(ctx) {
-	document.head.insertAdjacentHTML("beforeend", `<style>:root {--icon-light: url("${ctx.getResourceUrl("assets/cde-icon-light.png")}");}.darkMode {--icon-dark: url("${ctx.getResourceUrl("assets/cde-icon-dark.png")}");}</style>`);
+	document.head.insertAdjacentHTML(
+		"beforeend", 
+		`<style>:root {--icon-light: url("${
+			ctx.getResourceUrl("assets/cde-icon-light.png")
+		}");}.darkMode {--icon-dark: url("${
+			ctx.getResourceUrl("assets/cde-icon-dark.png")	
+		}");}</style>`);
 }
 
 /**

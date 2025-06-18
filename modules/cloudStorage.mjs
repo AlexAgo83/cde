@@ -5,10 +5,14 @@
 // cloudStorage.mjs
 
 const CS_SETTINGS = "cde-settings";
+
 const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data_X1";
 const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data_X1";
+
 const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
 const CS_CURRENT_ETA_SIZE = "cde_current_eta_size";
+const CS_ETA_VISIBILITY = "cde_visibility";
+
 const CS_CURRENT_NOTIFICATION = "cde_current_notif";
 const AS_PENDING_NOTIFICATION = "cde_pending_notif";
 
@@ -120,6 +124,38 @@ export function removeCurrentMonsterData() {
 		console.log("[CDE] currentMonsterData removed");
 	}
 	cloudStorage?.removeItem(CS_CURRENT_MONSTER_DATA);
+}
+
+/**
+ * Saves the given ETA visibility setting to cloud storage.
+ * @param {boolean} visibility - The boolean value for the ETA visibility setting.
+ * @returns {boolean} The updated ETA visibility setting.
+ */
+export function setEtaVisibility(visibility=true) {
+	if (mods.getSettings().isDebug()) {
+		console.log("[CDE] eta visibility changed:" + visibility);
+	}
+	cloudStorage?.setItem(CS_ETA_VISIBILITY, visibility);
+	return visibility;
+}
+
+/**
+ * Retrieves the ETA visibility setting from cloud storage.
+ * If the setting is not found, it will be set to true.
+ * @returns {boolean} The boolean value for the ETA visibility setting.
+ */
+export function isEtaVisible() {
+	let raw = true;
+	try {
+		const savedRaw = cloudStorage?.getItem(CS_ETA_VISIBILITY);
+		if (typeof savedRaw !== "boolean") {
+			raw = true;
+			setEtaVisibility(true);
+		} else raw = savedRaw;
+	} catch (e) {
+		console.warn("[CDE] Invalid eta visibility data in characterStorage");
+	}
+	return raw;
 }
 
 /**

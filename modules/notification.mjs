@@ -331,7 +331,8 @@ export function clearNotify(withBuilder=true) {
  * @returns {string} The HTML structure for the button.
  */
 export function createButton(buttonId) {
-    return `<span class="btn-info m-1 cde-eta-btn clickable" title="New ETA Notification" id="${buttonId}">⏰</span>`;
+    const pngScheduledId = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_scheduled_id, ["cde-asset-small"]);
+    return `<span class="btn-info m-1 cde-eta-btn clickable" title="New ETA Notification" id="${buttonId}">${pngScheduledId}</span>`;
 }
 
 /**

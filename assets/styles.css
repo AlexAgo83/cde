@@ -13,6 +13,23 @@
   --cde-textfield-interligne: 0.2px;
 }
 
+/** CDE ASSETS **/
+.cde-asset {
+  width: 16px;
+  height: 16px;
+  border-radius: 0px;
+  margin: 0 0px;
+  pointer-events: none;
+  /* filter: invert(19%) sepia(11%) saturate(403%) hue-rotate(176deg) brightness(94%) contrast(92%); */
+}
+.cde-asset-small {
+  width: 12px;
+  height: 12px;
+  border-radius: 0px;
+  margin: 0 0px;
+  pointer-events: none;
+}
+
 /* --- CDE BUTTONS --- */
 .cde {
   width: 16px;
@@ -307,13 +324,18 @@
   }
 }
 
-
 /* ETA PANEL */
+.cde-eta-spacer {
+  flex-grow: 1;
+}
 .no-click {
   pointer-events: none;
 }
 .clickable {
   pointer-events: auto;
+}
+.hide {
+  display: none;
 }
 .cde-eta-summary {
   display: flex !important; 
@@ -324,7 +346,7 @@
   margin-left: 14px;
   margin-right: 20px;
   min-width: 180px;
-  margin-top: 10px;
+  margin-top: 30px;
   margin-bottom: 10px;
 }
 .cde-eta-summary-small {
@@ -342,26 +364,29 @@
   display: flex !important; 
   flex-direction: row !important; 
   align-items: flex-end !important;
-  width: fit-content !important;
+  /* width: fit-content !important; */
+  width: 100%;
   pointer-events: auto;
   position: absolute;
   margin-right: 0px;
   margin-left: 2px;
   margin-top: 0px;
+  padding-right: 2px;
+  padding-left: 2px;
   top: 0; 
   right: 0;
   z-index: 10;
 }
 .cde-eta-btn {
   font-size: 0.6rem;
-  background-color: #caac02;
-  border-radius: .40rem;
-  border-color:#caac02;
+  background-color: #98b6dcc7;
+  border-radius: .20rem;
+  border-color:#92bff7e3;
   justify-content: center;
-  padding-left: 5px;
-  padding-right: 5px;
+  padding-left: 4px;
+  padding-right: 4px;
   padding-top: 2px;
-  padding-bottom: 1px;
+  padding-bottom: 2px;
 }
 .cde-generic-panel {
   width: fit-content !important;
@@ -426,7 +451,9 @@
 .nomargin {
   margin: 0px !important;
 }
-.cde-combat-notification,
+.cde-combat-notification {
+  margin-top: 2px;
+}
 .cde-noncombat-notification {
   margin-top: 2px;
 }
@@ -520,7 +547,7 @@
 }
 
 .cde-combat-panel {
-  margin-bottom: 2px;
+  margin-bottom: 10px;
 }
 /**
  * Generic List

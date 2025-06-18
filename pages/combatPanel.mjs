@@ -290,7 +290,8 @@ export const onRefresh = (etaSize) => {
                         resultTop.push(...resultSkills);
                     }
                 }
-                etaData = `<div class="cde-combat-panel">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}</div><div class="cde-combat-notification">${resultNotification.join("")}</div>`;
+                const showHide = mods.getCloudStorage().isEtaVisible() ? "" : "hide";
+                etaData = `<div id="cde-subwrapper" class="${showHide}"><div class="cde-combat-panel">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}</div><div class="cde-combat-notification">${resultNotification.join("")}</div></div>`;
                 updated = true;
             }
         }

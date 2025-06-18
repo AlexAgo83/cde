@@ -295,7 +295,8 @@ export function createInstance(innerType) {
                             }
                         }
                     });
-                    etaData = `<div class="cde-generic-list">${dr.resultTop.join("")}${dr.resultCenter.join("")}${dr.resultEnd.join("")}</div><div class="cde-noncombat-notification">${dr.resultNotification.join("")}</div>`;
+                    const showHide = mods.getCloudStorage().isEtaVisible() ? "" : "hide";
+                    etaData = `<div id="cde-subwrapper" class="${showHide}"><div class="cde-generic-list">${dr.resultTop.join("")}${dr.resultCenter.join("")}${dr.resultEnd.join("")}</div><div class="cde-noncombat-notification">${dr.resultNotification.join("")}</div></div>`;
                 }
                 parent.innerHTML = self.container(parent, summaryId, identity);
             }

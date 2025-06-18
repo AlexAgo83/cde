@@ -26,7 +26,12 @@
     "assets/styles.css"
   ],
   "resources": [
+    "assets/cde-arrow-left.png",
+    "assets/cde-arrow-right.png",
     "assets/cde-icon-light.png",
-    "assets/cde-icon-dark.png"
+    "assets/cde-icon-dark.png",
+    "assets/cde-reduce.png",
+    "assets/cde-scheduled.png",
+    "assets/cde-visible.png"
   ]
 }

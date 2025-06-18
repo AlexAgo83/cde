@@ -8,6 +8,7 @@ let currModVersion = null;
 let mLZString = null;
 let mSettings = null;
 let mUtils = null;
+let mAssetManager = null;
 let mLocalStorage = null;
 let mCloudStorage = null;
 let mNotification = null;
@@ -28,6 +29,10 @@ export function getSettings() {
 
 export function getUtils() {
     return mUtils;
+}
+
+export function getAssetManager() {
+    return mAssetManager;
 }
 
 export function getLocalStorage() {
@@ -103,6 +108,7 @@ export async function onModuleLoad(ctx, modVersion) {
     // Load Modules :
     mSettings = await ctx.loadModule("modules/settings.mjs");
     mUtils = await ctx.loadModule("modules/utils.mjs");
+    mAssetManager = await ctx.loadModule("modules/assetManager.mjs");
     mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
     mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
     mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
@@ -133,6 +139,9 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
     // Core modules initialization
     mUtils.init(this);
     mLocalStorage.init(this);
+    mAssetManager.init(this);
+
+    // Storage modules initialization
     mCloudStorage.init(this, characterStorage, accountStorage);
     mNotification.init(this);
 
@@ -157,6 +166,9 @@ export async function onViewLoad(ctx) {
     if (mSettings.isDebug()) {
         console.log("[CDE] Warning: debug mode allowed");
     }
+
+    // Load assets
+    mAssetManager.load(ctx);
 
     // Load views
     mViewer.load(ctx);

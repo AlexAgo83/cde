@@ -5,15 +5,13 @@
 // pages.mjs
 
 let mods = null;
+let _lastTick = null;
 let subModules = [];
 let pageObservers = new Map();
 
 /** COMBAT PANEL */
 let combatPanel = null;
 let controlsPanel = null;
-
-let _lastTick = null;
-
 export function getCombatPanel() { return combatPanel; }
 
 /** SKILLS PANEL */
@@ -34,7 +32,6 @@ let astrologyPanel = null;
 let altMagicPanel = null;
 let cartographyPanel = null;
 let archaeologyPanel = null;
-
 export function getWoodcuttingPanel() { return woodcuttingPanel; }
 export function getFishingPanel() { return fishingPanel; }
 export function getFiremakingPanel() { return firemakingPanel; }
@@ -561,10 +558,17 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
  */
 const onControlsPanel = () => {
     if (controlsPanel === null) {
+        const pngVisible    = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_visible_id);
+        const pngArrowLeft  = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_arrowLeft_id);
+        const pngReduce     = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_reduce_id);
+        const pngArrowRight = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_arrowRight_id);
+
         let controls = ``;
-        controls += `<span id="cde-btn-eta-displayLeft" class="btn-info m-1 cde-eta-btn" title="Move ETA left">◄</span>`;
-        controls += `<span id="cde-btn-eta-displaySmall" class="btn-info m-1 cde-eta-btn" title="Toggle ETA size">▼</span>`;
-        controls += `<span id="cde-btn-eta-displayRight" class="btn-info m-1 cde-eta-btn" title="Move ETA right">▶</span>`;
+        controls += `<span id="cde-btn-eta-extra" class="btn-info m-1 cde-eta-btn" title="Extra">${pngVisible}</span>`;
+        controls += `<span class="cde-eta-spacer"></span>`;
+        controls += `<span id="cde-btn-eta-displayLeft" class="btn-info m-1 cde-eta-btn" title="Move ETA left">${pngArrowLeft}</span>`;
+        controls += `<span id="cde-btn-eta-displaySmall" class="btn-info m-1 cde-eta-btn" title="Toggle ETA size">${pngReduce}</span>`;
+        controls += `<span id="cde-btn-eta-displayRight" class="btn-info m-1 cde-eta-btn" title="Move ETA right">${pngArrowRight}</span>`;
         /* Register controls panel */
         controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
     }
@@ -658,6 +662,17 @@ function pageContainer(targetPage, identifier, currPanel) {
                     softRefreshSharedNotification();
                     /* Refresh current panel */
                     currPanel.onRefresh(etaSize);
+                }
+
+                /* Show/Hide */
+                if (id === "cde-btn-eta-extra") {
+                    const currVisibility = mods.getCloudStorage().isEtaVisible();
+                    mods.getCloudStorage().setEtaVisibility(!currVisibility);
+                    // if (corePanel.style.display === "none") {
+                    //     corePanel.style.display = "";
+                    // } else {
+                    //     corePanel.style.display = "none";
+                    // }
                 }
             }
         });
