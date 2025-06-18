@@ -120,6 +120,8 @@ export function loggerNotif(step, from, to, ...args) {
 /* @ts-ignore Handle DEVMODE */
 function _game()  {  return game;  }
 /* @ts-ignore Handle DEVMODE */
+function _GameClass() { return Game; }
+/* @ts-ignore Handle DEVMODE */
 function _ui() { return ui; }
 /* @ts-ignore Handle DEVMODE */
 function _Swal() { return Swal; }
@@ -286,7 +288,7 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
  */
 export function worker(ctx) {
     /** On any game tick */
-    ctx.patch(_game(), 'tick').after(patcher((userPage, isCombat, activeAction, ...args) => {
+    ctx.patch(_GameClass(), 'tick').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:tick registered", args);
         }
