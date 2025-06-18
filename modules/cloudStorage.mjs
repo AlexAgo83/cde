@@ -27,7 +27,6 @@ export function init(modules, characterStorage, accountStorage) {
 	sharedStorage = accountStorage;
 }
 
-
 /**
  * Logs a debug message if the 'isDebug' setting is enabled.
  *
@@ -179,7 +178,7 @@ export function saveSetting(reference, value) {
 		console.error("[CDE] Invalid settings reference:", reference);
 		return null;
 	}
-	const key = CS_SETTINGS + reference.key;
+	const key = CS_SETTINGS + "_" + reference.key;
     const toStore = typeof value === "string" ? value : JSON.stringify(value);
     cloudStorage?.setItem(key, toStore);
 	if (mods.getSettings().isDebug()) {
@@ -230,7 +229,6 @@ export function setCurrentETAPostion(position) {
 export function getCurrentETAPostion() {
 	return cloudStorage?.getItem(CS_CURRENT_ETA_POSITION);
 }
-
 
 /**
  * Stores the current ETA size for the given cursor in cloud storage.
@@ -360,4 +358,21 @@ export function removeOtherPlayerPendingNotification(playerName) {
 		delete pendingNotifications[playerName];
 		setPendingNotification(pendingNotifications);
 	}
+}
+
+
+/**
+ * Returns the cloudStorage object.
+ * @returns {Object} The cloudStorage object.
+ */
+export function debugCloudStorage() {
+	return cloudStorage;
+}
+
+/**
+ * Returns the sharedStorage object.
+ * @returns {Object} The sharedStorage object.
+ */
+export function debugSharedStorage() {
+	return sharedStorage;
 }
