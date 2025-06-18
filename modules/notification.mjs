@@ -59,6 +59,7 @@ function _game() {
 	// @ts-ignore
 	return game;
 }
+
 /**
  * Retrieves the name of the current character from the game.
  * @returns {string} The character's name.
@@ -113,20 +114,21 @@ function registerNotify(newNotification, when=0) {
 
 /**
  * Creates a new callback function for a notification.
- * @param {string} notifLabel - The notification title.
- * @param {string} notifDescription - The notification description.
- * @param {string} [media=URL_MELVORIDLE_ICON] - The notification icon URL.
+ * @param {object} notifBuilder - The notification builder object.
  * @returns {Function} A function that can be executed to display the notification.
  */
-function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_ICON) {
+function newNotificationCb(notifBuilder) {
     return () => {
-        loggerNotif("New notif", "newNotificationCb", "Start to init the notification to display!", notifLabel, notifDescription, media);
+        const notifLabel = createNotifLabel(notifBuilder);
+        const notifDescription = createNotifDesc(notifBuilder);
+        loggerNotif("New notif", "newNotificationCb", "Start to init the notification to display!", notifLabel, notifDescription, notifBuilder.media);
+        
         if (isRequestPermissionAllowed()) {
             /* Native notification */
             const result = new Notification(
                 notifLabel, {
                     body: notifDescription,
-                    icon: media
+                    icon: notifBuilder.media
                 }
             );
             return result;
@@ -135,7 +137,7 @@ function newNotificationCb(notifLabel, notifDescription, media=URL_MELVORIDLE_IC
         /* Ingame notification */
         const popupTitre = notifLabel;
         let popupHtml = `<div class="cde-generic-panel cde-notif-panel">`;
-        popupHtml += `<img class="cde-ignotif-media" src="${media}" />`;
+        popupHtml += `<img class="cde-ignotif-media" src="${notifBuilder.media}" />`;
         popupHtml += `<span class="cde-ignotif">${notifDescription}</span>`;
         popupHtml += `</div>`;
         return mods.getViewer().popupSuccess(popupTitre, popupHtml);
@@ -170,6 +172,7 @@ let onNotifyAction = (dataObject, withPopup=true) => {
 
     loggerNotif("New notif", "onNotifyAction", "End of process...");
 }
+
 /**
  * Surcharge the default onSubmit callback function with a custom callback.
  * @param {*} callback - The custom callback function.
@@ -182,8 +185,8 @@ export function surchargeOnNotify(callback) {
  * Loads a notification builder and schedules the notification for display.
  * Optionally displays a success popup indicating the timer has been set.
  * @param {object} builder - The notification builder object containing properties for the notification.
- * @param {string} builder.label - The notification title.
- * @param {string} builder.desc - The notification description.
+ * @param {string} builder.charName - The name of the character associated with the notification.
+ * @param {string} builder.actionName - The name of the crafting action associated with the notification.
  * @param {string} builder.media - The notification icon URL.
  * @param {number} builder.requestAt - The time in milliseconds when the notification was requested.
  * @param {number} builder.timeInMs - The delay in milliseconds for notification display.
@@ -192,8 +195,8 @@ export function surchargeOnNotify(callback) {
  */
 function loadBuilder(builder, withPoupup=false) {
     _builder = builder;
-    loggerNotif("Loading Builder", "loadBuilder", "(Call)newNotificationCb", builder.label, builder.desc, builder.media);
-    const newNotif = newNotificationCb(builder.label, builder.desc, builder.media);
+    loggerNotif("Loading Builder", "loadBuilder", "(Call)newNotificationCb", builder);
+    const newNotif = newNotificationCb(builder);
     loggerNotif("Loading Builder", "loadBuilder", "(Call)registerNotify", newNotif, builder.timeInMs);
     registerNotify(newNotif, builder.timeInMs);
     if (withPoupup) {
@@ -238,18 +241,58 @@ function initBuilder(dataObject) {
     else timeMs -= 15000;    /* Adjust long time */
 
     const now = Date.now();
-    const notifBuilder = {
-        timeInMs: timeMs,
-        label: `${getCharName()} complete "${dataObject.etaName}" action.`,
-        desc: `Your "${dataObject.etaName}" action is nearly complete.`,
-        media: dataObject.media ?? URL_MELVORIDLE_ICON,
-        requestAt: now
-    };
+    const notifBuilder = newNotifBuilder(getCharName(), dataObject.etaName, dataObject.media, now, timeMs);
     
     loggerNotif("*", "initBuilder", "New builder created:", notifBuilder);
     return notifBuilder;
 }
 
+/**
+ * Creates a new notification builder object.
+ * @param {string} playerName - The name of the character associated with the notification.
+ * @param {string} actionName - The name of the crafting action associated with the notification.
+ * @param {string} media - The media associated with the notification.
+ * @param {number} requestAt - The time in milliseconds when the notification was requested.
+ * @param {number} timeMs - The delay in milliseconds for notification display.
+ * @returns {object} An object with the notification properties (charName, actionName, media, requestAt, timeInMs).
+ */
+function newNotifBuilder(playerName, actionName, media, requestAt, timeMs) {
+    return {
+        charName: playerName,
+        actionName: actionName,
+        media: media ?? URL_MELVORIDLE_ICON,
+        requestAt: requestAt,
+        timeInMs: timeMs
+    };
+}
+
+/**
+ * Creates a label for a notification based on the given builder.
+ * The label indicates the completion of a crafting action for a character.
+ * @param {object} builder - The notification builder object.
+ * @param {string} builder.charName - The name of the character associated with the notification.
+ * @param {string} builder.actionName - The name of the crafting action.
+ * @param {string|null} builder.label - (deprecated) The label of the notification.
+ * @returns {string} A string representing the notification label.
+ */
+
+function createNotifLabel(builder) {
+    if (builder.label) return builder.label; /* Use deprecated label */
+    return `${builder.charName} complete "${builder.actionName}" action.`;
+}
+
+/**
+ * Creates a description for a notification based on the given builder.
+ * The description indicates that the crafting action is nearly complete.
+ * @param {object} builder - The notification builder object.
+ * @param {string} builder.actionName - The name of the crafting action.
+ * @param {string|null} builder.descr - (deprecated) The description of the notification.
+ * @returns {string} A string representing the notification description.
+ */
+function createNotifDesc(builder) {
+    if (builder.descr) return builder.descr; /* Use deprecated description */
+    return `Your "${builder.actionName}" action is nearly complete.`;
+}
 
 /**
  * Resets the internal timer and clears the current notification (if any).
@@ -290,7 +333,6 @@ export function clearNotify(withBuilder=true) {
 export function createButton(buttonId) {
     return `<span class="btn-info m-1 cde-eta-btn clickable" title="New ETA Notification" id="${buttonId}">⏰</span>`;
 }
-
 
 /**
  * Registers a notification button with an associated onSubmit event handler.
@@ -482,8 +524,6 @@ export const defaultOnCheck = (key, builder) => {
 export const handleOnCheck = (key, builder) => {
     loggerNotif("Check Shared", "handleOnCheck", "Starting callback for key: " + key);
     if (builder
-        && builder.hasOwnProperty("desc")
-        && builder.hasOwnProperty("label")
         && builder.hasOwnProperty("media")
         && builder.hasOwnProperty("requestAt")
         && builder.hasOwnProperty("timeInMs")) {
@@ -493,7 +533,7 @@ export const handleOnCheck = (key, builder) => {
 
         if (remainingTime < 0) { /* ... is in the past */
             loggerNotif("Check Shared", "handleOnCheck", "Matching notification to publish, key:" + key, builder, remainingTime);
-            const notif = newNotificationCb(builder.label, builder.desc, builder.media);
+            const notif = newNotificationCb(builder);
             requestPermission(() => {
                 notif();    
             });
