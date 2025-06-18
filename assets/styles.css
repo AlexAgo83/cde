@@ -426,6 +426,10 @@
 .nomargin {
   margin: 0px !important;
 }
+.cde-combat-notification,
+.cde-noncombat-notification {
+  margin-top: 2px;
+}
 
 /**
  * Value vph & duration field

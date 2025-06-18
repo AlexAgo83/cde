@@ -295,7 +295,7 @@ export function createInstance(innerType) {
                             }
                         }
                     });
-                    etaData = `<div class="cde-generic-list">${dr.resultTop.join("")}${dr.resultCenter.join("")}${dr.resultEnd.join("")}${dr.resultNotification.join("")}</div>`;
+                    etaData = `<div class="cde-generic-list">${dr.resultTop.join("")}${dr.resultCenter.join("")}${dr.resultEnd.join("")}</div><div class="cde-noncombat-notification">${dr.resultNotification.join("")}</div>`;
                 }
                 parent.innerHTML = self.container(parent, summaryId, identity);
             }

@@ -290,7 +290,7 @@ export const onRefresh = (etaSize) => {
                         resultTop.push(...resultSkills);
                     }
                 }
-                etaData = `<div class="cde-combat-panel">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}${resultNotification.join("")}</div>`;
+                etaData = `<div class="cde-combat-panel">${resultTop.join("")}${resultCenter.join("")}${resultEnd.join("")}</div><div class="cde-combat-notification">${resultNotification.join("")}</div>`;
                 updated = true;
             }
         }
