@@ -12,6 +12,8 @@ let pageObservers = new Map();
 let combatPanel = null;
 let controlsPanel = null;
 
+let _lastTick = null;
+
 export function getCombatPanel() { return combatPanel; }
 
 /** SKILLS PANEL */
@@ -289,6 +291,10 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
 export function worker(ctx) {
     /** On any game tick */
     ctx.patch(_GameClass(), 'tick').after(patcher((userPage, isCombat, activeAction, ...args) => {
+        const now = Date.now();
+        if (_lastTick && now - _lastTick < 500) return;
+        _lastTick = now;
+
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:tick registered", args);
         }
