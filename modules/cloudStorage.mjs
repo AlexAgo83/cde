@@ -4,7 +4,7 @@
 // @ts-check
 // cloudStorage.mjs
 
-const CS_SETTINGS = "cde_settings";
+const CS_SETTINGS = "cde-settings";
 const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data_X1";
 const CS_CURRENT_ACTIVITY_DATA = "cde_current_activity_data_X1";
 const CS_CURRENT_ETA_POSITION = "cde_current_eta_position";
@@ -178,7 +178,7 @@ export function saveSetting(reference, value) {
 		console.error("[CDE] Invalid settings reference:", reference);
 		return null;
 	}
-	const key = CS_SETTINGS + "_" + reference.key;
+	const key = CS_SETTINGS + "-" + reference.key;
     const toStore = typeof value === "string" ? value : JSON.stringify(value);
     cloudStorage?.setItem(key, toStore);
 	if (mods.getSettings().isDebug()) {
@@ -197,7 +197,7 @@ export function loadSetting(reference) {
 		console.error("[CDE] Invalid settings reference:", reference);
 		return null;
 	}
-	const key = CS_SETTINGS + reference.key;
+	const key = CS_SETTINGS + "-" + reference.key;
     const raw = cloudStorage?.getItem(key);
     try {
 		if (mods.getSettings().isDebug()) {

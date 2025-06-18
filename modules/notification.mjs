@@ -171,7 +171,7 @@ let onNotifyAction = (dataObject, withPopup=true) => {
     loggerNotif("New notif", "onNotifyAction", "End of process...");
 }
 /**
- * Surcharge the default onClick callback function with a custom callback.
+ * Surcharge the default onSubmit callback function with a custom callback.
  * @param {*} callback - The custom callback function.
  */
 export function surchargeOnNotify(callback) {
@@ -293,7 +293,7 @@ export function createButton(buttonId) {
 
 
 /**
- * Registers a notification button with an associated onClick event handler.
+ * Registers a notification button with an associated onSubmit event handler.
  * The handler is stored in the registeredNotifications map with the specified
  * buttonId as the key.
  * @param {string} buttonId - The unique identifier for the notification button.
@@ -311,25 +311,27 @@ export function registerButton(buttonId, actionObject) {
  * If customClickCallback is null or undefined, the default onNotifyAction is used.
  * @param {string} buttonId - The unique identifier for the notification button.
  * @param {object} dataObject - An object containing data for the notification.
- * @param {Function|null} [customClickCallback=null] - A custom click event handler.
+ * @param {Function|null} [customEvent=onNotifyAction] - A custom click event handler.
  * @returns {object} The click action object.
  */
-export function createClickAction(buttonId, dataObject, customClickCallback=null) {
+export function createClickAction(buttonId, dataObject, customEvent=onNotifyAction) {
     return {
         id: buttonId,
         data: dataObject, 
-        event: customClickCallback ?? onNotifyAction
+        event: customEvent ?? onNotifyAction
     };
 }
 
 /**
  * Handles the click event for a notification button.
- * If the buttonId is found in the registeredNotifications map, the associated onClick event handler is called.
+ * If the buttonId is found in the registeredNotifications map, the associated onSubmit event handler is called.
  * @param {string} buttonId - The unique identifier for the notification button.
  * @param {object} dataObject - An object containing data for the notification.
+ * @param {boolean} [withPopup=false] - Whether to show the notification popup.
+ * @returns {boolean} The result of the onSubmit event handler.
  */
-export function onClick(buttonId, dataObject=null) {
-    loggerNotif("Click", "onClick", "Something trigger onClick with buttonId: " + buttonId + "!", dataObject);
+export function onSubmit(buttonId, dataObject=null, withPopup=true) {
+    loggerNotif("Click", "onSubmit", "Something trigger onSubmit with buttonId: " + buttonId + "!", dataObject);
     let lResult = false;
     if (buttonId && registeredNotifications.has(buttonId)) {
         const object = registeredNotifications.get(buttonId);
@@ -339,46 +341,35 @@ export function onClick(buttonId, dataObject=null) {
             /* default: onNotifyAction */
             const callback = object.event;
             if (data && callback) {
-                loggerNotif("Click", "onClick", "callBack (Id: " + buttonId + " match with button)", data);
-                lResult = callback(data);
+                loggerNotif("Click", "onSubmit", "callBack (Id: " + buttonId + " match with button)", data);
+                lResult = callback(data, withPopup);
             }
         }
     } else {
-        loggerNotif("Click", "onClick", "No button found for id: " + buttonId + "!", dataObject);
+        loggerNotif("Click", "onSubmit", "No button found for id: " + buttonId + "!", dataObject);
     }
     return lResult;
 }
 
 /**
- * Automatically triggers all registered notifications with an etaName matching the given dataObject.
- * This is called when an action is nearly complete.
+ * Handles the click event for a notification button.
+ * Calls onSubmit with the buttonId, no dataObject and withPopup=true.
+ * @param {string} buttonId - The unique identifier for the notification button.
+ * @returns {boolean} The result of the onSubmit event handler.
+ */
+export function onSubmit_fromClick(buttonId) {
+    return onSubmit(buttonId, null, true);
+}
+
+/**
+ * Automatically triggers the notification associated with the given buttonId.
+ * This is called when an action is nearly complete and the autoNotify flag is set.
+ * @param {string} buttonId - The unique identifier for the notification button.
  * @param {object} dataObject - An object containing data for the notification.
- * @param {boolean} dataObject.autoNotify - Whether to automatically notify when the action is nearly complete. 
- * @param {string} dataObject.etaName - The name of the crafting action.
- * @param {string} dataObject.media - The media associated with the notification.
- * @param {number} dataObject.timeInMs - The delay in milliseconds for notification display.
  * @returns {boolean} True if a notification was triggered, false otherwise.
  */
-export function onAutoNotify(dataObject) {
-    if (dataObject === null 
-        || dataObject === undefined 
-        || dataObject.etaName === undefined 
-        || dataObject.media === undefined
-        || dataObject.timeInMs === undefined) return false;
-    if (isCfg(Stg().ETA_NOTIFICATION) === false) return false;
-    if (isCfg(Stg().ETA_AUTO_NOTIFY) === false) return false;
-    let lFound = false;
-    registeredNotifications.forEach((object, buttonId) => {
-        if (object 
-            && object.data 
-            && object.data.autoNotify 
-            && object.data?.etaName === dataObject.etaName) {
-            loggerNotif("Auto Notify", "onAutoNotify", "(Call)onClick", buttonId, dataObject);
-            lFound = onClick(buttonId, dataObject);
-        }
-    })
-    loggerNotif("Auto Notify", "onAutoNotify", "Auto notify was called with success, found: " + lFound, dataObject);
-    return lFound;
+export function onSubmit_fromAutoNotify(buttonId, dataObject) {
+    return onSubmit(buttonId, dataObject, false);
 }
 
 /**

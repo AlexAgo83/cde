@@ -181,12 +181,16 @@ export function createInstance(innerType) {
                 && buttonId 
                 && registeredButtons.has(buttonId)) {
                     const currentButton = registeredButtons.get(buttonId);
+
                     /* Request notify if time is over 5s and auto-notify is enabled */
                     if (currentButton.data.autoNotify && currentButton.data.timeInMs > minTimeInMs) {
-                        this.loggerNotif("Auto Notif", "autoNotify", "(Call)onClick", buttonId, currentButton.data);
-                        currentButton.event(currentButton.data, false);
+                        this.loggerNotif("Auto Notif", "autoNotify", "(Call)onSubmit_fromAutoNotify", buttonId, currentButton.data);
+                        // currentButton.event(currentButton.data, false);
+                        // currentButton.event(null, false);
+                        /////// ATTENTION la popup
+                        mods.getNotification().onSubmit_fromAutoNotify(buttonId, currentButton.data);
                     } else {
-                        this.loggerNotif("Auto Notif", "autoNotify", "Invalide data", buttonId, currentButton.data);
+                        this.loggerNotif("Auto Notif", "autoNotify", "Invalide data, skip for button="+buttonId, currentButton.data);
                     }
             }
         },

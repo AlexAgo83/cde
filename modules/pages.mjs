@@ -587,8 +587,8 @@ function pageContainer(targetPage, identifier, currPanel) {
                 }
 
                 /* Notification */
-                loggerNotif("Click", "pageContainer", "getNotification().onClick", id);
-                if (mods.getNotification().onClick(id)) {
+                loggerNotif("Click", "pageContainer", "getNotification().onSubmit_fromClick", id);
+                if (mods.getNotification().onSubmit_fromClick(id)) {
                     /* Soft-refresh shared notification */
                     softRefreshSharedNotification();
                     /* Refresh current panel */

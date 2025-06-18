@@ -233,10 +233,10 @@ export const SettingsReference = {
 	ETA_AUTO_NOTIFY: {
 		section: Sections.ETA,
 		type: "switch",
-		key: "eta-auto-notify-debug",
+		key: "eta-auto-notify",
 		label: "Allow to auto-notify for ETA (WIP)",
 		hint: "Toggle to allow auto-notifications for ETA. (WIP)",
-		toggle: false
+		toggle: true
 	},
 	ETA_LEVEL_PREDICT: {
 		section: Sections.ETA,
