@@ -641,6 +641,16 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 
 		// Print record for new skill data
 		mods.getCloudStorage().setCurrentActivityData(currentActivityData)
+	} else {
+		/* Register last change */
+		if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) {
+			if (!currentActivityData[skillId].currentSkillXp 
+				|| data.skillXp !== currentActivityData[skillId].currentSkillXp) {
+				currentActivityData[skillId].currentSkillXp = data.skillXp;
+				currentActivityData[skillId].lastChange = now.getTime();
+				mods.getCloudStorage().setCurrentActivityData(currentActivityData);
+			}
+		}
 	}
 
 	// ETA Check Skill Progression
@@ -661,9 +671,17 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 			startDate = new Date(startDate);
 		}
 
-		data.diffTime = now.getTime() - startDate.getTime();
+		const endDate = currentActivityData[skillId].lastChange ?? now.getTime();
+
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] Test lastChange", currentActivityData[skillId].lastChange, now.getTime());
+		}
+
+		data.diffTime = endDate - startDate.getTime();
+
 		data.diffTimeStr = mods.getUtils().formatDuration(data.diffTime);
 		data.diffXp = data.skillXp - current.startXp;
+
 
 		if (!data.recipeEta) data.recipeEta = {};
 		if (data.recipeEta[data.recipe] == null) {

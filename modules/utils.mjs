@@ -61,8 +61,8 @@ export function formatDuration(ms, pattern=null) {
 
 	const parts = [];
 	if (days > 0) parts.push(`${days}${bOn}day${days > 1 ? 's' : ''}${bOff}`);
-	if (hours > 0) parts.push(`${hours}${bOn}h${bOff}`);
-	if (minutes > 0) parts.push(`${minutes}${bOn}m${bOff}`);
+	if (days < 10 && hours > 0) parts.push(`${hours}${bOn}h${bOff}`);
+	if (days < 10 && minutes > 0) parts.push(`${minutes}${bOn}m${bOff}`);
 
 	// If less thant a day
 	if (hours === 0 && days === 0 && (seconds > 0 || parts.length === 0)) {
