@@ -575,6 +575,20 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
 }
 
 /**
+ * Creates a displayable notification object for the notification panel.
+ * @param {string} playerName - The name of the player associated with the notification.
+ * @param {Object} pNotif - The pending notification object from the player's storage.
+ * @returns {Object} An object containing the player name, ETA date, and media URL.
+ */
+function createDisplayableNotification(playerName, pNotif) {
+    return {
+        player: playerName,
+        eta: new Date(pNotif.requestAt + pNotif.timeInMs),
+        media: pNotif.media
+    }
+}
+
+/**
  * Returns an array of strings representing the notifications to be displayed in the notification panel.
  * Iterates over the player's pending notification and all other player's pending notifications,
  * and formats them into a string that can be displayed in the notification panel.
@@ -591,39 +605,28 @@ export function displayNotification() {
         && pNotif.requestAt
         && pNotif.timeInMs
     ) {
-        notifs.push({
-            player: getCharName(),
-            eta: new Date(pNotif.requestAt + pNotif.timeInMs),
-            media: pNotif.media
-        });
+        notifs.push(createDisplayableNotification(getCharName(), pNotif));
     }
 
     const oNotif = mods.getCloudStorage().getOtherPlayerPendingNotifications();
-    Object.keys(oNotif).forEach((key) => {
-        const notification = oNotif[key];
-        if (notification
-            && notification.requestAt
-            && notification.timeInMs
-            && notification.label
-        ) {
-            notifs.push({
-                player: key,
-                eta: new Date(notification.requestAt + notification.timeInMs),
-                media: notification.media
-            });
-        }
-    })
+    if (oNotif && typeof oNotif === "object") {
+        Object.keys(oNotif).forEach((key) => {
+            const notification = oNotif[key];
+            if (notification
+                && notification.requestAt
+                && notification.timeInMs
+            ) {
+                notifs.push(createDisplayableNotification(key, notification));
+            }
+        })
+    }
 
     if (notifs && notifs.length > 0) {
         /* Start sort array of notifs */
-        let order = "asc";
-        let newArraysSorted = notifs.sort((a, b) => {
-            return order === "asc" ?
-                    a.eta.getTime() - b.eta.getTime() : 
-                    b.eta.getTime() - a.eta.getTime();
-            return 0;
+        notifs.sort((a, b) => {
+            return a.eta.getTime() - b.eta.getTime();
         });
-
+        
         /** PRINT SHARED NOTIFICATION */
         notifs.forEach((notif) => {
             const mediaImg = notif.media ? `<img class="skill-media skill-media-short" src="${notif.media}" />` : `<span class="skill-media"></span>`;

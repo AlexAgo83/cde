@@ -671,10 +671,12 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 			startDate = new Date(startDate);
 		}
 
-		const endDate = currentActivityData[skillId].lastChange ?? now.getTime();
-
-		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] Test lastChange", currentActivityData[skillId].lastChange, now.getTime());
+		let endDate = now.getTime();
+		if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS) && currentActivityData[skillId].lastChange) {
+			endDate = currentActivityData[skillId].lastChange;
+			if (mods.getSettings().isDebug()) {
+				console.log("[CDE] Test lastChange", currentActivityData[skillId].lastChange, now.getTime());
+			}
 		}
 
 		data.diffTime = endDate - startDate.getTime();
