@@ -256,7 +256,7 @@ function initBuilder(dataObject) {
  * @param {number} timeMs - The delay in milliseconds for notification display.
  * @returns {object} An object with the notification properties (charName, actionName, media, requestAt, timeInMs).
  */
-function newNotifBuilder(playerName, actionName, media, requestAt, timeMs) {
+export function newNotifBuilder(playerName, actionName, media, requestAt, timeMs) {
     return {
         charName: playerName,
         actionName: actionName,

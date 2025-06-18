@@ -249,26 +249,26 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 			const ms20min = 20 * ms01min;
 			const ms30min = 30 * ms01min;
 
-			const objMaker = (num) => {
-				return {
-					desc:"desc_test_"+num,
-					label:"label_test_"+num,
-					media:"https://cdn2-main.melvor.net/assets/media/main/logo_no_text.png"
-				};
+			const objMaker = (name, num) => {
+				return mModules.getNotification().newNotifBuilder(
+					name, 
+					"Action"+num, 
+					"https://cdn2-main.melvor.net/assets/media/main/logo_no_text.png"
+				)
 			}
 
 			const fakePendingNotification = {
 				/* already past */
-				Joe: {...objMaker(1), requestAt:(now - ms30min), timeInMs:0},
+				TEST_1: {...objMaker("Joe", 1), requestAt:(now - ms30min), timeInMs:0},
 
 				/* now ? */
-				Max: {...objMaker(2), requestAt:(now - ms30min), timeInMs:ms20min},
-				Denver: {...objMaker(3), requestAt:(now - ms05min), timeInMs:ms05min},
+				TEST_2: {...objMaker("Max", 2), requestAt:(now - ms30min), timeInMs:ms20min},
+				TEST_3: {...objMaker("Denver", 3), requestAt:(now - ms05min), timeInMs:ms05min},
 				
 				/* in the future */
-				Jack: {...objMaker(4), requestAt:(now - ms20min), timeInMs:ms20min+ms01min},
-				Steve: {...objMaker(5), requestAt:(now - ms10min), timeInMs:ms20min+ms05min},
-				Marc: {...objMaker(6), requestAt:(now - ms10min), timeInMs:ms20min+ms10min}
+				TEST_4: {...objMaker("Jack", 4), requestAt:(now - ms20min), timeInMs:ms20min+ms01min},
+				TEST_5: {...objMaker("Steve", 5), requestAt:(now - ms10min), timeInMs:ms20min+ms05min},
+				TEST_6: {...objMaker("Marc", 6), requestAt:(now - ms10min), timeInMs:ms20min+ms10min}
 			};
 			mModules.getCloudStorage().setPendingNotification(fakePendingNotification);
 		}
