@@ -57,7 +57,7 @@
 // Stage 32 - Cartography Paper Please!
 
 // --- Configuration ---
-const MOD_VERSION = "v2.1.155";
+const MOD_VERSION = "v2.1.156";
 
 // --- Module Imports ---
 let mModules = null;
@@ -111,7 +111,6 @@ export const doCollectData = (extractEta=false, timeBuffer=50) => {
 	return value;
 }
 
-
 /**
  * Main setup entry point for the mod.
  * Registers lifecycle hooks for mod loading, character loading, and interface readiness.
@@ -123,15 +122,20 @@ export const doCollectData = (extractEta=false, timeBuffer=50) => {
  * @param {Object} context.characterStorage - The character storage object.
  * @param {Object} context.accountStorage - The account storage object.
  * @param {function(Object): Promise<void>} context.onModsLoaded - Called when all mods are loaded, receives the context.
+ * @param {function(Object): Promise<void>} context.onCharacterSelectionLoaded - Called when the character selection is loaded, receives the context.
  * @param {function(Object): Promise<void>} context.onCharacterLoaded - Called when the character is loaded, receives the context.
  * @param {function(Object): Promise<void>} context.onInterfaceReady - Called when the interface is ready, receives the context.
  */
-export function setup({settings, api, characterStorage, accountStorage, onModsLoaded, onCharacterLoaded, onInterfaceReady}) {
+export function setup({settings, api, characterStorage, accountStorage, onModsLoaded, onCharacterSelectionLoaded, onCharacterLoaded, onInterfaceReady}) {
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
 		mModules = await ctx.loadModule("modules.mjs");
 		mModules.onModuleLoad(ctx, MOD_VERSION);
 		console.info("[CDE] Modules loaded !");
+	});
+
+	onCharacterSelectionLoaded(async (ctx) => {
+		// ...
 	});
 
 	// Setup OnCharacterLoaded

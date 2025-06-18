@@ -285,6 +285,13 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
  * @param {*} ctx - The context object used to patch game methods.
  */
 export function worker(ctx) {
+    /** On any game tick */
+    ctx.patch(_game(), 'tick').after(patcher((userPage, isCombat, activeAction, ...args) => {
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] doWorker:tick registered", args);
+        }
+    }))
+
     /** COMBAT ONLY : Enemy Death */
     ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (mods.getSettings().isDebug()) {
