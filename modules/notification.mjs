@@ -590,7 +590,6 @@ export function displayNotification() {
     if (pNotif
         && pNotif.requestAt
         && pNotif.timeInMs
-        && pNotif.label
     ) {
         notifs.push({
             player: getCharName(),

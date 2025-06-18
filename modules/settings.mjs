@@ -286,6 +286,29 @@ export const SettingsReference = {
 		hint: "Toggle to show the estimated live dps, based on recent kills and efficiency.",
 		toggle: true
 	},
+	ETA_USE_GLOBAL_EVENTS: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-global-events-active",
+		label: "Use global events for ETA",
+		hint: "Toggle to use global events or otherwise specific action events (faster vs more accurate).",
+		toggle: false
+	},
+	ETA_GLOBAL_EVENTS_RATE: {
+		section: Sections.ETA,
+		type: "dropdown",
+		key: "eta-global-events-rt",
+		label: "Changes global events rate (min interval in ms)",
+		hint: "Allow to change global events rate (min interval in ms).",
+		options: [
+			{ value: 100, display: "100ms (Performance impact)" },
+			{ value: 250, display: "250ms" },
+			{ value: 500, display: "500ms (Default)" },
+			{ value: 1000, display: "1000ms" },
+			{ value: 5000, display: "5000ms (Sleep mode)" }
+		],
+		toggle: 1000
+	},
 
 	// ADVANCE
 	MOD_ENABLED: {
@@ -611,6 +634,14 @@ export function onSettingsChange(reference) {
 		mods.getExport().cleanChangesHistory();
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] settings - maxChangesHistory :", value);
+		}
+		return () => { return value};
+	}
+
+	// ETA GLOBAL EVENTS RATE 
+	if (key == Stg().ETA_GLOBAL_EVENTS_RATE) {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] settings - global events rate :", value);
 		}
 		return () => { return value};
 	}
