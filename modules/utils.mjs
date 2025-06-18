@@ -56,7 +56,7 @@ export function formatDuration(ms, pattern=null) {
 	const minutes = Math.floor((totalSeconds % 3600) / 60);
 	const seconds = totalSeconds % 60;
 
-	const bOn = pattern ? `<span class="skill-value ${pattern}">` : "";
+	const bOn = pattern ? `<span class="skill-value ${pattern} nomargin">` : "";
 	const bOff = pattern ? `</span>` : "";
 
 	const parts = [];

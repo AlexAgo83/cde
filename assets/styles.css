@@ -10,6 +10,7 @@
   --cde-null: #ef596f;
   --cde-type: #9d9d9d;
   --cde-textfield-margin-right: 4px;
+  --cde-textfield-interligne: 0.2px;
 }
 
 /* --- CDE BUTTONS --- */
@@ -367,7 +368,7 @@
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  margin-bottom:0.2px;
+  margin-bottom: var(--cde-textfield-interligne);
 }
 .cde-eta-wrapper {
   position: relative;
@@ -421,6 +422,9 @@
 .skill-value {
   color: #fff;
   margin-right: var(--cde-textfield-margin-right);
+}
+.nomargin {
+  margin: 0px !important;
 }
 
 /**
