@@ -89,8 +89,32 @@ export function init(modules) {
   initSubModule(modules);
 }
 
+/**
+ * Logs a debug message if the 'isDebug' setting is enabled.
+ * The message is prefixed with "[CDE/" + label + "] [Step: " + step + "] (" + from + "->" + to + ")".
+ * If arguments are provided, ", args:" is appended to the prefix and the arguments are logged
+ * after the prefix.
+ * @param {string} label - The label for the debug message.
+ * @param {string} step - The step for the debug message.
+ * @param {string} from - The starting position of the logged block.
+ * @param {string} to - The ending position of the logged block.
+ * @param {...*} args - The arguments to log.
+ */
 export function logger(label, step, from, to, ...args) {
     mods.getUtils().logger(label, step, "pages", from, to, ...args);
+}
+/**
+ * Logs a debug message if the 'isDebug' setting is enabled with a prefix of "[Notif]".
+ * The message is prefixed with "[Notif] [Step: " + step + "] (" + from + "->" + to + ")".
+ * If arguments are provided, ", args:" is appended to the prefix and the arguments are logged
+ * after the prefix.
+ * @param {string} step - The step for the debug message.
+ * @param {string} from - The starting position of the logged block.
+ * @param {string} to - The ending position of the logged block.
+ * @param {...*} args - The arguments to log.
+ */
+export function loggerNotif(step, from, to, ...args) {
+    logger("Notif", step, from, to, ...args);
 }
 
 /* @ts-ignore Handle DEVMODE */
@@ -230,7 +254,7 @@ function softRefreshSharedNotification() {
     /* Try to soft-refresh shared notifications */
     try {
         const tickShared = mods.getNotification().handleOnCheck;
-        logger("Notif", "Check Shared triggered", "doWorker:updated=true", "getNotification().checkSharedNotification", tickShared);
+        loggerNotif("Check Shared triggered", "doWorker:updated=true", "getNotification().checkSharedNotification", tickShared);
         mods.getNotification().checkSharedNotification(tickShared);
     } catch (error) {
         console.error("[CDE] doWorker:checkSharedNotification:", error);
@@ -433,7 +457,7 @@ function onStop() {
     mods.getCloudStorage().removeCurrentMonsterData();
     mods.getCloudStorage().removeCurrentActivityData();
     
-    logger("Notif", "Stop", "doWorker:onStop", "getNotification().clearNotify");
+    loggerNotif("Stop", "doWorker:onStop", "getNotification().clearNotify");
     mods.getNotification().clearNotify(true);
 }
 
@@ -563,7 +587,7 @@ function pageContainer(targetPage, identifier, currPanel) {
                 }
 
                 /* Notification */
-                logger("Notif", "Click", "pageContainer", "getNotification().onClick", id);
+                loggerNotif("Click", "pageContainer", "getNotification().onClick", id);
                 if (mods.getNotification().onClick(id)) {
                     /* Soft-refresh shared notification */
                     softRefreshSharedNotification();

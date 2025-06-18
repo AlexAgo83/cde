@@ -89,6 +89,20 @@ export function createInstance(innerType) {
         },
 
         /**
+         * Logs a debug message if the 'isDebug' setting is enabled with a prefix of "[Notif]".
+         * The message is prefixed with "[Notif] [Step: " + step + "] (" + from + "->" + to + ")".
+         * If arguments are provided, ", args:" is appended to the prefix and the arguments are logged
+         * after the prefix.
+         * @param {string} step - The step for the debug message.
+         * @param {string} from - The starting position of the logged block.
+         * @param {string} to - The ending position of the logged block.
+         * @param {...*} args - The arguments to log.
+         */
+        loggerNotif(step, from, to, ...args) {
+            mods.getUtils().logger("Notif", step, "nonCombatPanel", from, to, ...args);
+        },
+
+        /**
          * Sets the callback function used to collect ETA data for this panel.
          * @param {*} cb 
          */
@@ -169,10 +183,10 @@ export function createInstance(innerType) {
                     const currentButton = registeredButtons.get(buttonId);
                     /* Request notify if time is over 5s and auto-notify is enabled */
                     if (currentButton.data.autoNotify && currentButton.data.timeInMs > minTimeInMs) {
-                        this.logger("Notif", "Auto Notif", "autoNotify", "(Call)onClick", buttonId, currentButton.data);
+                        this.loggerNotif("Auto Notif", "autoNotify", "(Call)onClick", buttonId, currentButton.data);
                         currentButton.event(currentButton.data, false);
                     } else {
-                        this.logger("Notif", "Auto Notif", "autoNotify", "Invalide data", buttonId, currentButton.data);
+                        this.loggerNotif("Auto Notif", "autoNotify", "Invalide data", buttonId, currentButton.data);
                     }
             }
         },
@@ -552,7 +566,7 @@ export function createInstance(innerType) {
                                 /* Register if auto notify is enabled */
                                 if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
                                     dr.registeredNotify.set(etaFlatButtonId, registeredObject);
-                                    this.logger("Notif", "Register", "onRefreshMastery", "etaButton:added, buttonId:" + etaFlatButtonId, registeredObject);
+                                    this.loggerNotif("Register", "onRefreshMastery", "etaButton:added, buttonId:" + etaFlatButtonId, registeredObject);
                                 }
                             }
                         }
@@ -583,7 +597,7 @@ export function createInstance(innerType) {
                                 /* Register if auto notify is enabled */
                                 if (self.isCfg(self.Stg().ETA_AUTO_NOTIFY)) {
                                     dr.registeredNotify.set(etaPresButtonId, registeredObject);
-                                    this.logger("Notif", "Auto Notif", "onRefreshMastery", "Button registered, buttonId:" + etaPresButtonId, registeredObject);
+                                    this.loggerNotif("Auto Notif", "onRefreshMastery", "Button registered, buttonId:" + etaPresButtonId, registeredObject);
                                 }
                             }
                         }
