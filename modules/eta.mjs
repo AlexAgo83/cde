@@ -270,7 +270,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			// const currEta = mods.getUtils().getIfExist(currRecipes, m.masteryID);
 			const skillObject = mods.getUtils().getSkillByLocalID(m.skillID);
 			
-			const onRecipe = (univRecipe) => {
+			const onRecipe = (skill, univRecipe) => {
 				if (univRecipe && m.masteryID == univRecipe.localID) {
 					if (mods.getSettings().isDebug()) {
 						console.log("[CDE] ETA Crafting, univRecipe:", {m, univRecipe});
@@ -283,7 +283,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 						/* Collect itemCosts & products */
 						trustRecipeProducts(m, produces, univRecipe);
 					}
-					trustRecipeItemCosts(m, univRecipe);
+					trustRecipeItemCosts(skill, m, univRecipe);
 				} else {
 					if (mods.getSettings().isDebug()) {
 						console.log("[CDE] ETA Crafting, can't match:", {m, univRecipe});
@@ -296,14 +296,14 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 				/* Woodcutting */
 				if (m.skillID == "Woodcutting") {
 					skillObject.activeTrees.forEach((tree) => {
-						onRecipe(tree);
+						onRecipe(skillObject, tree);
 					})
 				}
 			} else {
 				recipes.push(utl.getRecipeForAction(m))
 			}
 			recipes.forEach((recipe) => {
-				onRecipe(recipe);
+				onRecipe(skillObject, recipe);
 			})
 
 		});
@@ -342,11 +342,12 @@ function trustRecipeProducts(mastery, itemResult, itemRecipe) {
 
 /**
  * Generate itemCosts info
+ * @param {*} skill
  * @param {*} mastery  
  * @param {*} itemRecipe 
  * @returns  
  */
-function trustRecipeItemCosts(mastery, itemRecipe) {
+function trustRecipeItemCosts(skill, mastery, itemRecipe) {
 	if (!itemRecipe) return null;
 	/* Item costs */
 	const itemCosts = [];
@@ -356,6 +357,7 @@ function trustRecipeItemCosts(mastery, itemRecipe) {
 		/* Default recipe item */
 		let qteNeed = value.quantity;
 		let itemNeed = value.item;
+
 		if (value.category) {
 			/* Default gathering ; Firemaking */
 			qteNeed = 1;
@@ -396,7 +398,6 @@ function trustRecipeItemCosts(mastery, itemRecipe) {
 			item.itemQteActionsWithPreservation = applied;
 		}
 		
-		
 		/* Find item with less actions */
 		if (lessActionItem && lessActionItem?.itemQteActions) {
 			if (item.itemQteActions < lessActionItem.itemQteActions) {
@@ -412,15 +413,31 @@ function trustRecipeItemCosts(mastery, itemRecipe) {
 	};
 	
 	/* Default item costs source */
-	itemRecipe.itemCosts?.forEach(itemCostCb);
+	if (itemRecipe.itemCosts && itemRecipe.itemCosts.length > 0) {
+		if (mods.getSettings().isDebug()) console.log("[CDE] TrustRecipe, itemCosts recipe:", itemRecipe);
+		if (skill.localID === "Summoning") {
+			if (mods.getSettings().isDebug()) console.log("[CDE] TrustRecipe, itemCosts recipe skipped, Summoing use another parser.");
+		} else itemRecipe.itemCosts?.forEach(itemCostCb);	
+	}
+	
 	/* Base fixed */
-	itemRecipe.fixedItemCosts?.forEach(itemCostCb);
+	if (itemRecipe.fixedItemCosts && itemRecipe.fixedItemCosts.length > 0) {
+		if (mods.getSettings().isDebug())
+			console.log("[CDE] TrustRecipe, fixedItemCosts recipe:", itemRecipe);
+		itemRecipe.fixedItemCosts?.forEach(itemCostCb);
+	}
+	
 	/* Runes */
-	itemRecipe.runesRequired?.forEach(itemCostCb);
+	if (itemRecipe.runesRequired && itemRecipe.runesRequired.length > 0) {
+		if (mods.getSettings().isDebug())
+			console.log("[CDE] TrustRecipe, runesRequired recipe:", itemRecipe);
+		itemRecipe.runesRequired?.forEach(itemCostCb);
+	}
+
 	/* Firemaking */
-	if (itemRecipe.log) {
+	if (skill.localID === "Firemaking" && itemRecipe.log) {
 		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] TrustRecipe, itemRecipe-log:", itemRecipe);
+			console.log("[CDE] TrustRecipe, Firemaking-log:", itemRecipe);
 		}
 		const log = itemRecipe.log;
 		if (log.category) {
@@ -429,34 +446,54 @@ function trustRecipeItemCosts(mastery, itemRecipe) {
 			log.forEach(itemCostCb);	
 		}
 	}
+
 	/* Archaeology */
 	if (itemRecipe.maps) {
 		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] TrustRecipe, itemRecipe-maps:", itemRecipe);
+			console.log("[CDE] TrustRecipe, Archaeology-maps:", itemRecipe);
 		}
 		const maps = itemRecipe.maps;
 		if (maps && maps.length && maps.length > 0) {
 			maps.forEach(itemCostCb);
 		}
 	}
+
+	/* Summoning */
+	if (skill.localID === "Summoning") {
+		const sumCost = skill.getRecipeCosts(itemRecipe);
+		if (sumCost && sumCost._items && sumCost._items.size > 0) {
+			sumCost._items.forEach((value, key) => {
+				itemCostCb({item: key, quantity: value});
+			});
+			if (mods.getSettings().isDebug())
+				console.log("[CDE] TrustRecipe, Summoning-getRecipeCosts", sumCost._items);
+		}
+	}
+
 	/* Alternative & (Summoning) nonShardItemCosts costs */
 	const alternativeCosts = itemRecipe.alternativeCosts || itemRecipe.nonShardItemCosts;
 	if (mastery.masteryCursor !== null && alternativeCosts) {
 		const recipeAltCosts = alternativeCosts;
 		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] TrustRecipe, other Costs:", recipeAltCosts);
+			console.log("[CDE] TrustRecipe, found other Costs:", recipeAltCosts);
 		}
 		if (recipeAltCosts && recipeAltCosts.length && recipeAltCosts.length > 0) {
 			let selectedAltCost = null;
 			if (typeof mastery.masteryCursor === "string") {
-				alternativeCosts.forEach((altCost) => {
-					if (altCost.localID === mastery.masteryCursor) {
-						if (mods.getSettings().isDebug()) {
-							console.log("[CDE] TrustRecipe, nonShardItemCosts", selectedAltCost);
+				/* Custom Summoning recipe item cost */
+				if (skill.localID === "Summoning") {
+					// Do nothing ...
+				} else {
+					/* Default mode */
+					alternativeCosts.forEach((altCost) => {
+						if (altCost.localID === mastery.masteryCursor) {
+							if (mods.getSettings().isDebug()) {
+								console.log("[CDE] TrustRecipe, nonShardItemCosts", altCost);
+							}
+							itemCostCb(altCost);
 						}
-						itemCostCb(altCost);		
-					}
-				})
+					})
+				}
 			} else {
 				selectedAltCost = recipeAltCosts[mastery.masteryCursor]?.itemCosts;	
 				if (mods.getSettings().isDebug()) {

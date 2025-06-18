@@ -494,7 +494,8 @@ export function createInstance(innerType) {
                 if (!isMultiRecipe && itemCosts && lessActionItem) {
 
                     /* Can't estimate item cost for Summoning right now */
-                    const isNoDisplayItemCosts = skillID == "Summoning";
+                    // const isNoDisplayItemCosts = skillID == "Summoning";
+                    const isNoDisplayItemCosts = false;
 
                     /* RECIPE ITEMS */
                     let pRecipeItems = ``;
