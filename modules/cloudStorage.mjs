@@ -27,6 +27,20 @@ export function init(modules, characterStorage, accountStorage) {
 	sharedStorage = accountStorage;
 }
 
+/**
+ * Logs a debug message if the 'isDebug' setting is enabled with a prefix of "[Notif]".
+ * The message is prefixed with "[Notif] [Step: " + step + "] (cloudStorage:" + from + "->" + to + ")".
+ * If arguments are provided, ", args:" is appended to the prefix and the arguments are logged
+ * after the prefix.
+ * @param {string} step - The step for the debug message.
+ * @param {string} from - The starting position of the logged block.
+ * @param {string} to - The ending position of the logged block.
+ * @param {...*} args - The arguments to log.
+ */
+export function loggerNotif(step, from, to, ...args) {
+    mods.getUtils().logger("Notif", step, "cloudStorage", from, to, ...args);
+}
+
 // --- MOCK ---
 function _game() {
 	// @ts-ignore
@@ -278,6 +292,7 @@ export function updatePendingNotificationForCurrentCharacter(updatePendingNotifi
 	if (!pendingNotifications[charName]) pendingNotifications[charName] = {};
 	pendingNotifications[charName] = updatePendingNotification(pendingNotifications[charName]) ?? {};
 	setPendingNotification(pendingNotifications);
+	loggerNotif("Save new Notif", "updatePendingNotificationForCurrentCharacter", "setPendingNotification", pendingNotifications);
 }
 
 /**
