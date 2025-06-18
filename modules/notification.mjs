@@ -628,6 +628,7 @@ export function displayNotification() {
         });
         
         /** PRINT SHARED NOTIFICATION */
+        result.push(`<div class="skill-label"></div>`);
         notifs.forEach((notif) => {
             const mediaImg = notif.media ? `<img class="skill-media skill-media-short" src="${notif.media}" />` : `<span class="skill-media"></span>`;
             // const etaStr = mods.getUtils().formatDuration(notif.eta, "span-notif-fade");

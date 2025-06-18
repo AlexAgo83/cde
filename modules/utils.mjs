@@ -684,6 +684,13 @@ export function logger(label, step, className, func, action, ...args) {
 export function dateToLocalString(date) {
 	if (!date) return null;
 	try {
+		const options = {
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit"
+		};
 		let userLocale = navigator.language 
 			// @ts-ignore
 			|| navigator.userLanguage;
@@ -693,7 +700,9 @@ export function dateToLocalString(date) {
 				userLocale = locales[0];
 			}
 		}
-		if (userLocale) return date.toLocaleString(userLocale);
+		if (userLocale) 
+			// @ts-ignore
+			return date.toLocaleString(userLocale, options);
 	} catch (error) {
 		if (mods.getSettings().isDebug()) console.warn("Can't parse date", error);
 	}
