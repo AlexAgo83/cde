@@ -304,8 +304,9 @@ export const SettingsReference = {
 			{ value: 100, display: "100ms (Performance impact)" },
 			{ value: 250, display: "250ms" },
 			{ value: 500, display: "500ms (Default)" },
-			{ value: 1000, display: "1000ms" },
-			{ value: 5000, display: "5000ms (Sleep mode)" }
+			{ value: 1000, display: "1000ms (Default)" },
+			{ value: 5000, display: "5000ms" },
+			{ value: 10000, display: "10000ms (Sleep mode)" }
 		],
 		toggle: 1000
 	},
