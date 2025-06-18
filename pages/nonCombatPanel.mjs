@@ -620,8 +620,7 @@ export function createInstance(innerType) {
                                 /* Action left flat */
                                 if (actionLeft) {
                                     actionResult += `<div class="cde-generic-panel">
-                                            <span class="skill-label"> • get </span>
-                                            <span class="skill-value vph-mastery">Base / Flat</span>
+                                            <span class="skill-label"> • Base left</span>
                                             <span class="skill-label"> ➜ </span>
                                             <span class="skill-value vph vph-small vph-mastery">${actionLeft ?? "N/A"}</span>
                                             ${pActionInterval}
@@ -630,8 +629,7 @@ export function createInstance(innerType) {
                                 /* Action left preserve */
                                 if (actionIntervalPres) {
                                     actionResult += `<div class="cde-generic-panel">
-                                            <span class="skill-label"> • get </span>
-                                            <span class="skill-value vph-mastery">Preservation</span>
+                                            <span class="skill-label"> • With Save</span>
                                             <span class="skill-label"> ➜ </span>
                                             <span class="skill-value vph vph-small vph-mastery">${actionLeftPres ?? "N/A"}</span>
                                             ${pActionIntervalPres}
@@ -640,14 +638,14 @@ export function createInstance(innerType) {
                                 /* ETA */
                                 if (pActionIntervalPresEta && pActionIntervalPresEta.length > 0) {
                                     actionResult += `<div class="cde-generic-panel">
-                                            <span class="skill-label"> • ETA : </span>
+                                            <span class="skill-label"> • ETA ➜ </span>
                                             ${pActionIntervalPresEta}
                                         </div>`;
                                     /* Auto notify pres eta */
                                     this.autoNotify(dr.registeredNotify, etaPresButtonId);
                                 } else if (pActionIntervalEta && pActionIntervalEta.length > 0) {
                                     actionResult += `<div class="cde-generic-panel">
-                                            <span class="skill-label"> • ETA : </span>
+                                            <span class="skill-label"> • ETA ➜ </span>
                                             ${pActionIntervalEta}
                                         </div>`;
                                     /* Auto notify flat eta */

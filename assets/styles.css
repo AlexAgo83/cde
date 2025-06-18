@@ -9,6 +9,7 @@
   --cde-boolean: #b093ff;
   --cde-null: #ef596f;
   --cde-type: #9d9d9d;
+  --cde-textfield-margin-right: 4px;
 }
 
 /* --- CDE BUTTONS --- */
@@ -170,8 +171,8 @@
   color: #29e0b8;
   text-shadow: 0 0 2px #29e0b888;
 }
-.cde-json-caret.collapsed::before { content: "▶"; font-weight: bold; }
-.cde-json-caret.expanded::before { content: "▼"; font-weight: bold; }
+.cde-json-caret.collapsed::before { content: ">"; font-weight: bold; }
+.cde-json-caret.expanded::before { content: "v"; font-weight: bold; }
 
 /* --- KEY/VALUE STYLING --- */
 .cde-json-key     { color: var(--cde-key); font-weight: 500; }
@@ -366,6 +367,7 @@
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
+  margin-bottom:0.2px;
 }
 .cde-eta-wrapper {
   position: relative;
@@ -414,11 +416,11 @@
 }
 .skill-label {
   color: #ffd700;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .skill-value {
   color: #fff;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /**
@@ -428,19 +430,19 @@
   color: #ff8f8f;
   font-family: inherit;
   font-size: 14px;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-tiny {
   font-size: 12px;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-small {
   font-size: 10px;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-fade {
   color: #ff8f8f87;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /**
@@ -448,9 +450,11 @@
  */
 .vph-combat {
   color: #ffa97e;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-combat-fade {
   color: #ffa97e87;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /**
@@ -458,18 +462,22 @@
  */
 .vph-combat-dealt {
   color: #dfff7e;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-combat-dealt-fade {
   color: #dfff7e87;
+  margin-right: var(--cde-textfield-margin-right);
 }
 /**
  * Combat
  */
 .vph-combat-taken {
   color: #ff7e7e;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-combat-taken-fade {
   color: #ff7e7e87;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /**
@@ -477,9 +485,11 @@
  */
 .vph-skill {
   color: #8feaff;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-skill-fade {
   color: #8feaff87;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /**
@@ -487,9 +497,11 @@
  */
 .vph-mastery {
   color: #ff8f8f;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .vph-mastery-fade {
   color: #ff8f8f87;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /**
@@ -514,14 +526,14 @@
   height: 16px;
   border-radius: 2px;
   margin: 0 4px;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .skill-media-short {
   height: 16px;
   width: 16px;
   border-radius: 2px;
   margin: 0 0px;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /* Notif */
@@ -534,15 +546,14 @@
 }
 .span-notif {
   color: #ff8ff0;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 .span-notif-fade {
   color: #ff8ff087;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
 
 /* Ingame notification */
-
 .cde-ignotif {
   font-family: inherit;
   font-size: 20px;
@@ -554,5 +565,5 @@
   padding-bottom: 6px;
   border-radius: 2px;
   margin: 0 0px;
-  margin-right: 2px;
+  margin-right: var(--cde-textfield-margin-right);
 }
