@@ -49,15 +49,19 @@
 // Stage 26 - Live DPS
 // Stage 27 - ETA Display Mode
 // Stage 28 - Notification
-
-// === Plan to 2.2.X ===
 // Stage 29 - Shared Notification
-// Stage 30 - Agility ETA
-// Stage 31 - Improve Summoning ETA
+// Stage 30 - Summoning ETA Improvement
+// Stage 31 - Agility ETA Improvement
+
+// === Plan to 2.2.X
+// Stage 32 - Cartography ETA Improvement
 // Stage 32 - Cartography Paper Please!
 
+// TODO : Collect Summoning XP during Combat, use it as active Skill
+// TODO : Improve controls (No delay)
+
 // --- Configuration ---
-const MOD_VERSION = "v2.1.196";
+const MOD_VERSION = "v2.1.202";
 
 // --- Module Imports ---
 let mModules = null;

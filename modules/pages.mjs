@@ -11,7 +11,6 @@ let pageObservers = new Map();
 
 /** COMBAT PANEL */
 let combatPanel = null;
-let controlsPanel = null;
 export function getCombatPanel() { return combatPanel; }
 
 /** SKILLS PANEL */
@@ -300,10 +299,12 @@ export function worker(ctx) {
     ctx.patch(_GameClass(), 'tick').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         if (!isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+
         const now = Date.now();
         const minTick = mods.getSettings().getCfg(Stg().ETA_GLOBAL_EVENTS_RATE);
         if (_lastTick && now - _lastTick < minTick) return;
         _lastTick = now;
+        
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:tick registered", args);
         }
@@ -557,22 +558,25 @@ function onDefaultPanel(parentPanel, summaryId, identifier) {
  * @returns {string} The controls panel HTML.
  */
 const onControlsPanel = () => {
-    if (controlsPanel === null) {
-        const pngVisible    = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_visible_id);
-        const pngArrowLeft  = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_arrowLeft_id);
-        const pngReduce     = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_reduce_id);
-        const pngArrowRight = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_arrowRight_id);
+    const pngVisible    = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_visible_id);
+    const pngHidden     = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_hidden_id);
+    const pngArrowLeft  = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_arrowLeft_id);
+    const pngReduce     = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_reduce_id);
+    const pngArrowRight = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_arrowRight_id);
+    
+    const currVisibility = mods.getCloudStorage().isEtaVisible();
+    const pngVisibility = currVisibility ? pngVisible : pngHidden;
 
-        let controls = ``;
-        controls += `<span id="cde-btn-eta-extra" class="btn-info m-1 cde-eta-btn" title="Extra">${pngVisible}</span>`;
-        controls += `<span class="cde-eta-spacer"></span>`;
-        controls += `<span id="cde-btn-eta-displayLeft" class="btn-info m-1 cde-eta-btn" title="Move ETA left">${pngArrowLeft}</span>`;
-        controls += `<span id="cde-btn-eta-displaySmall" class="btn-info m-1 cde-eta-btn" title="Toggle ETA size">${pngReduce}</span>`;
-        controls += `<span id="cde-btn-eta-displayRight" class="btn-info m-1 cde-eta-btn" title="Move ETA right">${pngArrowRight}</span>`;
-        /* Register controls panel */
-        controlsPanel = `<div class="cde-eta-controls">${controls}</div>`;
-    }
-    return controlsPanel;
+    /* Register controls */
+    let controls = ``;
+    controls += `<span id="cde-btn-eta-extra" class="btn-info m-1 cde-eta-btn" title="Extra">${pngVisibility}</span>`;
+    controls += `<span class="cde-eta-spacer"></span>`;
+    controls += `<span id="cde-btn-eta-displayLeft" class="btn-info m-1 cde-eta-btn" title="Move ETA left">${pngArrowLeft}</span>`;
+    controls += `<span id="cde-btn-eta-displaySmall" class="btn-info m-1 cde-eta-btn" title="Toggle ETA size">${pngReduce}</span>`;
+    controls += `<span id="cde-btn-eta-displayRight" class="btn-info m-1 cde-eta-btn" title="Move ETA right">${pngArrowRight}</span>`;
+    
+    /* Register controls panel */
+    return `<div id="cde-controls-panel" class="cde-eta-controls">${controls}</div>`;
 };
 
 /**
@@ -664,15 +668,26 @@ function pageContainer(targetPage, identifier, currPanel) {
                     currPanel.onRefresh(etaSize);
                 }
 
-                /* Show/Hide */
+                /* Show / Hide subWrapper */
                 if (id === "cde-btn-eta-extra") {
-                    const currVisibility = mods.getCloudStorage().isEtaVisible();
-                    mods.getCloudStorage().setEtaVisibility(!currVisibility);
-                    // if (corePanel.style.display === "none") {
-                    //     corePanel.style.display = "";
-                    // } else {
-                    //     corePanel.style.display = "none";
-                    // }
+                    // Toggle visibility
+                    const newVisibility = !mods.getCloudStorage().isEtaVisible();
+                    mods.getCloudStorage().setEtaVisibility(newVisibility);
+
+                    // Dynamic show or hide wrapper panel
+                    const subWrapper = corePanel.querySelector("#cde-subwrapper");
+                    if (subWrapper && subWrapper instanceof HTMLElement)
+                        subWrapper.style.display = newVisibility ? "" : "none";
+                    else {
+                        if (mods.getSettings().isDebug())
+                            console.log("[CDE] Can't find subWrapper:", subWrapper, corePanel);
+                    }
+
+                    // Change asset for button
+                    const currPngId = newVisibility ? 
+                        mods.getAssetManager()._png_visible_id : 
+                        mods.getAssetManager()._png_hidden_id;
+                    mods.getAssetManager().changeAsset(corePanel, "#cde-btn-eta-extra", currPngId);
                 }
             }
         });

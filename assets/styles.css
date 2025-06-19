@@ -19,7 +19,7 @@
   height: 16px;
   border-radius: 0px;
   margin: 0 0px;
-  pointer-events: none;
+  pointer-events: none !important;
   /* filter: invert(19%) sepia(11%) saturate(403%) hue-rotate(176deg) brightness(94%) contrast(92%); */
 }
 .cde-asset-small {

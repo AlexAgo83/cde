@@ -13,6 +13,7 @@ export const _png_arrowRight_id  = "assets/cde-arrow-right.png";
 export const _png_reduce_id      = "assets/cde-reduce.png";
 export const _png_scheduled_id   =  "assets/cde-scheduled.png";
 export const _png_visible_id     =  "assets/cde-visible.png";
+export const _png_hidden_id      =  "assets/cde-hidden.png";
 
 const registeredIds = {};
 const ASSET_IDS = [
@@ -20,7 +21,8 @@ const ASSET_IDS = [
     _png_arrowRight_id,
     _png_reduce_id,
     _png_scheduled_id,
-    _png_visible_id
+    _png_visible_id,
+    _png_hidden_id
 ];
 
 /**
@@ -93,4 +95,20 @@ export function getAssetHtml(assetId, classExtends=[]) {
 	return `<img class="cde-asset ${classExtends.join(" ")}" src="${
 		getAssetUrl(assetId) ?? URL_MELVORIDLE_ICON
 	}" />`;
+}
+
+
+/**
+ * Replaces the inner HTML of an element with a new asset.
+ * 
+ * @param {string} objectId - The ID of the target element to update.
+ * @param {string} newAssetId - The ID of the new asset to replace the current content.
+ */
+export function changeAsset (parent, objectId, newAssetId) {
+    const assetHtml = mods.getAssetManager().getAssetHtml(newAssetId);
+    if (assetHtml != null && assetHtml.length > 0) {
+        const elementBtn = parent.querySelector(objectId);
+        if (elementBtn) elementBtn.innerHTML = assetHtml;
+        else if (mods.getSettings().isDebug()) console.log("[CDE] Can't find subWrapper:", elementBtn);
+    }
 }
