@@ -28,6 +28,8 @@
   "resources": [
     "assets/cde-arrow-left.png",
     "assets/cde-arrow-right.png",
+    "assets/cde-chart.png",
+    "assets/cde-hidden.png",
     "assets/cde-icon-light.png",
     "assets/cde-icon-dark.png",
     "assets/cde-reduce.png",

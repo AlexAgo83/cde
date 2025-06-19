@@ -8,21 +8,23 @@ let mods = null;
 const URL_MELVORIDLE_ICON = "https://cdn2-main.melvor.net/assets/media/main/logo_no_text.png";
 
 /* Asset IDs */
-export const _png_arrowLeft_id   = "assets/cde-arrow-left.png";
-export const _png_arrowRight_id  = "assets/cde-arrow-right.png";
-export const _png_reduce_id      = "assets/cde-reduce.png";
-export const _png_scheduled_id   =  "assets/cde-scheduled.png";
-export const _png_visible_id     =  "assets/cde-visible.png";
-export const _png_hidden_id      =  "assets/cde-hidden.png";
+export const _png_arrowLeft_id  = "assets/cde-arrow-left.png";
+export const _png_arrowRight_id = "assets/cde-arrow-right.png";
+export const _png_chart_id      = "assets/cde-chart.png";
+export const _png_hidden_id     = "assets/cde-hidden.png";
+export const _png_reduce_id     = "assets/cde-reduce.png";
+export const _png_scheduled_id  = "assets/cde-scheduled.png";
+export const _png_visible_id    = "assets/cde-visible.png";
 
 const registeredIds = {};
 const ASSET_IDS = [
     _png_arrowLeft_id,
     _png_arrowRight_id,
+    _png_chart_id,
+    _png_hidden_id,
     _png_reduce_id,
     _png_scheduled_id,
-    _png_visible_id,
-    _png_hidden_id
+    _png_visible_id
 ];
 
 /**
