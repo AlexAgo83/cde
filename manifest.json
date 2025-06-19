@@ -3,6 +3,7 @@
   "icon": "assets/cde-icon-dark.png",
   "setup": "setup.mjs",
   "module": [
+    "libs/chart.mjs",
     "libs/lz-string.js",
     "modules/settings.mjs",
     "modules/localStorage.mjs",
@@ -17,6 +18,7 @@
     "modules/pages.mjs",
     "views/exportView.mjs",
     "views/changelogView.mjs",
+    "pages/chartPanel.mjs",
     "pages/combatPanel.mjs",
     "pages/nonCombatPanel.mjs",
     "modules.mjs"

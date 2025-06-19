@@ -49,6 +49,9 @@ export function getAltMagicPanel() { return altMagicPanel; }
 export function getCartographyPanel() { return cartographyPanel; }
 export function getArchaeologyPanel() { return archaeologyPanel; }
 
+/** Chart Panel */
+let chartPanel = null;
+
 /**
  * Loads panel submodules for the pages manager.
  * This should be called once during initialization to set up the pages's submodules.
@@ -56,8 +59,10 @@ export function getArchaeologyPanel() { return archaeologyPanel; }
  */
 export async function loadSubModule(ctx) {
   
+    /* Combat Panel */
     subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
   
+    /* Non-Combat Panel */
     const nonCombatPanel = await ctx.loadModule("pages/nonCombatPanel.mjs");
     subModules.push(woodcuttingPanel = nonCombatPanel.createInstance("woodcutting"));
     subModules.push(fishingPanel = nonCombatPanel.createInstance("fishing"));
@@ -76,6 +81,9 @@ export async function loadSubModule(ctx) {
     subModules.push(altMagicPanel = nonCombatPanel.createInstance("altmagic"));
     subModules.push(cartographyPanel = nonCombatPanel.createInstance("cartography"));
     subModules.push(archaeologyPanel = nonCombatPanel.createInstance("archaeology"));
+
+    /* Chart Panel */
+    subModules.push(chartPanel = await ctx.loadModule("pages/chartPanel.mjs"));
 }
 
 /**
@@ -101,6 +109,7 @@ export function init(modules) {
 export function logger(label, step, from, to, ...args) {
     mods.getUtils().logger(label, step, "pages", from, to, ...args);
 }
+
 /**
  * Logs a debug message if the 'isDebug' setting is enabled with a prefix of "[Notif]".
  * The message is prefixed with "[Notif] [Step: " + step + "] (" + from + "->" + to + ")".
@@ -613,19 +622,31 @@ function pageContainer(targetPage, identifier, currPanel) {
         if (document.getElementById(headerId)) return;
 
         const summaryId = getSummaryID(identifier);
+        
+        /* Init Header Panel */
         const corePanel = document.createElement('div');
         corePanel.id = headerId;
         corePanel.classList.add("cde-eta-header");
 
+        /* Setup Controls */
         currPanel.setControlsPanelCb(onControlsPanel);
-        const innHtml = currPanel.container(corePanel, summaryId, identifier);
-        corePanel.innerHTML = innHtml;
-        corePanel.style.display = "none";
 
+        /* Setup Chart Panel */
+        // corePanel.prepend(chartPanel.getHtmlElement());
+
+        /* Setup Content Panel */
+        const contentPanel = document.createElement('div');
+        contentPanel.classList.add("cde-content-panel");
+        contentPanel.innerHTML = currPanel.container(contentPanel, summaryId, identifier);
+        contentPanel.style.display = "none";
+        corePanel.prepend(contentPanel);
+
+        /* Setup Panel Position */
         const controlsPosition = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-        displayEtaAt(corePanel, controlsPosition);
+        displayEtaAt(contentPanel, controlsPosition);
 
-        corePanel.addEventListener("click", (event) => {
+        /** Setup Click Listener */
+        contentPanel.addEventListener("click", (event) => {
             // @ts-ignore
             if (event && event.target && event.target.id) {
                 /* Collect cloud settings */
@@ -647,7 +668,7 @@ function pageContainer(targetPage, identifier, currPanel) {
 
                 /* Update Position */
                 const newCurrState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-                displayEtaAt(corePanel, newCurrState);
+                displayEtaAt(contentPanel, newCurrState);
                 if (mods.getSettings().isDebug()) {
                     console.log("[CDE] Updated ETA position:", {currState, newCurrState});
                 }
@@ -675,19 +696,19 @@ function pageContainer(targetPage, identifier, currPanel) {
                     mods.getCloudStorage().setEtaVisibility(newVisibility);
 
                     // Dynamic show or hide wrapper panel
-                    const subWrapper = corePanel.querySelector("#cde-subwrapper");
+                    const subWrapper = contentPanel.querySelector("#cde-subwrapper");
                     if (subWrapper && subWrapper instanceof HTMLElement)
                         subWrapper.style.display = newVisibility ? "" : "none";
                     else {
                         if (mods.getSettings().isDebug())
-                            console.log("[CDE] Can't find subWrapper:", subWrapper, corePanel);
+                            console.log("[CDE] Can't find subWrapper:", subWrapper, contentPanel);
                     }
 
                     // Change asset for button
                     const currPngId = newVisibility ? 
                         mods.getAssetManager()._png_visible_id : 
                         mods.getAssetManager()._png_hidden_id;
-                    mods.getAssetManager().changeAsset(corePanel, "#cde-btn-eta-extra", currPngId);
+                    mods.getAssetManager().changeAsset(contentPanel, "#cde-btn-eta-extra", currPngId);
                 }
             }
         });
