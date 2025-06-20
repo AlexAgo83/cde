@@ -162,13 +162,17 @@ export function collectBasics() {
  */
 export function collectSkills() {
 	const result = {};
-	_game().skills.forEach((skill) => {
-		result[skill.id] = {
-			name: skill.name,
-			level: skill.level,
-			xp: skill.xp
-		};
-	});
+	if (_game().skills) {
+		_game().skills.forEach((skill) => {
+			result[skill.id] = {
+				name: skill.name,
+				level: skill.level,
+				xp: skill.xp
+			};
+		});
+	} else if (mods.getUtils().isDebug()) {
+		console.log("[CDE] Collector: No skills found");
+	}
 	return result;
 }
 
@@ -178,25 +182,27 @@ export function collectSkills() {
  */
 export function collectMastery() {
 	const result = {};
-
-	_game().skills.registeredObjects.forEach((skill) => {
-		const masteryMap = skill.actionMastery;
-		if (!masteryMap || masteryMap.size === 0) return;
-		
-		const entries = {};
-		masteryMap.forEach((progress, entry) => {
-			entries[entry.localID] = {
-				id: entry.localID,
-				level: progress.level,
-				xp: progress.xp
-			};
+	if (_game().skills) {
+		_game().skills.registeredObjects.forEach((skill) => {
+			const masteryMap = skill.actionMastery;
+			if (!masteryMap || masteryMap.size === 0) return;
+			
+			const entries = {};
+			masteryMap.forEach((progress, entry) => {
+				entries[entry.localID] = {
+					id: entry.localID,
+					level: progress.level,
+					xp: progress.xp
+				};
+			});
+			
+			if (Object.keys(entries).length > 0) {
+				result[skill.localID] = entries;
+			}
 		});
-		
-		if (Object.keys(entries).length > 0) {
-			result[skill.localID] = entries;
-		}
-	});
-	
+ 	} else if (mods.getUtils().isDebug()) {
+		console.log("[CDE] Collector: No skills found");
+	}
 	return result;
 }
 
@@ -207,22 +213,26 @@ export function collectMastery() {
 export function collectAgility() {
 	const result = {};
 
-	_game().agility.courses.forEach((course, realm) => {
-		const courseData = {}
-		courseData.realmId = realm.localID;
-		courseData.obstacles = {};
-			
-		course.builtObstacles?.forEach((obstacle, position) => {
-			const row = {
-				position: position,
-				id: obstacle.localID,
-				name: obstacle.name
-			};
-			courseData.obstacles[row.id] = row;
-		});
+	if (_game().agility && _game().agility.courses) {
+		_game().agility.courses.forEach((course, realm) => {
+			const courseData = {}
+			courseData.realmId = realm.localID;
+			courseData.obstacles = {};
+				
+			course.builtObstacles?.forEach((obstacle, position) => {
+				const row = {
+					position: position,
+					id: obstacle.localID,
+					name: obstacle.name
+				};
+				courseData.obstacles[row.id] = row;
+			});
 
-		result[courseData.realmId] = courseData;
-	});
+			result[courseData.realmId] = courseData;
+		});
+	} else if (mods.getUtils().isDebug()) {
+		console.log("[CDE] Collector: No agility found");
+	}
 	
 	return result;
 }
@@ -233,14 +243,19 @@ export function collectAgility() {
  */
 export function collectActivePotions() {
 	const result = {};
-	_game().potions.activePotions?.forEach((currPotion, activity) => {
-		const item = {
-			activity: activity.localID,
-			potion: currPotion.item.localID,
-			charges: currPotion.charges
-		};
-		result[item.activity] = item;
-	});
+
+	if (_game().potions && _game().potions.activePotions) {
+		_game().potions.activePotions?.forEach((currPotion, activity) => {
+			const item = {
+				activity: activity.localID,
+				potion: currPotion.item.localID,
+				charges: currPotion.charges
+			};
+			result[item.activity] = item;
+		});
+	} else if (mods.getUtils().isDebug()) {
+		console.log("[CDE] Collector: No potions found");
+	}
 	return result;
 }
 
@@ -411,13 +426,17 @@ export function collectFarming() {
  */
 export function collectGameStats() {
 	const result = {};
-	mods.getDisplayStats().StatTypes.forEach((type) => {
-		const section = mods.getDisplayStats().displayStatsAsObject(_game().stats, type);
-		if (section) {
-			const statName = mods.getDisplayStats().StatNameMap.get(type);
-			result[statName] = section;
-		}
-	});
+	try {
+		mods.getDisplayStats().StatTypes.forEach((type) => {
+			const section = mods.getDisplayStats().displayStatsAsObject(_game().stats, type);
+			if (section) {
+				const statName = mods.getDisplayStats().StatNameMap.get(type);
+				result[statName] = section;
+			}
+		});
+	} catch (error) {
+		console.warn("[CDE] Game stats not found", error);	
+	}
 	return result;
 }
 
@@ -463,7 +482,6 @@ export function collectAstrology() {
  */
 export function collectShopData() {
 	const purchases = {};
-
 	const purchased = _game().shop?.upgradesPurchased;
 	if (purchased && purchased.size > 0) {
 		purchased.forEach((qty, cursor) => {
@@ -485,15 +503,19 @@ export function collectShopData() {
  */
 export function collectEquipments() {
 	const equipped = {};
-	_game().combat.player.equipment.equippedArray.forEach((slotItem) => {
-		if (slotItem.quantity > 0) {
-			equipped[slotItem.slot.localID] = {
-				name: slotItem.item.name,
-				id: slotItem.item.localID,
-				quantity: slotItem.quantity
-			};
-		}
-	});
+	if (_game().combat && _game().combat.player && _game().combat.player.equipment) {
+		_game().combat.player.equipment.equippedArray.forEach((slotItem) => {
+			if (slotItem.quantity > 0) {
+				equipped[slotItem.slot.localID] = {
+					name: slotItem.item.name,
+					id: slotItem.item.localID,
+					quantity: slotItem.quantity
+				};
+			}
+		});
+	} else if (mods.getSettings().isDebug()) {
+		console.warn("[CDE] combat.player.equipment is missing");
+	}
 	return equipped;
 }
 
@@ -506,19 +528,23 @@ export function collectEquipments() {
 export function collectEquipmentSets() {
 	const sets = {};
 	let slotNum = 1;
-	_game().combat.player.equipmentSets.forEach((set) => {
-		const gear = {};
-		set.equipment.equippedArray.forEach((item) => {
-			if (item.quantity > 0) {
-				gear[item.slot.localID] = {
-					name: item.item.name,
-					id: item.item.localID,
-					quantity: item.quantity
-				};
-			}
+	if (_game().combat && _game().combat.player && _game().combat.player.equipmentSets) {
+		_game().combat.player.equipmentSets.forEach((set) => {
+			const gear = {};
+			set.equipment.equippedArray.forEach((item) => {
+				if (item.quantity > 0) {
+					gear[item.slot.localID] = {
+						name: item.item.name,
+						id: item.item.localID,
+						quantity: item.quantity
+					};
+				}
+			});
+			sets["Slot_"+slotNum] = gear; slotNum+=1;
 		});
-		sets["Slot_"+slotNum] = gear; slotNum+=1;
-	});
+	} else if (mods.getSettings().isDebug()) {
+		console.warn("[CDE] combat.player.equipmentSets is missing");
+	}
 	return sets;
 }
 
@@ -552,12 +578,16 @@ export function collectBankData() {
  */
 export function collectDungeons() {
 	const result = {};
-	_game().combat.dungeonCompletion.keys().forEach((d) => {
-		const count = _game().combat.dungeonCompletion.get(d);
-		if (count > 0) {
-			result[d.localID] = { name: d.name, id: d.localID, completions: count }
-		}
-	});
+	if (_game().combat && _game().combat.dungeonCompletion) {
+		_game().combat?.dungeonCompletion?.keys().forEach((d) => {
+			const count = _game().combat.dungeonCompletion.get(d);
+			if (count > 0) {
+				result[d.localID] = { name: d.name, id: d.localID, completions: count }
+			}
+		});
+	} else if (mods.getSettings().isDebug()) {
+		console.warn("[CDE] Dungeons not found");
+	}
 	return result;
 }
 
@@ -569,13 +599,17 @@ export function collectDungeons() {
  */
 export function collectStrongholds() {
 	const result = {};
-	_game().strongholds.namespaceMaps.forEach((e) => {
-		e.forEach((s) => {
-			if (s.timesCompleted > 0) {
-				result[s.localID] = { name: s.name, id: s.localID, completions: s.timesCompleted };
-			}
+	if (_game().strongholds && _game().strongholds.namespaceMaps) {
+		_game().strongholds.namespaceMaps.forEach((e) => {
+			e.forEach((s) => {
+				if (s.timesCompleted > 0) {
+					result[s.localID] = { name: s.name, id: s.localID, completions: s.timesCompleted };
+				}
+			});
 		});
-	});
+	} else if (mods.getSettings().isDebug()) {
+		console.warn("[CDE] Strongholds not found");
+	}
 	return result;
 }
 
@@ -587,22 +621,26 @@ export function collectStrongholds() {
  */
 export function collectCompletion() {
 	const result = {};
-	const itemCur = _game().completion.itemProgress.currentCount.data;
-	const itemMax = _game().completion.itemProgress.maximumCount.data;
-	const monCur = _game().completion.monsterProgress.currentCount.data;
-	const monMax = _game().completion.monsterProgress.maximumCount.data;
-	mods.getUtils().NameSpaces.forEach((n) => {
-		const itemCount = itemCur.get(n) || 0;
-		const itemMaxCount = itemMax.get(n);
-		const itemPct = Math.round((itemCount / itemMaxCount) * 100);
-		const monsterCount = monCur.get(n) || 0;
-		const monsterMax = monMax.get(n);
-		const monsterPct = Math.round((monsterCount / monsterMax) * 100);
-		result[n] = {
-			items: { count: itemCount, max: itemMaxCount, percent: itemPct },
-			monsters: { count: monsterCount, max: monsterMax, percent: monsterPct }
-		};
-	});
+	try {
+		const itemCur = _game().completion.itemProgress.currentCount.data;
+		const itemMax = _game().completion.itemProgress.maximumCount.data;
+		const monCur = _game().completion.monsterProgress.currentCount.data;
+		const monMax = _game().completion.monsterProgress.maximumCount.data;
+		mods.getUtils().NameSpaces.forEach((n) => {
+			const itemCount = itemCur.get(n) || 0;
+			const itemMaxCount = itemMax.get(n);
+			const itemPct = Math.round((itemCount / itemMaxCount) * 100);
+			const monsterCount = monCur.get(n) || 0;
+			const monsterMax = monMax.get(n);
+			const monsterPct = Math.round((monsterCount / monsterMax) * 100);
+			result[n] = {
+				items: { count: itemCount, max: itemMaxCount, percent: itemPct },
+				monsters: { count: monsterCount, max: monsterMax, percent: monsterPct }
+			};
+		});
+	} catch (error) {
+		console.warn("[CDE] Completion not found", error);
+	}
 	return result;
 }
 
@@ -854,6 +892,12 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 	return result;
 }
 
+/**
+ * Calculates the mastery progress percentage towards the next level.
+ * @param {number} currentLevel - The current mastery level.
+ * @param {number} currentXp - The current mastery XP.
+ * @returns {number} A percentage value (0 to 100) representing the mastery progress.
+ */
 function masteryProgress(currentLevel, currentXp) {
 	const nextLevel = currentLevel + 1;
 	const currentLevelXp = mods.getUtils().getXpForLevel(currentLevel);
