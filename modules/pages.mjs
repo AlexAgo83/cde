@@ -647,75 +647,14 @@ function pageContainer(targetPage, identifier, currPanel) {
 
         /** Setup Click Listener */
         contentPanel.addEventListener("click", (event) => {
-            // @ts-ignore
-            if (event && event.target && event.target.id) {
-                /* Collect cloud settings */
-                // @ts-ignore
-                const id = event?.target?.id;
-                const currState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-                
-                const sizeCursor = currPanel.getIdentity();
-                const etaSize = mods.getCloudStorage().getCurrentETASize(sizeCursor);
-
-                /* Setup position */
-                if (id === "cde-btn-eta-displayLeft") {
-                    if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("left");
-                    if (currState === "right") mods.getCloudStorage().setCurrentETAPostion("center");
-                } else if (id === "cde-btn-eta-displayRight") {
-                    if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("right");
-                    if (currState === "left") mods.getCloudStorage().setCurrentETAPostion("center");
-                }
-
-                /* Update Position */
-                const newCurrState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-                displayEtaAt(contentPanel, newCurrState);
-                if (mods.getSettings().isDebug()) {
-                    console.log("[CDE] Updated ETA position:", {currState, newCurrState});
-                }
-
-                /* Setup size */
-                if (id === "cde-btn-eta-displaySmall") {
-                    if (etaSize === "large") mods.getCloudStorage().setCurrentETASize(sizeCursor, "small");
-                    if (etaSize === "small") mods.getCloudStorage().setCurrentETASize(sizeCursor, "large");
-                    currPanel.onRefresh(etaSize);
-                }
-
-                /* Notification */
-                loggerNotif("Click", "pageContainer", "getNotification().onSubmit_fromClick", id);
-                if (mods.getNotification().onSubmit_fromClick(id)) {
-                    /* Soft-refresh shared notification */
-                    softRefreshSharedNotification();
-                    /* Refresh current panel */
-                    currPanel.onRefresh(etaSize);
-                }
-
-                /* Show / Hide subWrapper */
-                if (id === "cde-btn-eta-extra") {
-                    // Toggle visibility
-                    const newVisibility = !mods.getCloudStorage().isEtaVisible();
-                    mods.getCloudStorage().setEtaVisibility(newVisibility);
-
-                    // Dynamic show or hide wrapper panel
-                    const subWrapper = contentPanel.querySelector("#cde-subwrapper");
-                    if (subWrapper && subWrapper instanceof HTMLElement)
-                        subWrapper.style.display = newVisibility ? "" : "none";
-                    else {
-                        if (mods.getSettings().isDebug())
-                            console.log("[CDE] Can't find subWrapper:", subWrapper, contentPanel);
-                    }
-
-                    // Change asset for button
-                    const currPngId = newVisibility ? 
-                        mods.getAssetManager()._png_visible_id : 
-                        mods.getAssetManager()._png_hidden_id;
-                    mods.getAssetManager().changeAsset(contentPanel, "#cde-btn-eta-extra", currPngId);
-                }
-            }
+            setupClickListener(event, currPanel, contentPanel);
         });
 
+        /** Setup mutation compute */
         mutationCompute.container = container;
         mutationCompute.corePanel = corePanel;
 
+        /** Looking for the best area to inject */
         const rowDeck = container.querySelector('.row-deck');
         if (rowDeck) {
             if (mods.getSettings().isDebug()) {
@@ -742,6 +681,73 @@ function pageContainer(targetPage, identifier, currPanel) {
         console.log("[CDE] New observer registered", reference);
     }
     return reference;
+}
+
+function setupClickListener(event, currPanel, contentPanel) {
+    // @ts-ignore
+    if (event && event.target && event.target.id) {
+        /* Collect cloud settings */
+        // @ts-ignore
+        const id = event?.target?.id;
+        const currState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
+        
+        const sizeCursor = currPanel.getIdentity();
+        const etaSize = mods.getCloudStorage().getCurrentETASize(sizeCursor);
+
+        /* Setup position */
+        if (id === "cde-btn-eta-displayLeft") {
+            if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("left");
+            if (currState === "right") mods.getCloudStorage().setCurrentETAPostion("center");
+        } else if (id === "cde-btn-eta-displayRight") {
+            if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("right");
+            if (currState === "left") mods.getCloudStorage().setCurrentETAPostion("center");
+        }
+
+        /* Update Position */
+        const newCurrState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
+        displayEtaAt(contentPanel, newCurrState);
+        if (mods.getSettings().isDebug()) {
+            console.log("[CDE] Updated ETA position:", {currState, newCurrState});
+        }
+
+        /* Setup size */
+        if (id === "cde-btn-eta-displaySmall") {
+            if (etaSize === "large") mods.getCloudStorage().setCurrentETASize(sizeCursor, "small");
+            if (etaSize === "small") mods.getCloudStorage().setCurrentETASize(sizeCursor, "large");
+            currPanel.onRefresh(etaSize);
+        }
+
+        /* Notification */
+        loggerNotif("Click", "pageContainer", "getNotification().onSubmit_fromClick", id);
+        if (mods.getNotification().onSubmit_fromClick(id)) {
+            /* Soft-refresh shared notification */
+            softRefreshSharedNotification();
+            /* Refresh current panel */
+            currPanel.onRefresh(etaSize);
+        }
+
+        /* Show / Hide subWrapper */
+        if (id === "cde-btn-eta-extra") {
+            // Toggle visibility
+            const newVisibility = !mods.getCloudStorage().isEtaVisible();
+            mods.getCloudStorage().setEtaVisibility(newVisibility);
+
+            // Dynamic show or hide wrapper panel
+            const subWrapper = contentPanel.querySelector("#cde-subwrapper");
+            if (subWrapper && subWrapper instanceof HTMLElement)
+                subWrapper.style.display = newVisibility ? "" : "none";
+            else {
+                if (mods.getSettings().isDebug())
+                    console.log("[CDE] Can't find subWrapper:", subWrapper, contentPanel);
+            }
+
+            // Change asset for button
+            const currPngId = newVisibility ? 
+                mods.getAssetManager()._png_visible_id : 
+                mods.getAssetManager()._png_hidden_id;
+            mods.getAssetManager().changeAsset(contentPanel, "#cde-btn-eta-extra", currPngId);
+        }
+    }
 }
 
 /**
