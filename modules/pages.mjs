@@ -83,7 +83,7 @@ export async function loadSubModule(ctx) {
     subModules.push(archaeologyPanel = nonCombatPanel.createInstance("archaeology"));
 
     /* Chart Panel */
-    subModules.push(chartPanel = await ctx.loadModule("pages/chartPanel.mjs"));
+    subModules.push(chartPanel = await ctx.loadModule("pages/panel/chartPanel.mjs"));
 }
 
 /**

@@ -18,7 +18,7 @@
     "modules/pages.mjs",
     "views/exportView.mjs",
     "views/changelogView.mjs",
-    "pages/chartPanel.mjs",
+    "pages/panel/chartPanel.mjs",
     "pages/combatPanel.mjs",
     "pages/nonCombatPanel.mjs",
     "modules.mjs"
