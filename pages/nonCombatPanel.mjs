@@ -320,6 +320,7 @@ export function createInstance(innerType) {
             /* Current Skill */
             const skillLabel = activeSkill.name;
             const skillMedia = activeSkill.media;
+            const activePotion = mods.getCollector().collectActivePotionsForDisplay(activeSkill.localID);
             dr.resultTop.push(
                 `<div class="cde-generic-panel">
                     ${skillMedia ? `<img class="skill-media" src="${skillMedia}" />` : '<span class="skill-media"></span>'}
@@ -397,7 +398,23 @@ export function createInstance(innerType) {
                         dr.resultTop.push(levelCap);
                         dr.updated = true;
                     }
-                }   
+                }  
+                
+                if (activePotion) {
+                    Object.keys(activePotion).forEach((pot) => {
+                        const value = activePotion[pot];
+                        dr.resultTop.push(
+                            `<div class="cde-generic-panel">
+                                ${value.media ? `<img class="skill-media" src="${value.media}" />` : `<span class="skill-media"></span>`}
+                                <span class="skill-label">${value.potionLabel} ➜ </span>
+                                <span class="vph vph-skill">${value.charges ?? "N/A"}</span>
+                                <span class="vph vph-skill-fade"> (</span>
+                                <span class="vph vph-skill vph-small">${value.inBank ?? "N/A"}</span>
+                                <span class="vph vph-skill-fade">)</span>
+                            </div>`
+                        );
+                    })
+                }
             }
         },
 

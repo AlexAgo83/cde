@@ -243,7 +243,6 @@ export function collectAgility() {
  */
 export function collectActivePotions() {
 	const result = {};
-
 	if (_game().potions && _game().potions.activePotions) {
 		_game().potions.activePotions?.forEach((currPotion, activity) => {
 			const item = {
@@ -255,6 +254,36 @@ export function collectActivePotions() {
 		});
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No potions found");
+	}
+	return result;
+}
+
+/**
+ * Collect the active potions in the game, with additional display information.
+ * @param {string|null} [skillID=null] Optional skill ID to filter the results by.
+ * @returns {Object} An object containing the active potions, with keys being the activity IDs and values being objects containing the potion ID, label, charges, and media.
+ */
+export function collectActivePotionsForDisplay(skillID=null) {
+	const result = {};
+	if (_game().potions && _game().potions.activePotions) {
+		_game().potions.activePotions?.forEach((currPotion, activity) => {
+			const item = {
+				activity: activity.localID,
+				potionId: currPotion.item.localID,
+				potionLabel: currPotion.item.name,
+				charges: currPotion.charges,
+				media: currPotion.item.media,
+				inBank: mods.getUtils().getQteInBank(currPotion.item)
+			};
+			result[item.activity] = item;
+		});
+	} else if (mods.getUtils().isDebug()) {
+		console.log("[CDE] Collector: No potions found");
+	}
+	if (skillID && result.hasOwnProperty(skillID)) {
+		const filteredResult = {};
+		filteredResult[skillID] = result[skillID];
+		return filteredResult;
 	}
 	return result;
 }

@@ -566,7 +566,7 @@ export function getProducesForRecipe(recipe) {
 	if (recipe?.produces) return recipe.produces;
 	if (recipe?.potions) return recipe.potions;
 	if (recipe?.primaryProducts) return recipe.primaryProducts;
-	//if ()
+	if (recipe?.randomItems) return recipe.randomItems;
 	return null;
 }
 

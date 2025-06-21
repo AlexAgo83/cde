@@ -204,6 +204,7 @@ export const onRefresh = (etaSize) => {
                 const resultEnd = [];
                 const resultNotification = mods.getNotification().displayNotification();
                 
+                const activePotion = mods.getCollector().collectActivePotionsForDisplay("Combat");
                 
                 let pKphStr = `${URL_COMPLETION ? `<img class="skill-media" src="${URL_COMPLETION}" />` : `<span class="skill-media"></span>`}`;
                 pKphStr += `<span class="skill-label"> Kills per Hour ➜ </span>`;
@@ -241,6 +242,22 @@ export const onRefresh = (etaSize) => {
                     );
                 }
                 
+                if (activePotion) {
+                    Object.keys(activePotion).forEach((pot) => {
+                        const value = activePotion[pot];
+                        resultTop.push(
+                            `<div class="cde-generic-panel">
+                                ${value.media ? `<img class="skill-media" src="${value.media}" />` : `<span class="skill-media"></span>`}
+                                <span class="skill-label">${value.potionLabel} ➜ </span>
+                                <span class="vph vph-combat">${value.charges ?? "N/A"}</span>
+                                <span class="vph vph-combat-fade"> (</span>
+                                <span class="vph vph-combat vph-small">${value.inBank ?? "N/A"}</span>
+                                <span class="vph vph-combat-fade">)</span>
+                            </div>`
+                        );
+                    })
+                }
+
                 resultTop.push(
                     `<div class="cde-generic-panel">
                         ${URL_STATISTICS ? `<img class="skill-media" src="${URL_STATISTICS}" />` : `<span class="skill-media"></span>`}

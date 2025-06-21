@@ -656,6 +656,13 @@ function pageContainer(targetPage, identifier, currPanel) {
 
         /** Looking for the best area to inject */
         const rowDeck = container.querySelector('.row-deck');
+        // const mapDisplay = container.querySelector('#cartography-map-display');
+        // if (mapDisplay) {
+        //     if (mods.getSettings().isDebug()) {
+        //         console.log("[CDE] Match current cartography-map-display:", rowDeck);
+        //     }
+        //     mapDisplay.prepend(currPanel);
+        // } else 
         if (rowDeck) {
             if (mods.getSettings().isDebug()) {
                 console.log("[CDE] Match current row-deck:", rowDeck);
