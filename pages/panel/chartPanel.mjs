@@ -40,11 +40,12 @@ export function getHtmlElement(pageId) {
         return null;
     }
 
-    if (!registered.hasOwnProperty(pageId)) {
+    const formatedPageId = pageId.toLowerCase();;
+    if (!registered.hasOwnProperty(formatedPageId)) {
         try {
             /* Init Container */
             const htmlElement = document.createElement("div");
-            htmlElement.id = "cde-chart-"+pageId;
+            htmlElement.id = "cde-chart-"+formatedPageId;
             htmlElement.classList.add("cde-chart-panel");
             htmlElement.style.display = "none";
             
@@ -54,13 +55,13 @@ export function getHtmlElement(pageId) {
             span.textContent = "WIP WIP WIP WIP WIP WIP WIP WIP WIP";
             htmlElement.appendChild(span);
 
-            registered[pageId] = htmlElement;
+            registered[formatedPageId] = htmlElement;
         } catch (error) {
             console.error("Failed to initialize chart panel:", error);
             return null;
         }
     }
-    return registered[pageId] || null;
+    return registered[formatedPageId] || null;
 }
 
 /**

@@ -236,7 +236,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         if (isNotActionPage || isNotActiveAction) {
             // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:"+localID);
             panel.show(false);
-            chartPanel.showChart(userPage, false);
+            chartPanel.showChart(panel.getIdentity(), false);
             return updated;
         }
         
@@ -256,7 +256,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         }
         if (updated != null) {
             panel.show(updated);
-            chartPanel.showChart(userPage, updated);
+            chartPanel.showChart(panel.getIdentity(), updated);
         }
         if (typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
@@ -635,7 +635,7 @@ function pageContainer(targetPage, identifier, currPanel) {
 
         /* Setup Chart Panel */
         if (isCfg(Stg().ETA_CHART)) {
-            corePanel.prepend(chartPanel.getHtmlElement(targetPage));
+            corePanel.prepend(chartPanel.getHtmlElement(identifier));
         }
 
         /* Setup Content Panel */

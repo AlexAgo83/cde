@@ -106,7 +106,7 @@ export const SettingsReference = {
 		key: "export-shop",
 		label: "Include Shop Data",
 		hint: "Include purchased shop items in export", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_EQUIPMENT: {
 		section: Sections.DataOptions,
@@ -138,7 +138,7 @@ export const SettingsReference = {
 		key: "export-stats",
 		label: "Include Game Stats",
 		hint: "Include general statistics from all skills and actions", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_CARTOGRAPHY: {
 		section: Sections.DataOptions,
@@ -170,7 +170,7 @@ export const SettingsReference = {
 		key: "export-pets",
 		label: "Include Pets Data",
 		hint: "Include discovered pets data", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_TOWNSHIP: {
 		section: Sections.DataOptions,
@@ -178,7 +178,7 @@ export const SettingsReference = {
 		key: "export-township",
 		label: "Include Township Data",
 		hint: "Include township statistics", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_ASTROLOGY: {
 		section: Sections.DataOptions,
@@ -186,7 +186,7 @@ export const SettingsReference = {
 		key: "export-astrology",
 		label: "Include Astrology Data",
 		hint: "Include astrology data", 
-		toggle: true
+		toggle: false
 	},
 	EXPORT_COMPLETION: {
 		section: Sections.DataOptions,
@@ -194,7 +194,7 @@ export const SettingsReference = {
 		key: "export-completion",
 		label: "Include Completion Data",
 		hint: "Include completion data", 
-		toggle: true
+		toggle: false
 	},
 
 	// ETA
@@ -210,8 +210,8 @@ export const SettingsReference = {
 		section: Sections.ETA,
 		type: "switch",
 		key: "eta-chart",
-		label: "Allow chart for ETA",
-		hint: "Toggle to allow chart for ETA.",
+		label: "Allow chart for ETA (WIP)",
+		hint: "Toggle to allow chart for ETA. (WIP)",
 		toggle: false
 	},
 	ETA_NOTIFICATION: {

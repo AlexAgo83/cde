@@ -163,7 +163,8 @@ export function createInstance(innerType) {
             const etaSize = mods.getCloudStorage().getCurrentETASize(identity);
 
             let wrapper = `<span class="cde-eta-summary ${etaSize == "small" ? "cde-eta-summary-small" : ""}" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}`;
-            return `<div class="cde-${identity}-panel cde-eta-generic"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
+            let isVisible = mods.getCloudStorage().isEtaVisible() ? ``:` cde-eta-generic-flat`;
+            return `<div class="cde-${identity}-panel cde-eta-generic${isVisible}"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
         },
 
         /**

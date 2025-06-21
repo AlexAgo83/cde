@@ -280,10 +280,12 @@ export function collectActivePotionsForDisplay(skillID=null) {
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No potions found");
 	}
-	if (skillID && result.hasOwnProperty(skillID)) {
-		const filteredResult = {};
-		filteredResult[skillID] = result[skillID];
-		return filteredResult;
+	if (skillID) {
+		if (result.hasOwnProperty(skillID)) {
+			const filteredResult = {};
+			filteredResult[skillID] = result[skillID];
+			return filteredResult;
+		} else return {};
 	}
 	return result;
 }
@@ -840,6 +842,12 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 			} else { /** NON COMBAT SKILLS */
 				const queue = {};
 
+				/**
+				 * Registers a mastery item in the queue object.
+				 * @param {Object} mastery - The mastery object with level and XP.
+				 * @param {Object} queryCache - The skill query cache object.
+				 * @returns {Object | null} The registered item or null if not valid.
+				 */
 				const registerItemQueue = (mastery, queryCache) => {
 					if (!queryCache || typeof queryCache.localID === "undefined") return;
 
