@@ -407,10 +407,11 @@ export function createInstance(innerType) {
                             `<div class="cde-generic-panel">
                                 ${value.media ? `<img class="skill-media" src="${value.media}" />` : `<span class="skill-media"></span>`}
                                 <span class="skill-label">${value.potionLabel} ➜ </span>
-                                <span class="vph vph-skill">${value.charges ?? "N/A"}</span>
-                                <span class="vph vph-skill-fade"> (</span>
+                                <span class="vph vph-skill vph-small">${value.charges ?? "N/A"}</span>
+                                <span class="vph vph-skill-fade vph-small">c</span>
+                                <span class="skill-label"> (</span>
                                 <span class="vph vph-skill vph-small">${value.inBank ?? "N/A"}</span>
-                                <span class="vph vph-skill-fade">)</span>
+                                <span class="skill-label">)</span>
                             </div>`
                         );
                     })

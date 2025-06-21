@@ -249,10 +249,11 @@ export const onRefresh = (etaSize) => {
                             `<div class="cde-generic-panel">
                                 ${value.media ? `<img class="skill-media" src="${value.media}" />` : `<span class="skill-media"></span>`}
                                 <span class="skill-label">${value.potionLabel} ➜ </span>
-                                <span class="vph vph-combat">${value.charges ?? "N/A"}</span>
-                                <span class="vph vph-combat-fade"> (</span>
+                                <span class="vph vph-combat vph-small">${value.charges ?? "N/A"}</span>
+                                <span class="vph vph-combat-fade vph-small">c</span>
+                                <span class="skill-label"> (</span>
                                 <span class="vph vph-combat vph-small">${value.inBank ?? "N/A"}</span>
-                                <span class="vph vph-combat-fade">)</span>
+                                <span class="skill-label">)</span>
                             </div>`
                         );
                     })

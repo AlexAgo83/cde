@@ -206,6 +206,14 @@ export const SettingsReference = {
 		hint: "Toggle to show the ETA section on any available page.",
 		toggle: true
 	},
+	ETA_CHART: {
+		section: Sections.ETA,
+		type: "switch",
+		key: "eta-chart",
+		label: "Allow chart for ETA",
+		hint: "Toggle to allow chart for ETA.",
+		toggle: false
+	},
 	ETA_NOTIFICATION: {
 		section: Sections.ETA,
 		type: "switch",

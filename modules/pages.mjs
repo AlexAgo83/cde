@@ -235,7 +235,8 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         const isNotActiveAction = activeAction && (activeAction.localID !== patchedLoginID);
         if (isNotActionPage || isNotActiveAction) {
             // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:"+localID);
-            panel.show(false); 
+            panel.show(false);
+            chartPanel.showChart(userPage, false);
             return updated;
         }
         
@@ -255,6 +256,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         }
         if (updated != null) {
             panel.show(updated);
+            chartPanel.showChart(userPage, updated);
         }
         if (typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
@@ -272,7 +274,7 @@ function softRefreshSharedNotification() {
     /* Try to soft-refresh shared notifications */
     try {
         const tickShared = mods.getNotification().handleOnCheck;
-        loggerNotif("Check Shared triggered", "doWorker:updated=true", "getNotification().checkSharedNotification", tickShared);
+        // loggerNotif("Check Shared triggered", "doWorker:updated=true", "getNotification().checkSharedNotification", tickShared);
         mods.getNotification().checkSharedNotification(tickShared);
     } catch (error) {
         console.error("[CDE] doWorker:checkSharedNotification:", error);
@@ -529,7 +531,7 @@ function onStop() {
     mods.getCloudStorage().removeCurrentMonsterData();
     mods.getCloudStorage().removeCurrentActivityData();
     
-    loggerNotif("Stop", "doWorker:onStop", "getNotification().clearNotify");
+    // loggerNotif("Stop", "doWorker:onStop", "getNotification().clearNotify");
     mods.getNotification().clearNotify(true);
 }
 
@@ -632,7 +634,9 @@ function pageContainer(targetPage, identifier, currPanel) {
         currPanel.setControlsPanelCb(onControlsPanel);
 
         /* Setup Chart Panel */
-        // corePanel.prepend(chartPanel.getHtmlElement());
+        if (isCfg(Stg().ETA_CHART)) {
+            corePanel.prepend(chartPanel.getHtmlElement(targetPage));
+        }
 
         /* Setup Content Panel */
         const contentPanel = document.createElement('div');
@@ -725,7 +729,7 @@ function setupClickListener(event, currPanel, contentPanel) {
         }
 
         /* Notification */
-        loggerNotif("Click", "pageContainer", "getNotification().onSubmit_fromClick", id);
+        // loggerNotif("Click", "pageContainer", "getNotification().onSubmit_fromClick", id);
         if (mods.getNotification().onSubmit_fromClick(id)) {
             /* Soft-refresh shared notification */
             softRefreshSharedNotification();

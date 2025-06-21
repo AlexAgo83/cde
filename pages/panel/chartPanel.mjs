@@ -5,7 +5,7 @@
 // charPanel.mjs
 
 let mods = null;
-let htmlElement = null;
+let registered = {};
 
 /**
  * Initialize the chart panel module.
@@ -27,17 +27,56 @@ export function load(ctx) {
  * Retrieves or creates the HTML element for the chart panel.
  * If the element does not exist, it initializes a new div with a specific ID and class,
  * and adds a test span element to it.
- * @returns {HTMLElement} The HTML element representing the chart panel.
+ * @returns {HTMLElement|null} The HTML element representing the chart panel, or null if initialization fails.
  */
-export function getHtmlElement() {
-    if (htmlElement == null) {
-        htmlElement = document.createElement("div");
-        htmlElement.id = "cde-chart-panel";
-        htmlElement.classList.add("cde-chart-panel");
-        
-        const span = document.createElement("span");
-        span.textContent = "test";
-        htmlElement.appendChild(span);
+export function getHtmlElement(pageId) {
+    if (!registered) {
+        console.error("Registered object is not initialized.");
+        return null;
     }
-    return htmlElement; 
+
+    if (!pageId) {
+        console.error("Invalid pageId provided.");
+        return null;
+    }
+
+    if (!registered.hasOwnProperty(pageId)) {
+        try {
+            /* Init Container */
+            const htmlElement = document.createElement("div");
+            htmlElement.id = "cde-chart-"+pageId;
+            htmlElement.classList.add("cde-chart-panel");
+            htmlElement.style.display = "none";
+            
+            /* Content */
+            const span = document.createElement("span");
+            span.classList.add("skill-label");
+            span.textContent = "WIP WIP WIP WIP WIP WIP WIP WIP WIP";
+            htmlElement.appendChild(span);
+
+            registered[pageId] = htmlElement;
+        } catch (error) {
+            console.error("Failed to initialize chart panel:", error);
+            return null;
+        }
+    }
+    return registered[pageId] || null;
+}
+
+/**
+ * Toggles the visibility of the chart panel.
+ * @param {boolean} isVisible - If true, the chart panel is shown; if false, it is hidden.
+ */
+export function showChart(pageId, isVisible) {
+    if (!pageId) {
+        console.error("Invalid pageId provided.");
+        return;
+    } else {
+        const registeredObject = getHtmlElement(pageId);
+        if (registeredObject === null) {
+            console.error("Registered object is not initialized.");
+            return;
+        }
+        registeredObject.style.display = isVisible ? "" : "none";
+    }
 }
