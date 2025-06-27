@@ -248,6 +248,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         try {
             /* Soft-refresh shared notification */
             softRefreshSharedNotification();
+
             /* Run onRefresh */
             updated = panel.onRefresh(etaSize);
             if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:onRefresh("+etaSize+"):"+localID+" -> "+updated);
@@ -258,7 +259,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
             panel.show(updated);
             chartPanel.showChart(panel.getIdentity(), updated);
         }
-        if (typeof panel.getParent === "function") {
+        if (panel && typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
             displayEtaAt(panel.getParent(), position);
         }
