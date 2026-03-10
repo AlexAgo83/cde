@@ -8,20 +8,16 @@ The **Character Data Exporter (CDE)** is a mod for [Melvor Idle](https://melvori
 
 - Export your character data in structured JSON format  
 - Real-time display of XP, kill counts, and time-based statistics (ETA, kills/hour)  
-- Supports compression (e.g., UTF-16) for smaller exports  
+- Optional compact JSON output for easier sharing  
+- LZString-backed local storage for saved export snapshots  
 - Advanced settings and customization  
-- Track active potions, spells, prayers, familiars, and more  
+- Track active potions and current activity details  
 - List unlocked pets, relics, shop upgrades, and cartography POIs  
 - Integration-ready export for external analysis tools  
 - Generate a changelog (diff) between current and previous exports  
 - Compare changes between current and previous exports  
 - Supports saving to localStorage and cloudStorage  
-- Use LZString for compression  
-- Auto-export on game load, window open, or custom interval  
-- Supports custom export file naming  
-- Can generate a summary of your last export  
-- Supports comparing changes between current and previous exports  
-- Supports generating a changelog (diff) between current and previous exports  
+- Auto-export on game load or when the CDE window opens  
 - Display estimated time of arrival (ETA) for next levels in skills  
 - Display estimated time of arrival (ETA) for next mastery levels  
 - Display estimated time of arrival (ETA) for next recipe levels  
@@ -44,11 +40,11 @@ The **Character Data Exporter (CDE)** is a mod for [Melvor Idle](https://melvori
 You can access the mod settings in-game to:
 
 - Toggle export sections (skills, bank, pets, etc.)
-- Enable/disable compression
-- Auto-copy exports to clipboard
+- Enable compact or pretty-printed export output
+- Save the latest export to local storage
+- Generate and keep changelog history between exports
+- Auto-export on game load or when the CDE window opens
 - Customize combat stats tracking (ETA, kills/hour, efficiency)
-- Change the export file naming format
-- Change the export interval
 
 ---
 
@@ -60,7 +56,7 @@ The JSON export includes:
 - `stats`: XP, item counts, time spent  
 - `bank`, `shop`, `agility`, `township`, etc.  
 - `currentActivity`: Monster, killCount, ETA, KPH  
-- `activePotions`, `prayers`, `spells`, `familiars`, and more  
+- `activePotions` and other optional sections enabled in settings  
 
 ---
 
@@ -76,5 +72,4 @@ This mod supports delta tracking, kill efficiency analysis, and time predictions
 
 ## License
 
-Distributed under the [MIT License](LICENSE).
-
+License file not yet added at the repository root.
