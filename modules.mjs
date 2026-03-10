@@ -31,6 +31,14 @@ let mPanelRenderer = null;
 let mPagesRuntime = null;
 let mPages = null;
 
+function logModuleLifecycle(step, details) {
+    if (details === undefined) {
+        console.info(`[CDE] modules:${step}`);
+        return;
+    }
+    console.info(`[CDE] modules:${step}`, details);
+}
+
 export function getModVersion() {
     return currModVersion;
 }
@@ -142,6 +150,7 @@ export function getPages() {
  */
 export async function onModuleLoad(ctx, modVersion) {
     currModVersion = modVersion;
+    logModuleLifecycle("onModuleLoad:start", { modVersion });
 
     // Load Libs :
     mLZString = await ctx.loadModule("libs/lz-string.js");
@@ -180,6 +189,7 @@ export async function onModuleLoad(ctx, modVersion) {
         mViewer.loadSubModule(ctx),
         mPages.loadSubModule(ctx)
     ]);
+    logModuleLifecycle("onModuleLoad:submodules-ready");
 
     mAppOrchestrator.init?.({
         settings: getSettings(),
@@ -194,6 +204,7 @@ export async function onModuleLoad(ctx, modVersion) {
         },
         modVersion: currModVersion
     });
+    logModuleLifecycle("onModuleLoad:done");
 }
 
 /**
@@ -204,6 +215,7 @@ export async function onModuleLoad(ctx, modVersion) {
  * @param {*} accountStorage - The storage object for the current account.
  */
 export async function onDataLoad(settings, characterStorage, accountStorage) {
+    logModuleLifecycle("onDataLoad:start");
     /// Initialize settings module
     mSettings.init(this, settings);
     mSettingsDomain.init?.(this);
@@ -236,6 +248,9 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
         viewer: mViewer
     });
     mPages.init(this);
+    logModuleLifecycle("onDataLoad:done", {
+        debugEnabled: mSettings.isDebug?.() === true
+    });
 }
 
 /**
@@ -243,6 +258,7 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
  * @param {*} ctx - The context object.
  */
 export async function onViewLoad(ctx) {
+    logModuleLifecycle("onViewLoad:start");
     // Loading settings...
     mSettings.loadAllSettings();
     if (mSettings.isDebug()) {
@@ -258,4 +274,5 @@ export async function onViewLoad(ctx) {
 
     // Load notification
     mNotification.load(ctx);
+    logModuleLifecycle("onViewLoad:done");
 }

@@ -61,7 +61,19 @@
 // TODO : Improve controls (No delay)
 
 // --- Configuration ---
-const MOD_VERSION = "v3.0.7";
+const MOD_VERSION = "v3.0.8";
+
+function logLifecycle(step, phase, details) {
+	if (details === undefined) {
+		console.info(`[CDE] setup:${step}:${phase}`);
+		return;
+	}
+	console.info(`[CDE] setup:${step}:${phase}`, details);
+}
+
+function logLifecycleError(step, error) {
+	console.error(`[CDE] setup:${step}:error`, error);
+}
 
 /**
  * Main setup entry point for the mod.
@@ -83,8 +95,10 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 
 	async function getComposition(ctx) {
 		if (composition) {
+			logLifecycle("getComposition", "reuse");
 			return composition;
 		}
+		logLifecycle("getComposition", "load-root", { modVersion: MOD_VERSION });
 		const compositionRoot = await ctx.loadModule("modules/compositionRoot.mjs");
 		composition = compositionRoot.createSetupComposition({
 			settings,
@@ -92,14 +106,22 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 			accountStorage,
 			modVersion: MOD_VERSION
 		});
+		logLifecycle("getComposition", "ready");
 		return composition;
 	}
 
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
-		const loadedComposition = await getComposition(ctx);
-		await loadedComposition.loadModules(ctx);
-		console.info("[CDE] Modules loaded !");
+		logLifecycle("onModsLoaded", "start", { modVersion: MOD_VERSION });
+		try {
+			const loadedComposition = await getComposition(ctx);
+			await loadedComposition.loadModules(ctx);
+			console.info("[CDE] Modules loaded !");
+			logLifecycle("onModsLoaded", "done");
+		} catch (error) {
+			logLifecycleError("onModsLoaded", error);
+			throw error;
+		}
 	});
 
 	onCharacterSelectionLoaded(async (ctx) => {
@@ -108,14 +130,28 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async (ctx) => {
-		await (await getComposition(ctx)).loadCharacterData();
-		console.info("[CDE] Data loaded !");
+		logLifecycle("onCharacterLoaded", "start");
+		try {
+			await (await getComposition(ctx)).loadCharacterData();
+			console.info("[CDE] Data loaded !");
+			logLifecycle("onCharacterLoaded", "done");
+		} catch (error) {
+			logLifecycleError("onCharacterLoaded", error);
+			throw error;
+		}
 	});
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		await (await getComposition(ctx)).prepareInterface(ctx);
-		console.log("[CDE] Interface ready !");
+		logLifecycle("onInterfaceReady", "start");
+		try {
+			await (await getComposition(ctx)).prepareInterface(ctx);
+			console.log("[CDE] Interface ready !");
+			logLifecycle("onInterfaceReady", "done");
+		} catch (error) {
+			logLifecycleError("onInterfaceReady", error);
+			throw error;
+		}
 	});
 	
 	// Setup API

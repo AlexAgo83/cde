@@ -4,6 +4,18 @@
 // @ts-check
 // compositionRoot.mjs
 
+function logComposition(step, details) {
+    if (details === undefined) {
+        console.info(`[CDE] compositionRoot:${step}`);
+        return;
+    }
+    console.info(`[CDE] compositionRoot:${step}`, details);
+}
+
+function logCompositionError(step, error) {
+    console.error(`[CDE] compositionRoot:${step}:error`, error);
+}
+
 export function createSetupComposition(params) {
     let moduleManager = null;
     let collectData = () => {
@@ -19,28 +31,52 @@ export function createSetupComposition(params) {
 
     return {
         async loadModules(ctx) {
-            const melvorRuntime = await ctx.loadModule("modules/melvorRuntime.mjs");
-            moduleManager = await melvorRuntime.loadModule(ctx, "modules.mjs");
-            await moduleManager.onModuleLoad(ctx, params.modVersion);
-            collectData = moduleManager.getAppOrchestrator().createCollectDataUseCase();
-            return moduleManager;
+            logComposition("loadModules:start", { modVersion: params.modVersion });
+            try {
+                const melvorRuntime = await ctx.loadModule("modules/melvorRuntime.mjs");
+                moduleManager = await melvorRuntime.loadModule(ctx, "modules.mjs");
+                logComposition("loadModules:module-manager-ready");
+                await moduleManager.onModuleLoad(ctx, params.modVersion);
+                collectData = moduleManager.getAppOrchestrator().createCollectDataUseCase();
+                logComposition("loadModules:collect-ready");
+                return moduleManager;
+            } catch (error) {
+                logCompositionError("loadModules", error);
+                throw error;
+            }
         },
 
         async loadCharacterData() {
-            return requireModules()
-                .getAppOrchestrator()
-                .loadCharacterData(
-                    params.settings,
-                    params.characterStorage,
-                    params.accountStorage,
-                    collectData
-                );
+            logComposition("loadCharacterData:start");
+            try {
+                const result = await requireModules()
+                    .getAppOrchestrator()
+                    .loadCharacterData(
+                        params.settings,
+                        params.characterStorage,
+                        params.accountStorage,
+                        collectData
+                    );
+                logComposition("loadCharacterData:done");
+                return result;
+            } catch (error) {
+                logCompositionError("loadCharacterData", error);
+                throw error;
+            }
         },
 
         async prepareInterface(ctx) {
-            return requireModules()
-                .getAppOrchestrator()
-                .prepareInterface(ctx, collectData);
+            logComposition("prepareInterface:start");
+            try {
+                const result = await requireModules()
+                    .getAppOrchestrator()
+                    .prepareInterface(ctx, collectData);
+                logComposition("prepareInterface:done");
+                return result;
+            } catch (error) {
+                logCompositionError("prepareInterface", error);
+                throw error;
+            }
         },
 
         createApi() {
