@@ -116,7 +116,7 @@ test("setup registers hooks and exposes versioned API", async () => {
   const fixture = createFixture();
 
   assert.ok(fixture.apiInstance);
-  assert.equal(fixture.apiInstance.getVersion(), "v3.0.1");
+  assert.equal(fixture.apiInstance.getVersion(), "v3.0.2");
   assert.deepEqual(
     Object.keys(fixture.registered).sort(),
     ["onCharacterLoaded", "onCharacterSelectionLoaded", "onInterfaceReady", "onModsLoaded"],
@@ -136,7 +136,7 @@ test("setup registers hooks and exposes versioned API", async () => {
     ["register", "api"],
     ["ctx.loadModule", "modules/melvorRuntime.mjs"],
     ["runtime.loadModule", fixture.ctx, "modules.mjs"],
-    ["modules.onModuleLoad", fixture.ctx, "v3.0.1"],
+    ["modules.onModuleLoad", fixture.ctx, "v3.0.2"],
     ["app.createCollectDataUseCase"],
     ["collectData", false, 50],
     ["app.loadCharacterData", "settings", "character", "account", { extractEta: false, timeBuffer: 50 }],

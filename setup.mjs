@@ -63,7 +63,7 @@ import { createSetupComposition } from "./modules/compositionRoot.mjs";
 // TODO : Improve controls (No delay)
 
 // --- Configuration ---
-const MOD_VERSION = "v3.0.1";
+const MOD_VERSION = "v3.0.2";
 
 /**
  * Main setup entry point for the mod.
