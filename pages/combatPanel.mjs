@@ -38,7 +38,7 @@ export function init(modules) {
 }
 
 /* @ts-ignore Handle DEVMODE */
-function _game()  {  return game;  }
+function _game()  {  return mods.getMelvorRuntime().getGame();  }
 
 /**
  * Get the settings reference object.

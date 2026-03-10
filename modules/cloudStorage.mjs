@@ -64,8 +64,7 @@ export function loggerNotif(step, from, to, ...args) {
 
 // --- MOCK ---
 function _game() {
-	// @ts-ignore
-	return game;
+	return mods.getMelvorRuntime().getGame();
 }
 /**
  * Retrieves the name of the current character from the game.

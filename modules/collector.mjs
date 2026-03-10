@@ -17,20 +17,16 @@ export function init(modules) {
 
 // --- MOCK ---
 function _game() {
-	// @ts-ignore
-	return game;
+	return mods.getMelvorRuntime().getGame();
 }
 function _AltMagicSpell() {
-	// @ts-ignore
-	return AltMagicSpell;
+	return mods.getMelvorRuntime().getGlobal("AltMagicSpell");
 }
 function _Hex() {
-	// @ts-ignore
-	return Hex;
+	return mods.getMelvorRuntime().getGlobal("Hex");
 }
 function _PointOfInterest() {
-	// @ts-ignore
-	return PointOfInterest;
+	return mods.getMelvorRuntime().getGlobal("PointOfInterest");
 }
 
 /**

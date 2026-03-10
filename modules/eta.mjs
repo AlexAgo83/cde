@@ -17,8 +17,7 @@ export function init(modules) {
 
 // --- MOCK ---
 function _game() {
-	// @ts-ignore
-	return game;
+	return mods.getMelvorRuntime().getGame();
 }
 
 /**

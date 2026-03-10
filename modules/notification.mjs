@@ -56,8 +56,7 @@ export function loggerNotif(step, from, to, ...args) {
 
 // --- MOCK ---
 function _game() {
-	// @ts-ignore
-	return game;
+	return mods.getMelvorRuntime().getGame();
 }
 
 /**
@@ -125,7 +124,7 @@ function newNotificationCb(notifBuilder) {
         
         if (isRequestPermissionAllowed()) {
             /* Native notification */
-            const result = new Notification(
+            const result = mods.getBrowserRuntime().showNativeNotification(
                 notifLabel, {
                     body: notifDescription,
                     icon: notifBuilder.media
@@ -476,7 +475,7 @@ export function isPermissionGranted() {
  * @returns {boolean} True if the method is supported, false otherwise.
  */
 export function isRequestPermissionAllowed() {
-    return isCfg(Stg().ETA_BROWSER_NOTIFY) && 'Notification' in window && 'requestPermission' in Notification;
+    return isCfg(Stg().ETA_BROWSER_NOTIFY) && mods.getBrowserRuntime().isNotificationPermissionRequestSupported();
 }
 
 /**
@@ -487,7 +486,7 @@ export function isRequestPermissionAllowed() {
  */
 export function requestPermission(onSuccess, onFail=() => {}) {
     if (isRequestPermissionAllowed() && !isPermissionGranted()) {
-        Notification.requestPermission().then(permission => {
+        mods.getBrowserRuntime().requestNotificationPermission().then(permission => {
             if (permission === "granted") {
                 _permGranted = true;
                 loggerNotif("*", "requestPermission", "Success!");

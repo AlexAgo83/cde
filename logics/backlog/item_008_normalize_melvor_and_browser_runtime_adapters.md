@@ -1,9 +1,9 @@
 ## item_008_normalize_melvor_and_browser_runtime_adapters - Normalize Melvor and browser runtime adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 93%
-> Confidence: 95%
-> Progress: 0%
+> Status: Done
+> Understanding: 98%
+> Confidence: 99%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -57,3 +57,6 @@ flowchart LR
 - Execution slices:
 - browser-facing adapters first
 - Melvor runtime and loader adapters second
+- Current delivery state:
+- browser-facing adapters are implemented and locally validated through `task_009_normalize_browser_facing_runtime_adapters`
+- Melvor runtime and loader adapters are implemented and locally validated through `task_010_normalize_melvor_runtime_and_loader_adapters`

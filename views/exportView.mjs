@@ -16,12 +16,9 @@ export function init(modules) {
 }
 
 /* @ts-ignore Handle DEVMODE */
-function _game()  {  return game;  }
+function _game()  {  return mods.getMelvorRuntime().getGame();  }
 /* @ts-ignore Handle DEVMODE */
-function _ui() { return ui; }
-/* @ts-ignore Handle DEVMODE */
-function _Swal() { return Swal; }
-
+function _ui() { return mods.getMelvorRuntime().getUi(); }
 /**
  * Get the settings reference object.
  * @returns {Object} The settings reference object.
@@ -249,7 +246,7 @@ function openExportUI(forceCollect = false) {
                 }
             };
         }
-        _Swal().fire(exportUI);
+        mods.getViewer().showModal(exportUI);
     }
 }
 

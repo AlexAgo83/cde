@@ -45,7 +45,7 @@ export function createInstance(innerType) {
         },
 
         /* @ts-ignore Handle DEVMODE */
-        _game()  {  return game;  },
+        _game()  {  return mods.getMelvorRuntime().getGame();  },
 
         /**
          * Get the proxy-settings reference object.

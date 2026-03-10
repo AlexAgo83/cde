@@ -1,9 +1,9 @@
 ## item_015_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
 > Status: In progress
-> Understanding: 97%
+> Understanding: 99%
 > Confidence: 99%
-> Progress: 45%
+> Progress: 65%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -71,4 +71,5 @@ flowchart LR
 - `item_004_extract_export_domain_logic_behind_runtime_adapters` is complete locally and committed
 - `item_005_extract_settings_domain_logic_behind_storage_adapters` is complete locally and committed
 - `item_006_extract_selected_eta_calculations_behind_runtime_adapters` is complete locally and committed
-- `item_007_define_application_orchestration_between_domain_and_runtime_adapters` is complete locally and ready to commit
+- `item_007_define_application_orchestration_between_domain_and_runtime_adapters` is complete locally and committed
+- `item_008_normalize_melvor_and_browser_runtime_adapters` is complete locally and ready to commit

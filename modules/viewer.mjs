@@ -20,8 +20,9 @@ export function getChangelogView() { return changelogView; }
  * @param {*} ctx - The context object used to load submodules.
  */
 export async function loadSubModule(ctx) {
-  subModules.push(exportView = await ctx.loadModule("views/exportView.mjs"));
-  subModules.push(changelogView = await ctx.loadModule("views/changelogView.mjs"));
+  const runtime = await ctx.loadModule("modules/melvorRuntime.mjs");
+  subModules.push(exportView = await runtime.loadModule(ctx, "views/exportView.mjs"));
+  subModules.push(changelogView = await runtime.loadModule(ctx, "views/changelogView.mjs"));
 }
 
 /**
@@ -34,12 +35,9 @@ export function init(modules) {
 }
 
 /* @ts-ignore Handle DEVMODE */
-function _game()  {  return game;  }
+function _game()  {  return mods.getMelvorRuntime().getGame();  }
 /* @ts-ignore Handle DEVMODE */
-function _ui() { return ui; }
-/* @ts-ignore Handle DEVMODE */
-function _Swal() { return Swal; }
-
+function _ui() { return mods.getMelvorRuntime().getUi(); }
 /**
  * Get the settings reference object.
  * @returns {Object} The settings reference object.
@@ -106,7 +104,7 @@ export function popupSuccess(titleStr, content = null) {
     popup.showConfirmButton = false;
     popup.timer = 1200;
   }
-  _Swal().fire(popup);
+  mods.getBrowserRuntime().showModal(popup);
   return popup;
 }
 
@@ -116,7 +114,7 @@ export function popupSuccess(titleStr, content = null) {
  * @param {string} msgStr - The message text to display in the popup.
  */
 export function popupInfo(titleStr, msgStr) {
-  _Swal().fire({
+  mods.getBrowserRuntime().showModal({
       icon: 'info',
       title: titleStr,
       text: msgStr
@@ -129,7 +127,7 @@ export function popupInfo(titleStr, msgStr) {
  * @param {string} msgStr - The error message text to display in the popup.
  */
 export function popupError(titleStr, msgStr) {
-  _Swal().fire({
+  mods.getBrowserRuntime().showModal({
       icon: 'error',
       title: titleStr,
       text: msgStr
@@ -144,7 +142,7 @@ export function popupError(titleStr, msgStr) {
  */
 export async function doCopyClipboard(contentString, withPopupSuccess=true) {
     try {
-        await navigator.clipboard.writeText(contentString);
+        await mods.getBrowserRuntime().copyText(contentString);
         if (withPopupSuccess)
           popupSuccess('Copied to clipboard!');
     } catch (err) {
@@ -161,17 +159,13 @@ export async function doCopyClipboard(contentString, withPopupSuccess=true) {
  * @returns {Promise<void>} Resolves when the file download is triggered.
  */
 export async function doShareFile(identifier, contentString, timestampStr = null) {
-    const blob = new Blob([contentString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
     const date = new Date();
     const timestamp = timestampStr == null ? mods.getUtils().parseTimestamp(date) : timestampStr;
-    link.download = `melvor-${identifier}-${timestamp}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    mods.getBrowserRuntime().downloadTextFile(
+      `melvor-${identifier}-${timestamp}.json`,
+      contentString,
+      "application/json"
+    );
 }
 
 /**
@@ -190,4 +184,8 @@ export async function doShareHastebin(contentString) {
         console.error("Failed to upload to Hastebin:", err);
         mods.getViewer().popupError('Upload failed', 'Could not upload to Hastebin. Please try again later.')
     }
+}
+
+export function showModal(config) {
+  return mods.getBrowserRuntime().showModal(config);
 }

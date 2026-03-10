@@ -10,11 +10,13 @@ let mSettings = null;
 let mSettingsDomain = null;
 let mUtils = null;
 let mAssetManager = null;
+let mBrowserRuntime = null;
 let mLocalStorage = null;
 let mCloudStorage = null;
 let mNotification = null;
 let mDisplayStats = null;
 let mCollector = null;
+let mMelvorRuntime = null;
 let mExport = null;
 let mExportDomain = null;
 let mAppOrchestrator = null;
@@ -43,6 +45,10 @@ export function getAssetManager() {
     return mAssetManager;
 }
 
+export function getBrowserRuntime() {
+    return mBrowserRuntime;
+}
+
 export function getLocalStorage() {
     return mLocalStorage;
 }
@@ -57,6 +63,10 @@ export function getNotification() {
 
 export function getDisplayStats() {
     return mDisplayStats;
+}
+
+export function getMelvorRuntime() {
+    return mMelvorRuntime;
 }
 
 export function getCollector() {
@@ -130,10 +140,12 @@ export async function onModuleLoad(ctx, modVersion) {
     mSettingsDomain = await ctx.loadModule("modules/settingsDomain.mjs");
     mUtils = await ctx.loadModule("modules/utils.mjs");
     mAssetManager = await ctx.loadModule("modules/assetManager.mjs");
+    mBrowserRuntime = await ctx.loadModule("modules/browserRuntime.mjs");
     mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
     mCloudStorage = await ctx.loadModule("modules/cloudStorage.mjs");
     mDisplayStats = await ctx.loadModule("modules/displayStats.mjs");
     mNotification = await ctx.loadModule("modules/notification.mjs");
+    mMelvorRuntime = await ctx.loadModule("modules/melvorRuntime.mjs");
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
     mExportDomain = await ctx.loadModule("modules/exportDomain.mjs");
@@ -168,6 +180,8 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
     // Core modules initialization
     mUtils.init(this);
     mAssetManager.init(this);
+    mBrowserRuntime.init?.(this);
+    mMelvorRuntime.init?.(this);
 
     // Storage modules initialization
     mCloudStorage.init(this, characterStorage, accountStorage);

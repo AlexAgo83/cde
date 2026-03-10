@@ -58,12 +58,13 @@ let chartPanel = null;
  * @param {*} ctx - The context object used to load submodules.
  */
 export async function loadSubModule(ctx) {
+    const runtime = await ctx.loadModule("modules/melvorRuntime.mjs");
   
     /* Combat Panel */
-    subModules.push(combatPanel = await ctx.loadModule("pages/combatPanel.mjs"));
+    subModules.push(combatPanel = await runtime.loadModule(ctx, "pages/combatPanel.mjs"));
   
     /* Non-Combat Panel */
-    const nonCombatPanel = await ctx.loadModule("pages/nonCombatPanel.mjs");
+    const nonCombatPanel = await runtime.loadModule(ctx, "pages/nonCombatPanel.mjs");
     subModules.push(woodcuttingPanel = nonCombatPanel.createInstance("woodcutting"));
     subModules.push(fishingPanel = nonCombatPanel.createInstance("fishing"));
     subModules.push(firemakingPanel = nonCombatPanel.createInstance("firemaking"));
@@ -83,7 +84,7 @@ export async function loadSubModule(ctx) {
     subModules.push(archaeologyPanel = nonCombatPanel.createInstance("archaeology"));
 
     /* Chart Panel */
-    subModules.push(chartPanel = await ctx.loadModule("pages/panel/chartPanel.mjs"));
+    subModules.push(chartPanel = await runtime.loadModule(ctx, "pages/panel/chartPanel.mjs"));
 }
 
 /**
@@ -125,33 +126,33 @@ export function loggerNotif(step, from, to, ...args) {
 }
 
 /* @ts-ignore Handle DEVMODE */
-function _game()  {  return game;  }
+function _game()  {  return mods.getMelvorRuntime().getGame(); }
 /* @ts-ignore Handle DEVMODE */
-function _GameClass() { return Game; }
+function _GameClass() { return mods.getMelvorRuntime().getGlobal("Game"); }
 /* @ts-ignore Handle DEVMODE */
-function _ui() { return ui; }
+function _ui() { return mods.getMelvorRuntime().getUi(); }
 /* @ts-ignore Handle DEVMODE */
 function _Swal() { return Swal; }
 /* @ts-ignore Handle DEVMODE */
-function _Skill()  {  return Skill;  }
+function _Skill()  {  return mods.getMelvorRuntime().getGlobal("Skill");  }
 /* @ts-ignore Handle DEVMODE */
-function _CraftingSkill() { return CraftingSkill; }
+function _CraftingSkill() { return mods.getMelvorRuntime().getGlobal("CraftingSkill"); }
 /* @ts-ignore Handle DEVMODE */
-function _GatheringSkill() { return GatheringSkill; }
+function _GatheringSkill() { return mods.getMelvorRuntime().getGlobal("GatheringSkill"); }
 /* @ts-ignore Handle DEVMODE */
-function _Thieving() { return Thieving; }
+function _Thieving() { return mods.getMelvorRuntime().getGlobal("Thieving"); }
 /* @ts-ignore Handle DEVMODE */
-function _CombatManager()  {  return CombatManager;  }
+function _CombatManager()  {  return mods.getMelvorRuntime().getGlobal("CombatManager");  }
 /* @ts-ignore Handle DEVMODE */
-function _Player()  {  return Player;  }
+function _Player()  {  return mods.getMelvorRuntime().getGlobal("Player");  }
 /* @ts-ignore Handle DEVMODE */
-function _Enemy()  {  return Enemy;  }
+function _Enemy()  {  return mods.getMelvorRuntime().getGlobal("Enemy");  }
 /* @ts-ignore Handle DEVMODE */
-function _AltMagic() { return AltMagic; }
+function _AltMagic() { return mods.getMelvorRuntime().getGlobal("AltMagic"); }
 /* @ts-ignore Handle DEVMODE */
-function _Archaeology() { return Archaeology; }
+function _Archaeology() { return mods.getMelvorRuntime().getGlobal("Archaeology"); }
 /* @ts-ignore Handle DEVMODE */
-function _Cartography() { return Cartography; }
+function _Cartography() { return mods.getMelvorRuntime().getGlobal("Cartography"); }
 
 /**
  * Get the proxy-settings reference object.
@@ -177,6 +178,10 @@ function isCfg(reference) {
  */
 function getCfg(reference) {
     return mods.getSettings()?.getCfg(reference);
+}
+
+function runtime() {
+    return mods.getMelvorRuntime();
 }
 
 /**
@@ -308,7 +313,7 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
 export function worker(ctx) {
     /** On any game tick */
     
-    ctx.patch(_GameClass(), 'tick').after(patcher((userPage, isCombat, activeAction, ...args) => {
+    runtime().patch(ctx, _GameClass(), 'tick').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         if (!isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
 
@@ -345,7 +350,7 @@ export function worker(ctx) {
     }))
 
     /** COMBAT ONLY : Enemy Death */
-    ctx.patch(_CombatManager(), 'onEnemyDeath').after(patcher((userPage, isCombat, activeAction, ...args) => {
+    runtime().patch(ctx, _CombatManager(), 'onEnemyDeath').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Enemy death rised:", args);
@@ -355,7 +360,7 @@ export function worker(ctx) {
     }))
 
     /** COMBAT ONLY : Combat Stop */
-    ctx.patch(_CombatManager(), 'stop').after(patcher((userPage, isCombat, activeAction, ...args) => {
+    runtime().patch(ctx, _CombatManager(), 'stop').after(patcher((userPage, isCombat, activeAction, ...args) => {
         _lastTick = Date.now();
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:onStop:", args);
@@ -366,7 +371,7 @@ export function worker(ctx) {
     }))
 
     /** COMBAT ONLY : Player - Damage */
-    ctx.patch(_Player(), 'damage').after(patcher((userPage, isCombat, activeAction, ...args) => {
+    runtime().patch(ctx, _Player(), 'damage').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Player damage():", args);
@@ -376,7 +381,7 @@ export function worker(ctx) {
     }))
 
     /** COMBAT ONLY : Enemy - Damage */
-    ctx.patch(_Enemy(), 'damage').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _Enemy(), 'damage').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Enemy damage():", args);
@@ -386,7 +391,7 @@ export function worker(ctx) {
     }))
 
     /** Crafting - action */
-    ctx.patch(_CraftingSkill(), 'action').after(patcher((userPage, isCombat, activeAction, ...args) => {
+    runtime().patch(ctx, _CraftingSkill(), 'action').after(patcher((userPage, isCombat, activeAction, ...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Craft action finished:", args);
@@ -403,7 +408,7 @@ export function worker(ctx) {
     }))
 
     /** Crafting - stop */
-    ctx.patch(_CraftingSkill(), 'stop').after(patcher((userPage, isCombat, activeAction, ...args) => {
+    runtime().patch(ctx, _CraftingSkill(), 'stop').after(patcher((userPage, isCombat, activeAction, ...args) => {
         _lastTick = Date.now();
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Craft action stopped:", args);
@@ -421,7 +426,7 @@ export function worker(ctx) {
     }))
 
     /** Gathering - action */
-    ctx.patch(_GatheringSkill(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _GatheringSkill(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Gathering action finished:", args);
@@ -435,7 +440,7 @@ export function worker(ctx) {
     }));
 
     /** Gathering - stop */
-    ctx.patch(_GatheringSkill(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _GatheringSkill(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
         _lastTick = Date.now();
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Gathering action stopped:", args);
@@ -449,7 +454,7 @@ export function worker(ctx) {
         /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
     }));
 
-    ctx.patch(_AltMagic(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _AltMagic(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:AltMagic action finished:", args);
@@ -457,7 +462,7 @@ export function worker(ctx) {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
     }));
-    ctx.patch(_AltMagic(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _AltMagic(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
         _lastTick = Date.now();
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:AltMagic action stopped:", args);
@@ -467,7 +472,7 @@ export function worker(ctx) {
         /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
     }));
 
-    ctx.patch(_Thieving(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _Thieving(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Thieving action finished:", args);
@@ -475,7 +480,7 @@ export function worker(ctx) {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
     }));
-    ctx.patch(_Thieving(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _Thieving(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
         _lastTick = Date.now();
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Thieving action stopped:", args);
@@ -485,7 +490,7 @@ export function worker(ctx) {
         /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
     }));
 
-    ctx.patch(_Archaeology(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _Archaeology(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Archaeology action finished:", args);
@@ -493,7 +498,7 @@ export function worker(ctx) {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
     }));
-    ctx.patch(_Archaeology(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _Archaeology(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
         _lastTick = Date.now();
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Archaeology action stopped:", args);
@@ -503,7 +508,7 @@ export function worker(ctx) {
         /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
     }));
 
-    ctx.patch(_Cartography(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _Cartography(), 'action').after(patcher((userPage, isCombat, activeAction,...args) => {
         if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Cartography action finished:", args);
@@ -511,7 +516,7 @@ export function worker(ctx) {
         if (!isCfg(Stg().ETA_SKILLS)) return;
         /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
     }));
-    ctx.patch(_Cartography(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
+    runtime().patch(ctx, _Cartography(), 'stop').after(patcher((userPage, isCombat, activeAction,...args) => {
         _lastTick = Date.now();
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] doWorker:Cartography action stopped:", args);

@@ -87,7 +87,8 @@ let doCollectData = () => {
 export function setup({settings, api, characterStorage, accountStorage, onModsLoaded, onCharacterSelectionLoaded, onCharacterLoaded, onInterfaceReady}) {
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
-		mModules = await ctx.loadModule("modules.mjs");
+		const melvorRuntime = await ctx.loadModule("modules/melvorRuntime.mjs");
+		mModules = await melvorRuntime.loadModule(ctx, "modules.mjs");
 		await mModules.onModuleLoad(ctx, MOD_VERSION);
 		doCollectData = mModules.getAppOrchestrator().createCollectDataUseCase();
 		console.info("[CDE] Modules loaded !");

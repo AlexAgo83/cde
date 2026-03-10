@@ -15,12 +15,9 @@ export function init(modules) {
 }
 
 /* @ts-ignore Handle DEVMODE */
-function _game()  {  return game;  }
+function _game()  {  return mods.getMelvorRuntime().getGame();  }
 /* @ts-ignore Handle DEVMODE */
-function _ui() { return ui; }
-/* @ts-ignore Handle DEVMODE */
-function _Swal() { return Swal; }
-
+function _ui() { return mods.getMelvorRuntime().getUi(); }
 /**
  * Get the settings reference object.
  * @returns {Object} The settings reference object.
@@ -80,7 +77,7 @@ export async function onClickExportViewDiff() {
             <button id="cde-changelog-clipboard-button" class="btn btn-sm btn-secondary">Copy to Clip Board</button>
         </div>`;
 
-    _Swal().fire({
+    mods.getViewer().showModal({
         title: "Changelog History",
         showCloseButton: true,
         showConfirmButton: false,

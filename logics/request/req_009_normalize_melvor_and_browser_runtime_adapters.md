@@ -1,8 +1,8 @@
 ## req_009_normalize_melvor_and_browser_runtime_adapters - Normalize Melvor and browser runtime adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 92%
-> Confidence: 94%
+> Status: Done
+> Understanding: 97%
+> Confidence: 98%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -62,3 +62,8 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_008_normalize_melvor_and_browser_runtime_adapters`
+
+# Outcome
+- Adapter normalization is complete for this roadmap slice.
+- The browser-facing slice is implemented through `modules/browserRuntime.mjs`, with viewer, browser storage, modal, clipboard, download, and native notification behavior routed through the adapter.
+- The Melvor runtime and loader slice is implemented through `modules/melvorRuntime.mjs`, with runtime globals, loader module access, and patch registration routed through the adapter.

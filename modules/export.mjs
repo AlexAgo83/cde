@@ -19,8 +19,7 @@ export function init(modules) {
 	mods = modules;
 }
 function _game() {
-	// @ts-ignore
-	return game;
+	return mods.getMelvorRuntime().getGame();
 }
 
 /**

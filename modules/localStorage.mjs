@@ -23,7 +23,7 @@ export function init(modules) {
 }
 
 function _game() { // @ts-ignore
-	return game;
+	return mods.getMelvorRuntime().getGame();
 }
 
 /**
@@ -42,6 +42,10 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+function browser() {
+    return mods.getBrowserRuntime();
+}
+
 /**
  * Checks if LZString compression is available and ready.
  * @returns {boolean} True if LZString is loaded and ready, false otherwise.
@@ -58,7 +62,7 @@ export function isLZStringReady() {
  */
 function readFromStorage(key) {
 	try {
-		const raw = localStorage.getItem(key);
+		const raw = browser().readStorage(key);
 		if (!raw) return null;
 		
 		let json = raw;
@@ -93,7 +97,7 @@ function saveToStorage(key, jsonData) {
 		} else {
             console.log("[CDE] LZString not ready, saving raw data to storage.");
         }
-		localStorage.setItem(key, raw);
+		browser().writeStorage(key, raw);
 		// if (mods.getSettings().isDebug()) {
 		// 	console.log("[CDE] Object saved:", raw);
 		// }
@@ -126,7 +130,7 @@ export function saveExportToStorage(jsonData) {
  * Removes the last export data for the current character from localStorage.
  */
 export function removeExportFromStorage() {
-    localStorage.removeItem(getStorage_ExportKey());
+    browser().removeStorage(getStorage_ExportKey());
 }
 /**
  * Returns the localStorage key for the last changes for the current character.
@@ -158,8 +162,8 @@ export function saveChangesToStorage(jsonData) {
  * Clears all export and changes data for the current character from localStorage.
  */
 export function clearStorage() {
-	localStorage.removeItem(getStorage_ExportKey());
-	localStorage.removeItem(getStorage_ChangesKey());
+	browser().removeStorage(getStorage_ExportKey());
+	browser().removeStorage(getStorage_ChangesKey());
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] localStorage cleared!")
 	}

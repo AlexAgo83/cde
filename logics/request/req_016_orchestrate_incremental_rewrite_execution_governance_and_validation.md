@@ -1,7 +1,7 @@
 ## req_016_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
 > Status: In progress
-> Understanding: 98%
+> Understanding: 99%
 > Confidence: 99%
 > Complexity: High
 > Theme: Architecture
@@ -64,4 +64,4 @@ flowchart TD
 
 # Outcome
 - Execution governance is now active.
-- The rewrite has started with the export-domain, settings-domain, ETA-domain, and application-orchestration slices under local validation, CI-backed checks, regular `logics` updates, and checkpoint commits.
+- The rewrite has started with the export-domain, settings-domain, ETA-domain, application-orchestration, browser-adapter, and Melvor-runtime-adapter slices under local validation, CI-backed checks, regular `logics` updates, and checkpoint commits.
