@@ -61,7 +61,7 @@
 // TODO : Improve controls (No delay)
 
 // --- Configuration ---
-const MOD_VERSION = "v3.0.5";
+const MOD_VERSION = "v3.0.6";
 
 /**
  * Main setup entry point for the mod.
