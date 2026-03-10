@@ -61,7 +61,7 @@
 // TODO : Improve controls (No delay)
 
 // --- Configuration ---
-const MOD_VERSION = "v3.0.0";
+const MOD_VERSION = "v3.0.1";
 
 // --- Module Imports ---
 let mModules = null;
