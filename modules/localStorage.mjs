@@ -7,43 +7,42 @@
 const CS_LAST_EXPORT = "cde_last_export";
 const CS_LAST_CHANGES = "cde_last_changes";
 
-let mods = null;
+let deps = null;
 let isLoaded = false;
+
+export function createLocalStorageDependencies(moduleManager) {
+    return {
+        lzString: moduleManager.getLZString(),
+        melvorRuntime: moduleManager.getMelvorRuntime(),
+        settings: moduleManager.getSettings(),
+        browserRuntime: moduleManager.getBrowserRuntime(),
+        utils: moduleManager.getUtils()
+    };
+}
 
 /**
  * Initialize the local storage module.
  * @param {Object} modules - The modules object containing dependencies.
  */
-export function init(modules) {
-    mods = modules;
-    isLoaded = !!mods.getLZString() && typeof mods.getLZString().compressToUTF16 === 'function';
+export function init(moduleManagerOrDependencies) {
+    if (typeof moduleManagerOrDependencies?.getLZString === "function") {
+        deps = createLocalStorageDependencies(moduleManagerOrDependencies);
+    } else {
+        deps = moduleManagerOrDependencies;
+    }
+
+    isLoaded = !!deps.lzString && typeof deps.lzString.compressToUTF16 === "function";
     if (!isLoaded) {
         console.warn("[CDE] LZString is not loaded or does not have the expected methods.");
     }
 }
 
 function _game() { // @ts-ignore
-	return mods.getMelvorRuntime().getGame();
-}
-
-/**
- * Get the settings reference object.
- * @returns {Object} The settings reference object.
- */
-function Stg() {
-	return mods.getSettings()?.SettingsReference;
-}
-
-/**
- * Get the boolean value for a settings reference.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
+	return deps.melvorRuntime.getGame();
 }
 
 function browser() {
-    return mods.getBrowserRuntime();
+    return deps.browserRuntime;
 }
 
 /**
@@ -51,7 +50,7 @@ function browser() {
  * @returns {boolean} True if LZString is loaded and ready, false otherwise.
  */
 export function isLZStringReady() {
-	return isLoaded && mods.getLZString();
+	return isLoaded && !!deps.lzString;
 }
 
 /**
@@ -67,14 +66,14 @@ function readFromStorage(key) {
 		
 		let json = raw;
 		if (isLZStringReady()) {
-			const decompressed = mods.getLZString().decompressFromUTF16(raw);
+			const decompressed = deps.lzString.decompressFromUTF16(raw);
 			if (decompressed) json = decompressed;
 		} else {
             console.log("[CDE] LZString not ready, using raw data from storage.");
         }
 		
 		json = JSON.parse(json);
-		if (mods.getSettings().isDebug()) {
+		if (deps.settings.isDebug()) {
 			console.log("[CDE] Object read:", json);
 		}
 		return json;
@@ -93,7 +92,7 @@ function saveToStorage(key, jsonData) {
 	try {
 		let raw = JSON.stringify(jsonData);
 		if (isLZStringReady()) {
-			raw = mods.getLZString().compressToUTF16(raw);
+			raw = deps.lzString.compressToUTF16(raw);
 		} else {
             console.log("[CDE] LZString not ready, saving raw data to storage.");
         }
@@ -110,7 +109,7 @@ function saveToStorage(key, jsonData) {
  * @returns {string} The export key.
  */
 function getStorage_ExportKey() {
-	return CS_LAST_EXPORT+"_"+(mods.getUtils().sanitizeCharacterName(_game().characterName));
+	return CS_LAST_EXPORT+"_"+(deps.utils.sanitizeCharacterName(_game().characterName));
 }
 /**
  * Loads the last export data for the current character from localStorage.
@@ -137,7 +136,7 @@ export function removeExportFromStorage() {
  * @returns {string} The changes key.
  */
 function getStorage_ChangesKey() {
-	return CS_LAST_CHANGES+"_"+(mods.getUtils().sanitizeCharacterName(_game().characterName));
+	return CS_LAST_CHANGES+"_"+(deps.utils.sanitizeCharacterName(_game().characterName));
 }
 /**
  * Loads the last changes data for the current character from localStorage.
@@ -164,7 +163,7 @@ export function saveChangesToStorage(jsonData) {
 export function clearStorage() {
 	browser().removeStorage(getStorage_ExportKey());
 	browser().removeStorage(getStorage_ChangesKey());
-	if (mods.getSettings().isDebug()) {
+	if (deps.settings.isDebug()) {
 		console.log("[CDE] localStorage cleared!")
 	}
 }
