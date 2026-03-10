@@ -1,8 +1,8 @@
 ## req_015_harden_release_gating_packaging_and_runtime_validation - Harden release gating packaging and runtime validation
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 90%
-> Confidence: 92%
+> Status: Done
+> Understanding: 100%
+> Confidence: 97%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -59,3 +59,8 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_014_harden_release_gating_packaging_and_runtime_validation`
+
+# Outcome
+- Release hardening is now complete through `item_014_harden_release_gating_packaging_and_runtime_validation`.
+- The project gained a stronger minimal release gate combining manifest validation, Python and Node test suites, `logics` audits, runtime-packaging validation, and archive inspection against `manifest.json`.
+- Packaging now produces a runtime-only archive instead of shipping the whole repository, while late in-game checks remain explicitly documented for release replay.

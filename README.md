@@ -73,3 +73,24 @@ This mod supports delta tracking, kill efficiency analysis, and time predictions
 ## License
 
 License file not yet added at the repository root.
+
+## Validation
+
+Local release gate:
+
+- `bash validate.sh`
+
+What it covers:
+
+- manifest consistency
+- Python and Node test suites
+- `logics` lint and workflow audit
+- packaging the mod archive
+- archive inspection against `manifest.json`
+
+Late runtime checks to replay in Melvor before a public release:
+
+- mod startup and settings load
+- export modal open and refresh
+- changelog modal open and history actions
+- ETA panel injection on combat and non-combat pages

@@ -23,15 +23,16 @@ if [[ -f "$ZIP_NAME" ]]; then
 fi
 
 echo "📦 Creating archive: $ZIP_NAME ..."
-zip -r "$ZIP_NAME" . \
+zip -r "$ZIP_NAME" \
+  manifest.json \
+  setup.mjs \
+  modules.mjs \
+  assets \
+  libs \
+  modules \
+  views \
+  pages \
   -x "*.zip" \
-  -x "build.sh" \
-  -x ".gitignore" \
-  -x ".git/*" \
-  -x ".git/**" \
-  -x ".vscode" \
-  -x ".vscode/*" \
-  -x ".vscode/**" \
   -x ".DS_Store"
 
 echo "✅ Archive created: $ZIP_NAME"

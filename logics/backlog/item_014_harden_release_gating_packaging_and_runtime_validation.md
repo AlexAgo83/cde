@@ -1,9 +1,9 @@
 ## item_014_harden_release_gating_packaging_and_runtime_validation - Harden release gating packaging and runtime validation
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 91%
-> Confidence: 93%
-> Progress: 0%
+> Status: Done
+> Understanding: 100%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -54,3 +54,7 @@ flowchart LR
 - Source file: `logics/request/req_015_harden_release_gating_packaging_and_runtime_validation.md`.
 - Execution order: 11 of 11 rewrite items.
 - Dependencies: `item_004` through `item_013` materially in place.
+- Outcome:
+- stronger release gate delivered through `task_020_harden_release_gating_packaging_and_runtime_validation`
+- local and CI validation now run through a unified `validate.sh` gate
+- packaging is constrained to runtime files and the produced archive is checked against `manifest.json`
