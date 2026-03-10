@@ -1,8 +1,8 @@
 ## req_001_stabilize_mod_loading_and_export_consistency - Stabilize mod loading, packaging, and export consistency
 > From version: 2.1.227
-> Status: Draft
-> Understanding: 92%
-> Confidence: 95%
+> Status: In progress
+> Understanding: 93%
+> Confidence: 96%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence and references when you edit this doc.

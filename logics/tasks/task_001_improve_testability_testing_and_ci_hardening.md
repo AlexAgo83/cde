@@ -1,9 +1,9 @@
 ## task_001_improve_testability_testing_and_ci_hardening - Improve testability, testing, and CI hardening
 > From version: 2.1.227
-> Status: In progress
+> Status: Done
 > Understanding: 94%
 > Confidence: 95%
-> Progress: 70%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -24,10 +24,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Extract a reusable validation seam from the current project checks so packaging/manifest verification can be executed and tested outside the live game runtime.
-- [ ] 2. Add a minimal automated project test suite and CI workflow to run validation, tests, and Logics linting on push and pull request.
-- [ ] 3. Record the next high-value seams for future extraction, especially export bootstrap logic and selected ETA calculations.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Extract a reusable validation seam from the current project checks so packaging/manifest verification can be executed and tested outside the live game runtime.
+- [x] 2. Add a minimal automated project test suite and CI workflow to run validation, tests, and Logics linting on push and pull request.
+- [x] 3. Record the next high-value seams for future extraction, especially export bootstrap logic and selected ETA calculations.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 3. Proof: extracted validator plus task report of next seams.
@@ -46,10 +46,10 @@ flowchart LR
 - `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - Implemented a reusable manifest validator in `scripts/validate_manifest.py`.

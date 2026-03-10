@@ -1,8 +1,8 @@
 ## req_003_improve_testability_testing_and_ci_hardening - Improve testability, testing, and CI hardening
 > From version: 2.1.227
-> Status: Draft
-> Understanding: 94%
-> Confidence: 95%
+> Status: Done
+> Understanding: 95%
+> Confidence: 96%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence and references when you edit this doc.

@@ -1,8 +1,8 @@
 ## req_002_align_documentation_and_secondary_api_consistency - Align documentation and secondary API consistency
 > From version: 2.1.227
-> Status: Draft
-> Understanding: 94%
-> Confidence: 95%
+> Status: Done
+> Understanding: 95%
+> Confidence: 96%
 > Complexity: Low
 > Theme: Documentation
 > Reminder: Update status/understanding/confidence and references when you edit this doc.

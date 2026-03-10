@@ -1,9 +1,9 @@
 ## task_000_stabilize_mod_loading_packaging_and_export_consistency - Stabilize mod loading, packaging, and export consistency
 > From version: 2.1.227
 > Status: In progress
-> Understanding: 92%
-> Confidence: 95%
-> Progress: 85%
+> Understanding: 94%
+> Confidence: 97%
+> Progress: 90%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -24,10 +24,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Audit the current manifest, startup sequence, export bootstrap, and reviewed UI/storage behaviors; confirm the exact code paths to change for AC1 to AC4.
-- [ ] 2. Implement the stabilization changes in `manifest.json`, `setup.mjs`, `modules.mjs`, `modules/export.mjs`, and any directly affected UI/storage modules.
-- [ ] 3. Add or document a lightweight validation path for packaging coherence, startup assumptions, and persisted export bootstrap behavior, then capture the results.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Audit the current manifest, startup sequence, export bootstrap, and reviewed UI/storage behaviors; confirm the exact code paths to change for AC1 to AC4.
+- [x] 2. Implement the stabilization changes in `manifest.json`, `setup.mjs`, `modules.mjs`, `modules/export.mjs`, and any directly affected UI/storage modules.
+- [x] 3. Add or document a lightweight validation path for packaging coherence, startup assumptions, and persisted export bootstrap behavior, then capture the results.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 2. Proof: `manifest.json` diff and package coherence validation notes.
@@ -46,8 +46,8 @@ flowchart LR
 
 # Definition of Done (DoD)
 - [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
 - [ ] Status is `Done` and progress is `100%`.
 
 # Report

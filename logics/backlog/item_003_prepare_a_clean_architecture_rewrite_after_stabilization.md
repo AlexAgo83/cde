@@ -1,9 +1,9 @@
 ## item_003_prepare_a_clean_architecture_rewrite_after_stabilization - Prepare a clean architecture rewrite after stabilization
 > From version: 2.1.227
-> Status: Ready
-> Understanding: 94%
-> Confidence: 94%
-> Progress: 0%
+> Status: Done
+> Understanding: 95%
+> Confidence: 96%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -48,7 +48,7 @@ flowchart LR
 
 # Links
 - Request: `req_004_prepare_clean_architecture_rewrite_after_stabilization`
-- Primary task(s): `task_TBD_after_backlog_breakdown`
+- Primary task(s): `task_003_prepare_a_clean_architecture_rewrite_after_stabilization`
 
 # Priority
 - Impact: P3. Important for long-term maintainability, but only after the project is stable and testable enough to support architectural change safely.

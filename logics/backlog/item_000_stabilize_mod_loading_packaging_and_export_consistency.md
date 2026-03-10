@@ -1,9 +1,9 @@
 ## item_000_stabilize_mod_loading_packaging_and_export_consistency - Stabilize mod loading, packaging, and export consistency
 > From version: 2.1.227
-> Status: Ready
-> Understanding: 92%
-> Confidence: 95%
-> Progress: 0%
+> Status: In progress
+> Understanding: 93%
+> Confidence: 96%
+> Progress: 85%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -61,3 +61,4 @@ flowchart LR
 - Recommended execution order: 1 of 4.
 - Dependencies: none.
 - This item is expected to unblock `item_002_improve_testability_testing_and_ci_hardening` and materially de-risk `item_001_align_documentation_and_secondary_api_consistency`.
+- Remaining blocker before closure: verify startup and export behavior inside the real Melvor runtime.

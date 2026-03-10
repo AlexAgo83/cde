@@ -1,9 +1,9 @@
 ## task_002_align_documentation_and_secondary_api_consistency - Align documentation and secondary API consistency
 > From version: 2.1.227
-> Status: In progress
+> Status: Done
 > Understanding: 94%
 > Confidence: 96%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Low
 > Theme: Documentation
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -24,10 +24,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Align `EXPORT_COMPRESS` wording across settings and user-facing descriptions so it clearly means compact JSON output rather than true payload compression.
-- [ ] 2. Correct the latent mastery progress helper and add an automated check to lock the expected behavior.
-- [ ] 3. Verify that repository documentation still matches the shipped feature surface after the wording cleanup.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Align `EXPORT_COMPRESS` wording across settings and user-facing descriptions so it clearly means compact JSON output rather than true payload compression.
+- [x] 2. Correct the latent mastery progress helper and add an automated check to lock the expected behavior.
+- [x] 3. Verify that repository documentation still matches the shipped feature surface after the wording cleanup.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 3. Proof: settings wording and README alignment.
@@ -45,10 +45,10 @@ flowchart LR
 - `bash validate.sh`
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - Updated the `EXPORT_COMPRESS` setting wording so it describes compact JSON output instead of implying true compression of the exported payload.
