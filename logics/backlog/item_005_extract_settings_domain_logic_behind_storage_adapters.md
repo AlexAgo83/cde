@@ -1,9 +1,9 @@
 ## item_005_extract_settings_domain_logic_behind_storage_adapters - Extract settings domain logic behind storage adapters
 > From version: 3.0.0
-> Status: Ready
+> Status: Done
 > Understanding: 94%
 > Confidence: 96%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -54,3 +54,7 @@ flowchart LR
 - Source file: `logics/request/req_006_extract_settings_domain_logic_behind_storage_adapters.md`.
 - Execution order: 2 of 11 rewrite items.
 - Dependencies: `item_004_extract_export_domain_logic_behind_runtime_adapters`.
+- Delivery result:
+- settings defaults, normalization, serialization, and persisted-value application now flow through `modules/settingsDomain.mjs`
+- runtime-facing modules keep storage access and UI-specific behavior outside the seam
+- local validation and CI coverage were extended with `tests/test_settings_domain.mjs`

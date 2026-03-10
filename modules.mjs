@@ -7,6 +7,7 @@
 let currModVersion = null;
 let mLZString = null;
 let mSettings = null;
+let mSettingsDomain = null;
 let mUtils = null;
 let mAssetManager = null;
 let mLocalStorage = null;
@@ -26,6 +27,10 @@ export function getModVersion() {
 
 export function getSettings() {
     return mSettings;
+}
+
+export function getSettingsDomain() {
+    return mSettingsDomain;
 }
 
 export function getUtils() {
@@ -112,6 +117,7 @@ export async function onModuleLoad(ctx, modVersion) {
     
     // Load Modules :
     mSettings = await ctx.loadModule("modules/settings.mjs");
+    mSettingsDomain = await ctx.loadModule("modules/settingsDomain.mjs");
     mUtils = await ctx.loadModule("modules/utils.mjs");
     mAssetManager = await ctx.loadModule("modules/assetManager.mjs");
     mLocalStorage = await ctx.loadModule("modules/localStorage.mjs");
@@ -142,6 +148,7 @@ export async function onModuleLoad(ctx, modVersion) {
 export async function onDataLoad(settings, characterStorage, accountStorage) {
     /// Initialize settings module
     mSettings.init(this, settings);
+    mSettingsDomain.init?.(this);
     mSettings.createSettings();
     
     // Core modules initialization

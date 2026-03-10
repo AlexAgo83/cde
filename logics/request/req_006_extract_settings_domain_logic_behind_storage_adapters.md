@@ -1,8 +1,8 @@
 ## req_006_extract_settings_domain_logic_behind_storage_adapters - Extract settings domain logic behind storage adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 93%
-> Confidence: 95%
+> Status: Done
+> Understanding: 95%
+> Confidence: 97%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -69,3 +69,7 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_005_extract_settings_domain_logic_behind_storage_adapters`
+
+# Outcome
+- Accepted as delivered.
+- Settings defaults, normalization, serialization, and persisted-value application were extracted into a dedicated settings-domain seam with local tests and CI-compatible validation.

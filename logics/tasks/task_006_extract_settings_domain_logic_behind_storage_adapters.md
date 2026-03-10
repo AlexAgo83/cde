@@ -1,9 +1,9 @@
 ## task_006_extract_settings_domain_logic_behind_storage_adapters - Extract settings domain logic behind storage adapters
 > From version: 3.0.0
-> Status: Ready
+> Status: Done
 > Understanding: 95%
 > Confidence: 97%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -23,10 +23,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Audit the current settings flow in `modules/settings.mjs`, `modules/localStorage.mjs`, `modules/cloudStorage.mjs`, `setup.mjs`, and selected consumers to identify defaults, normalization, validation, and interpretation rules.
-- [ ] 2. Extract a pure settings-domain module that owns canonical definitions, defaults, normalization, and interpretation while keeping storage and UI side effects outside the seam.
-- [ ] 3. Rewire current settings consumers onto the extracted seam and add focused tests for defaults, merge behavior, normalization, and preserved visible behavior.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Audit the current settings flow in `modules/settings.mjs`, `modules/localStorage.mjs`, `modules/cloudStorage.mjs`, `setup.mjs`, and selected consumers to identify defaults, normalization, validation, and interpretation rules.
+- [x] 2. Extract a pure settings-domain module that owns canonical definitions, defaults, normalization, and interpretation while keeping storage and UI side effects outside the seam.
+- [x] 3. Rewire current settings consumers onto the extracted seam and add focused tests for defaults, merge behavior, normalization, and preserved visible behavior.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 2. Proof: extracted settings-domain module and clarified responsibilities.
@@ -46,10 +46,10 @@ flowchart LR
 - run the new settings-domain test file added by this slice
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - Target seam for this task:
@@ -60,3 +60,16 @@ flowchart LR
 - storage reads and writes
 - settings UI rendering
 - startup orchestration calls
+- Delivered files:
+- `modules/settingsDomain.mjs`
+- `modules/settings.mjs`
+- `modules/cloudStorage.mjs`
+- `modules.mjs`
+- `manifest.json`
+- `tests/test_settings_domain.mjs`
+- `.github/workflows/validate.yml`
+- Validation executed:
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs`
+- `python3 -m unittest discover -s tests -p "test_*.py" -v`
+- `bash validate.sh`
+- `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`

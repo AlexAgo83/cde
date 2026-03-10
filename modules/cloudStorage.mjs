@@ -91,6 +91,10 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+function domain() {
+	return mods.getSettingsDomain();
+}
+
 /**
  * Retrieves the current monster data from cloud storage.
  * @returns {Object|null} The current monster data object, or null if not found or invalid.
@@ -215,7 +219,7 @@ export function saveSetting(reference, value) {
 		return null;
 	}
 	const key = CS_SETTINGS + "-" + reference.key;
-    const toStore = typeof value === "string" ? value : JSON.stringify(value);
+    const toStore = domain().serializeSettingValue(value);
     cloudStorage?.setItem(key, toStore);
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] saveSetting:"+key, toStore);
@@ -239,12 +243,7 @@ export function loadSetting(reference) {
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] loadSetting:"+key, raw);
 		}
-        if (typeof raw !== "string") return raw;
-        if (raw === "true") return true;
-        if (raw === "false") return false;
-		if (!isNaN(Number(raw)) && raw.trim() !== "") return Number(raw);
-        if (raw.startsWith("{") || raw.startsWith("[")) return JSON.parse(raw);
-        return raw;
+        return domain().deserializeSettingValue(raw);
     } catch {
 		console.error("[CDE] Can't parse settings", key, raw);
         return raw;

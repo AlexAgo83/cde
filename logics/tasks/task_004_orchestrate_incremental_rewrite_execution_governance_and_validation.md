@@ -3,7 +3,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 97%
-> Progress: 15%
+> Progress: 25%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -62,4 +62,5 @@ flowchart LR
 - keep individual slice scope inside its own backlog item
 - Active execution state:
 - `task_005_extract_export_domain_logic_behind_runtime_adapters` is implemented and locally validated
+- `task_006_extract_settings_domain_logic_behind_storage_adapters` is implemented and locally validated
 - subsequent slices remain gated behind the same local validation and commit discipline

@@ -5,6 +5,7 @@
   "module": [
     "libs/lz-string.js",
     "modules/settings.mjs",
+    "modules/settingsDomain.mjs",
     "modules/assetManager.mjs",
     "modules/localStorage.mjs",
     "modules/cloudStorage.mjs",
