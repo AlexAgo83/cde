@@ -16,6 +16,7 @@ let mCloudStorage = null;
 let mNotification = null;
 let mDisplayStats = null;
 let mCollector = null;
+let mCollectorAdapter = null;
 let mMelvorRuntime = null;
 let mExport = null;
 let mExportDomain = null;
@@ -73,6 +74,10 @@ export function getMelvorRuntime() {
 
 export function getCollector() {
     return mCollector;
+}
+
+export function getCollectorAdapter() {
+    return mCollectorAdapter;
 }
 
 export function getExport() {
@@ -157,6 +162,7 @@ export async function onModuleLoad(ctx, modVersion) {
     mNotification = await ctx.loadModule("modules/notification.mjs");
     mMelvorRuntime = await ctx.loadModule("modules/melvorRuntime.mjs");
     mCollector = await ctx.loadModule("modules/collector.mjs");
+    mCollectorAdapter = await ctx.loadModule("modules/collectorAdapter.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
     mExportDomain = await ctx.loadModule("modules/exportDomain.mjs");
     mAppOrchestrator = await ctx.loadModule("modules/appOrchestrator.mjs");

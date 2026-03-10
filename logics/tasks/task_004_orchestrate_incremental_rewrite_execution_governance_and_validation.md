@@ -3,7 +3,7 @@
 > Status: In progress
 > Understanding: 100%
 > Confidence: 99%
-> Progress: 85%
+> Progress: 90%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -69,4 +69,5 @@ flowchart LR
 - `task_010_normalize_melvor_runtime_and_loader_adapters` is implemented and locally validated
 - `task_011_separate_modal_rendering_from_viewer_actions` is implemented and locally validated
 - `task_012_isolate_injected_panel_rendering_from_page_orchestration` is implemented and locally validated
+- `task_013_define_collector_adapter_fixtures_and_boundaries` is implemented and locally validated
 - subsequent slices remain gated behind the same local validation and commit discipline

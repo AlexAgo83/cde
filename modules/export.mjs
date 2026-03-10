@@ -43,6 +43,10 @@ function domain() {
 	return mods.getExportDomain();
 }
 
+function collectorAdapter() {
+	return mods.getCollectorAdapter();
+}
+
 /**
  * Get the last export data as a JSON object, either from cache or from local storage.
  * @returns {Object} The export data as a JSON object.
@@ -147,17 +151,6 @@ export function cleanChangesHistory() {
 }
 
 /**
- * Utility to collect data if the config allows, otherwise returns a fallback message.
- * @param {*} cfgRef - The config reference to check.
- * @param {Function} collectorFn - The collector function to call if allowed.
- * @param {string} fallbackMsg - The message to return if not allowed.
- * @returns {*} The collected data or an info object.
- */
-export function collector(cfgRef, collectorFn, fallbackMsg) {
-	return isCfg(cfgRef) ? collectorFn() : { info: fallbackMsg };
-}
-
-/**
  * Collects all character data, calls all collectors, handles saving and diff generation.
  * @param {Function} onCombat - Callback for combat events.
  * @param {Function} onNonCombat - Callback for non-combat events.
@@ -173,6 +166,13 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 
 	const _mc = mods.getCollector();
 	const _sr = Stg();
+	const collectorPlan = collectorAdapter().createCollectorExportPlan(_sr);
+	const activityCallbacks = collectorAdapter().createCollectorActivityCallbacks({
+		onCombat,
+		onNonCombat,
+		onActiveSkill,
+		onSkillsUpdate: onSkllsUpdate
+	});
 	const date = new Date();
 	const diffExecution = lastTimeBuffer ? (date.getTime() - lastTimeBuffer.getTime()) : 0;
 
@@ -195,32 +195,26 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		}
 	}
 
-	newData.basics = _mc.collectBasics();
+	Object.assign(newData, collectorAdapter().collectCollectorDescriptors(_mc, [
+		collectorPlan.always[0]
+	]));
 
 	const startExecutionTime = new Date().getTime();
-	newData.currentActivity = _mc.collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate);
+	Object.assign(newData, collectorAdapter().collectCollectorDescriptors(
+		_mc,
+		[collectorPlan.always[1]],
+		{ callbacks: activityCallbacks }
+	));
 	const endExecutionTime = new Date().getTime();
 
 	if (!extractEta) {
-		newData.agility = _mc.collectAgility();
-		newData.activePotions = _mc.collectActivePotions();
-		newData.dungeons = _mc.collectDungeons();
-		newData.strongholds = _mc.collectStrongholds();
-		newData.ancientRelics = _mc.collectAncientRelics();
-
-		newData.stats = collector(_sr.EXPORT_GAMESTATS, _mc.collectGameStats, "Stats data unavailable");
-		newData.shop = collector(_sr.EXPORT_SHOP, _mc.collectShopData, "Shop data unavailable");
-		newData.equipment = collector(_sr.EXPORT_EQUIPMENT, _mc.collectEquipments, "Equipment data unavailable");
-		newData.equipmentSets = collector(_sr.EXPORT_EQUIPMENT_SETS, _mc.collectEquipmentSets, "Equipment sets data unavailable");
-		newData.bank = collector(_sr.EXPORT_BANK, _mc.collectBankData, "Bank data unavailable");
-		newData.skills = collector(_sr.EXPORT_SKILLS, _mc.collectSkills, "Skills data unavailable");
-		newData.mastery = collector(_sr.EXPORT_MASTERY, _mc.collectMastery, "Mastery data unavailable");
-		newData.astrology = collector(_sr.EXPORT_ASTROLOGY, _mc.collectAstrology, "Astrology data unavailable");
-		newData.completion = collector(_sr.EXPORT_COMPLETION, _mc.collectCompletion, "Completion data unavailable");
-		newData.township = collector(_sr.EXPORT_TOWNSHIP, _mc.collectTownship, "Township data unavailable");
-		newData.pets = collector(_sr.EXPORT_PETS, _mc.collectPets, "Pets data unavailable");
-		newData.cartography = collector(_sr.EXPORT_CARTOGRAPHY, _mc.collectCartography, "Cartography data unavailable");
-		newData.farming = collector(_sr.EXPORT_FARMING, _mc.collectFarming, "Farming data unavailable");
+		Object.assign(newData, collectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.full));
+		Object.assign(
+			newData,
+			collectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.optional, {
+				isEnabled: isCfg
+			})
+		);
 	}
 
 	/* Meta */

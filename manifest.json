@@ -14,6 +14,7 @@
     "modules/displayStats.mjs",
     "modules/melvorRuntime.mjs",
     "modules/collector.mjs",
+    "modules/collectorAdapter.mjs",
     "modules/utils.mjs",
     "modules/export.mjs",
     "modules/exportDomain.mjs",
