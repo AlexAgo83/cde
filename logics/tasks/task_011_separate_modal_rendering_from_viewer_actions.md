@@ -1,9 +1,9 @@
 ## task_011_separate_modal_rendering_from_viewer_actions - Separate modal rendering from viewer actions
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 92%
-> Confidence: 94%
-> Progress: 0%
+> Status: Done
+> Understanding: 96%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -23,10 +23,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Audit `views/exportView.mjs`, `views/changelogView.mjs`, and `modules/viewer.mjs` to identify rendering responsibilities versus action and flow responsibilities.
-- [ ] 2. Separate modal rendering logic from viewer-triggered actions while preserving current modal behavior.
-- [ ] 3. Rewire modal interactions onto the cleaner boundary and add focused checks for modal rendering and action dispatch.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Audit `views/exportView.mjs`, `views/changelogView.mjs`, and `modules/viewer.mjs` to identify rendering responsibilities versus action and flow responsibilities.
+- [x] 2. Separate modal rendering logic from viewer-triggered actions while preserving current modal behavior.
+- [x] 3. Rewire modal interactions onto the cleaner boundary and add focused checks for modal rendering and action dispatch.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 2. Proof: clearer modal boundary between rendering and actions.
@@ -42,17 +42,22 @@ flowchart LR
 - `bash validate.sh`
 - `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
 - `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- `node --test tests/test_utils.mjs`
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs`
 - run the new modal-boundary test or smoke-check file added by this slice
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
-- Scope of this task:
-- export modal
-- changelog modal
-- viewer-triggered actions that currently leak into rendering modules
+- Extracted `modules/viewerActions.mjs` to own export-modal and changelog-modal actions such as reset, refresh, download, clipboard, Hastebin, and changelog export flows.
+- Rewired `views/exportView.mjs` and `views/changelogView.mjs` to focus on modal rendering and DOM event binding while delegating actions to `viewerActions`.
+- Added `tests/test_viewer_actions.mjs` to validate action dispatch independently from modal rendering.
+- Validation executed:
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs`
+- `python3 -m unittest discover -s tests -p "test_*.py" -v`
+- `bash validate.sh`
+- `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
+- `python3 logics/skills/logics-flow-manager/scripts/workflow_audit.py`

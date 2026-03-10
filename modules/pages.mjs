@@ -184,6 +184,10 @@ function runtime() {
     return mods.getMelvorRuntime();
 }
 
+function renderer() {
+    return mods.getPanelRenderer();
+}
+
 /**
  * Returns the list of loaded panel submodules (e.g., combatPanel).
  * @returns {Array} An array of loaded submodule instances.
@@ -266,7 +270,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
         }
         if (panel && typeof panel.getParent === "function") {
             const position = mods.getCloudStorage().getCurrentETAPostion();
-            displayEtaAt(panel.getParent(), position);
+            renderer().displayEtaAt(panel.getParent(), position);
         }
     } else if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Can't execute refresh:"+localID, panel);
     return updated;
@@ -546,30 +550,6 @@ function onStop() {
  * @param {*} identifier - Unique identifier for the panel.
  * @returns {string} The header element ID.
  */
-function getHeaderID(identifier) {
-    return `cde-${identifier}-header`;
-}
-/**
- * Generates the HTML ID for the ETA panel summary for a given identifier.
- * @param {*} identifier - Unique identifier for the panel.
- * @returns {string} The summary element ID.
- */
-function getSummaryID(identifier) {
-    return `cde-${identifier}-summary`;
-}
-
-/**
- * Returns the default HTML for an ETA panel.
- * @param {*} summaryId - The summary element ID to use in the panel.
- * @returns {string} The default panel HTML.
- */
-function onDefaultPanel(parentPanel, summaryId, identifier) {
-    return `<div class="cde-eta-panel">
-            <strong>DEBUG TITLE</strong><br>
-            <span class="cde-eta-summary" id="${summaryId}">DEBUG SUMMARY - ${identifier}</span>
-            </div>`;
-}
-
 /**
  * Returns the controls panel HTML for ETA.
  * @returns {string} The controls panel HTML.
@@ -621,69 +601,21 @@ function pageContainer(targetPage, identifier, currPanel) {
     mutationCompute.corePanel = null;
 
     const observer = new MutationObserver(() => {
-        const container = document.querySelector(targetPage);
-        /* No available container for this page */
-        if (!container) return;
-
-        const headerId = getHeaderID(identifier)
-        /* Already spawned */
-        if (document.getElementById(headerId)) return;
-
-        const summaryId = getSummaryID(identifier);
-        
-        /* Init Header Panel */
-        const corePanel = document.createElement('div');
-        corePanel.id = headerId;
-        corePanel.classList.add("cde-eta-header");
-
-        /* Setup Controls */
-        currPanel.setControlsPanelCb(onControlsPanel);
-
-        /* Setup Chart Panel */
-        if (isCfg(Stg().ETA_CHART)) {
-            corePanel.prepend(chartPanel.getHtmlElement(identifier));
-        }
-
-        /* Setup Content Panel */
-        const contentPanel = document.createElement('div');
-        contentPanel.classList.add("cde-content-panel");
-        contentPanel.innerHTML = currPanel.container(contentPanel, summaryId, identifier);
-        contentPanel.style.display = "none";
-        corePanel.prepend(contentPanel);
-
-        /* Setup Panel Position */
-        const controlsPosition = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-        displayEtaAt(contentPanel, controlsPosition);
-
-        /** Setup Click Listener */
-        contentPanel.addEventListener("click", (event) => {
-            setupClickListener(event, currPanel, contentPanel);
+        const rendered = renderer().injectPanel({
+            documentRef: document,
+            targetPage,
+            identifier,
+            currPanel,
+            chartPanel,
+            isChartEnabled: isCfg(Stg().ETA_CHART),
+            controlsPosition: mods.getCloudStorage().getCurrentETAPostion() ?? "center",
+            onControlsPanel,
+            onPanelClick: setupClickListener,
         });
+        if (!rendered) return;
 
-        /** Setup mutation compute */
-        mutationCompute.container = container;
-        mutationCompute.corePanel = corePanel;
-
-        /** Looking for the best area to inject */
-        const rowDeck = container.querySelector('.row-deck');
-        // const mapDisplay = container.querySelector('#cartography-map-display');
-        // if (mapDisplay) {
-        //     if (mods.getSettings().isDebug()) {
-        //         console.log("[CDE] Match current cartography-map-display:", rowDeck);
-        //     }
-        //     mapDisplay.prepend(currPanel);
-        // } else 
-        if (rowDeck) {
-            if (mods.getSettings().isDebug()) {
-                console.log("[CDE] Match current row-deck:", rowDeck);
-            }
-            rowDeck.prepend(corePanel);
-        } else {
-            if (mods.getSettings().isDebug()) {
-                console.log("[CDE] Can't match row-deck:", rowDeck);
-            }
-            container.prepend(corePanel);
-        }
+        mutationCompute.container = rendered.container;
+        mutationCompute.corePanel = rendered.corePanel;
     });
 
     const reference = {
@@ -722,7 +654,7 @@ function setupClickListener(event, currPanel, contentPanel) {
 
         /* Update Position */
         const newCurrState = mods.getCloudStorage().getCurrentETAPostion() ?? "center";
-        displayEtaAt(contentPanel, newCurrState);
+        renderer().displayEtaAt(contentPanel, newCurrState);
         if (mods.getSettings().isDebug()) {
             console.log("[CDE] Updated ETA position:", {currState, newCurrState});
         }
@@ -765,39 +697,6 @@ function setupClickListener(event, currPanel, contentPanel) {
             mods.getAssetManager().changeAsset(contentPanel, "#cde-btn-eta-extra", currPngId);
         }
     }
-}
-
-/**
- * Display ETA at position
- * @param {*} panel the current panel ETA
- * @param {*} position the position
- */
-function displayEtaAt(panel, position) {
-    if (position === "left") {
-        panel.classList.remove("cde-justify-center");
-        panel.classList.remove("cde-justify-right");
-        panel.classList.add("cde-justify-left");
-    } else if (position === "center") {
-        panel.classList.remove("cde-justify-left");
-        panel.classList.remove("cde-justify-right");
-        panel.classList.add("cde-justify-center");
-    } else if (position === "right") {
-        panel.classList.remove("cde-justify-left");
-        panel.classList.remove("cde-justify-center");
-        panel.classList.add("cde-justify-right");
-    }
-}
-
-/**
- * Get the current state of the panel
- * @param {*} panel 
- * @returns The ETA position 
- */
-function getStateEta(panel) {
-    if (panel?.classList.contains("cde-justify-left")) return "left";
-    if (panel?.classList.contains("cde-justify-center")) return "center";
-    if (panel?.classList.contains("cde-justify-right")) return "right";
-    return null;
 }
 
 /**
@@ -880,7 +779,7 @@ function initObservers(etaDisplay = false, connect = false) {
 export function triggerObservers(value) {
     if (!value && pageObservers.size > 0) {
         pageObservers.forEach((reference, targetPage) => {
-            document.getElementById(getHeaderID(reference.identifier))?.remove();
+            renderer().removeInjectedPanel(document, reference.identifier);
             reference.observer.disconnect();
             console.log("[CDE] Observer disconnected", targetPage);
         });

@@ -1,8 +1,8 @@
 ## req_010_establish_a_ui_rendering_boundary_for_injected_views_and_panels - Establish a UI rendering boundary for injected views and panels
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 91%
-> Confidence: 93%
+> Status: Done
+> Understanding: 96%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -67,3 +67,8 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_009_establish_a_ui_rendering_boundary_for_injected_views_and_panels`
+
+# Outcome
+- The UI-boundary migration is complete for this roadmap slice.
+- Modal rendering and viewer-triggered actions are now separated through `modules/viewerActions.mjs`, with export and changelog views focused on rendering and DOM bindings.
+- Injected ETA panel rendering and placement are now separated through `modules/panelRenderer.mjs`, with `modules/pages.mjs` focused on observers, hooks, and page lifecycle orchestration.

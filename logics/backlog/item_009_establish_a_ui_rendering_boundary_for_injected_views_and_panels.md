@@ -1,9 +1,9 @@
 ## item_009_establish_a_ui_rendering_boundary_for_injected_views_and_panels - Establish a UI rendering boundary for injected views and panels
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 92%
-> Confidence: 94%
-> Progress: 0%
+> Status: Done
+> Understanding: 97%
+> Confidence: 98%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -57,3 +57,6 @@ flowchart LR
 - Execution slices:
 - modal rendering and viewer actions first
 - injected panels and page orchestration second
+- Current delivery state:
+- modal rendering and viewer actions are implemented and locally validated through `task_011_separate_modal_rendering_from_viewer_actions`
+- injected panels and page orchestration are implemented and locally validated through `task_012_isolate_injected_panel_rendering_from_page_orchestration`

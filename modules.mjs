@@ -23,6 +23,8 @@ let mAppOrchestrator = null;
 let mEtaDomain = null;
 let mEta = null;
 let mViewer = null;
+let mViewerActions = null;
+let mPanelRenderer = null;
 let mPages = null;
 
 export function getModVersion() {
@@ -101,6 +103,14 @@ export function getViewer() {
     return mViewer;
 }
 
+export function getViewerActions() {
+    return mViewerActions;
+}
+
+export function getPanelRenderer() {
+    return mPanelRenderer;
+}
+
 export function getPages() {
     return mPages;
 }
@@ -153,6 +163,8 @@ export async function onModuleLoad(ctx, modVersion) {
     mEtaDomain = await ctx.loadModule("modules/etaDomain.mjs");
     mEta = await ctx.loadModule("modules/eta.mjs");
     mViewer = await ctx.loadModule("modules/viewer.mjs");
+    mViewerActions = await ctx.loadModule("modules/viewerActions.mjs");
+    mPanelRenderer = await ctx.loadModule("modules/panelRenderer.mjs");
     mPages = await ctx.loadModule("modules/pages.mjs");
     
     // Load subModules :
@@ -198,6 +210,7 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
 
     // Interfaces
     mViewer.init(this);
+    mViewerActions.init(this);
     mPages.init(this);
 }
 

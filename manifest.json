@@ -21,6 +21,8 @@
     "modules/etaDomain.mjs",
     "modules/eta.mjs",
     "modules/viewer.mjs",
+    "modules/viewerActions.mjs",
+    "modules/panelRenderer.mjs",
     "modules/pages.mjs",
     "views/exportView.mjs",
     "views/changelogView.mjs",

@@ -115,60 +115,6 @@ function onExportOpen() {
     }
 }
 
-/**
- * Handle the export download button click event.
- * Generates a JSON export and triggers a download.
- * @returns {Promise<void>}
- */
-async function onClickExportDownload() {
-    try {
-        mods.getViewer().doShareFile('export', mods.getExport().getExportString());
-    } catch (err) {
-        console.error("Failed to generate export:", err);
-        mods.getViewer().popupError('Export failed', 'Could not generate export.');
-    }
-}
-
-/**
- * Handle the export clipboard button click event.
- * Copies the export string to the clipboard.
- * @returns {Promise<void>}
- */
-async function onClickExportClipboard() {
-    const contentStr = mods.getExport().getExportString();
-    mods.getViewer().doCopyClipboard(contentStr);
-}
-
-/**
- * Handle the export Hastebin button click event.
- * Uploads the export string to Hastebin and copies the link to the clipboard.
- * @returns {Promise<void>}
- */
-async function onClickExportHastebin() {
-    const raw = mods.getExport().getExportString();
-    mods.getViewer().doShareHastebin(raw);
-}
-
-/**
- * Handle the reset export button click event.
- * Resets the export data.
- * @returns {Promise<void>}
- */
-async function onClickResetExport() {
-    mods.getExport().resetExportData()
-    mods.getViewer().popupSuccess('Export reset!');
-}
-
-/**
- * Handle the refresh export button click event.
- * Refreshes the export data and UI.
- * @returns {Promise<void>}
- */
-async function onClickRefreshExport() {
-    // Todo: to improve..
-    openExportUI(true);
-}
-
 let exportUI = null;
 const exportFooter = 
 `<div style="margin-top:10px"><button id="cde-reset-button" class="btn btn-sm btn-secondary">Reset Data</button>
@@ -221,12 +167,7 @@ function openExportUI(forceCollect = false) {
                     if (checkbox) {
                         checkbox.addEventListener('change', (e) => {
                             const isChecked = /** @type {HTMLInputElement} */(e.target).checked;
-                            const sections = mods.getSettings().getLoadedSections()
-                            const section = sections[Stg().AUTO_EXPORT_ONWINDOW.section];
-                            section.set(Stg().AUTO_EXPORT_ONWINDOW.key, isChecked);
-                            if (mods.getSettings().isDebug()) {
-                                console.log("[CDE] Set section change: ", Stg().AUTO_EXPORT_ONWINDOW.key, isChecked);
-                            }
+                            mods.getViewerActions().updateAutoExportOnWindow(isChecked);
                         });
                     }
 
@@ -234,11 +175,11 @@ function openExportUI(forceCollect = false) {
 
                     const onViewDiff = mods.getViewer().getChangelogView().onClickExportViewDiff;
                     
-                    document.getElementById("cde-reset-button")?.addEventListener("click", onClickResetExport);
-                    document.getElementById("cde-refresh-button")?.addEventListener("click", onClickRefreshExport);
-                    document.getElementById("cde-download-button")?.addEventListener("click", onClickExportDownload);
-                    document.getElementById("cde-clipboard-button")?.addEventListener("click", onClickExportClipboard);
-                    document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", onClickExportHastebin);
+                    document.getElementById("cde-reset-button")?.addEventListener("click", () => mods.getViewerActions().resetExport());
+                    document.getElementById("cde-refresh-button")?.addEventListener("click", () => mods.getViewerActions().refreshExport(openExportUI));
+                    document.getElementById("cde-download-button")?.addEventListener("click", () => mods.getViewerActions().downloadExport());
+                    document.getElementById("cde-clipboard-button")?.addEventListener("click", () => mods.getViewerActions().copyExport());
+                    document.getElementById("cde-sendtohastebin-button")?.addEventListener("click", () => mods.getViewerActions().shareExportToHastebin());
                     document.getElementById("cde-viewdiff-button")?.addEventListener("click", onViewDiff);
                     
                     // OPEN EXPORT

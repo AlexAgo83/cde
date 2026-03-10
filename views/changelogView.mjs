@@ -95,16 +95,14 @@ export async function onClickExportViewDiff() {
                 }
             });
             
-            document.getElementById("cde-changelog-reset-button")?.addEventListener("click", onClickResetChangelogs);
+            document.getElementById("cde-changelog-reset-button")?.addEventListener("click", () => mods.getViewerActions().resetChangelogs());
             document.getElementById("cde-changelog-download-button")?.addEventListener("click", () => {
-                const text = (history.get(selectedKey) || []).join("\n");
-                mods.getViewer().doShareFile('changelog', text, selectedKey);
+                mods.getViewerActions().downloadChangelog(history, selectedKey);
             });
-            document.getElementById("cde-changelog-exportall-button")?.addEventListener("click", onClickExportAllChangelogs);
+            document.getElementById("cde-changelog-exportall-button")?.addEventListener("click", () => mods.getViewerActions().exportAllChangelogs(history));
             
             document.getElementById("cde-changelog-clipboard-button")?.addEventListener("click", () => {
-                const contentStr = (history.get(selectedKey) || []).join("\n");
-                mods.getViewer().doCopyClipboard(contentStr);
+                mods.getViewerActions().copyChangelog(history, selectedKey);
             });
         }
     });
@@ -156,28 +154,4 @@ function formatChangelogLine(line) {
     }
     
     return `<div class="cde-changelog-line">${mods.getUtils().escapeHtml(line)}</div>`;
-}
-
-async function onClickResetChangelogs() {
-    mods.getExport().resetChangesHistory()
-    mods.getViewer().popupSuccess('Changelogs reset!');
-}
-
-async function onClickExportAllChangelogs() {
-    const history = mods.getExport().getChangesHistory();
-    if (!history || history.size === 0) {
-        mods.getViewer().popupInfo("Export All", "No changelog history to export.");
-        return;
-    }
-    try {
-        const allData = {};
-        Array.from(history.entries()).forEach(([key, value]) => {
-            allData[key] = value;
-        });
-        const contentString = JSON.stringify(allData, null, 2);
-        mods.getViewer().doShareFile('changelog-ALL', contentString);
-    } catch (err) {
-        console.error("Failed to generate full changelogs:", err);
-        mods.getViewer().popupError('Export failed', 'Could not generate full changelogs.');
-    }
 }

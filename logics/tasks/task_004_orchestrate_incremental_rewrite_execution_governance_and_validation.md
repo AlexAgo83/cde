@@ -1,9 +1,9 @@
 ## task_004_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
 > Status: In progress
-> Understanding: 99%
+> Understanding: 100%
 > Confidence: 99%
-> Progress: 65%
+> Progress: 85%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -42,7 +42,7 @@ flowchart LR
 - `bash validate.sh`
 - `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
 - `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs`
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs tests/test_panel_renderer.mjs`
 
 # Definition of Done (DoD)
 - [ ] Scope implemented and acceptance criteria covered.
@@ -67,4 +67,6 @@ flowchart LR
 - `task_008_define_application_orchestration_between_domain_and_runtime_adapters` is implemented and locally validated
 - `task_009_normalize_browser_facing_runtime_adapters` is implemented and locally validated
 - `task_010_normalize_melvor_runtime_and_loader_adapters` is implemented and locally validated
+- `task_011_separate_modal_rendering_from_viewer_actions` is implemented and locally validated
+- `task_012_isolate_injected_panel_rendering_from_page_orchestration` is implemented and locally validated
 - subsequent slices remain gated behind the same local validation and commit discipline
