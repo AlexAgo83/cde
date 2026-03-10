@@ -15,6 +15,7 @@
     "modules/utils.mjs",
     "modules/export.mjs",
     "modules/exportDomain.mjs",
+    "modules/appOrchestrator.mjs",
     "modules/etaDomain.mjs",
     "modules/eta.mjs",
     "modules/viewer.mjs",

@@ -17,6 +17,7 @@ let mDisplayStats = null;
 let mCollector = null;
 let mExport = null;
 let mExportDomain = null;
+let mAppOrchestrator = null;
 let mEtaDomain = null;
 let mEta = null;
 let mViewer = null;
@@ -68,6 +69,10 @@ export function getExport() {
 
 export function getExportDomain() {
     return mExportDomain;
+}
+
+export function getAppOrchestrator() {
+    return mAppOrchestrator;
 }
 
 export function getEtaDomain() {
@@ -132,6 +137,7 @@ export async function onModuleLoad(ctx, modVersion) {
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
     mExportDomain = await ctx.loadModule("modules/exportDomain.mjs");
+    mAppOrchestrator = await ctx.loadModule("modules/appOrchestrator.mjs");
     mEtaDomain = await ctx.loadModule("modules/etaDomain.mjs");
     mEta = await ctx.loadModule("modules/eta.mjs");
     mViewer = await ctx.loadModule("modules/viewer.mjs");
@@ -142,6 +148,8 @@ export async function onModuleLoad(ctx, modVersion) {
         mViewer.loadSubModule(ctx),
         mPages.loadSubModule(ctx)
     ]);
+
+    mAppOrchestrator.init?.(this, currModVersion);
 }
 
 /**

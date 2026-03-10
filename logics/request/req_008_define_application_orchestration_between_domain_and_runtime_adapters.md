@@ -1,8 +1,8 @@
 ## req_008_define_application_orchestration_between_domain_and_runtime_adapters - Define application orchestration between domain and runtime adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 92%
-> Confidence: 94%
+> Status: Done
+> Understanding: 96%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -70,3 +70,8 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_007_define_application_orchestration_between_domain_and_runtime_adapters`
+
+# Outcome
+- The orchestration slice is now implemented.
+- Startup collection, auto-export-on-load, and interface-ready flows are coordinated through `modules/appOrchestrator.mjs`, with `setup.mjs` reduced to lifecycle registration and API exposure.
+- Automated checks now cover orchestration sequencing through `tests/test_app_orchestrator.mjs`, in addition to repository validation and workflow audit.

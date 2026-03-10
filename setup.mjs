@@ -65,55 +65,9 @@ const MOD_VERSION = "v3.0.1";
 
 // --- Module Imports ---
 let mModules = null;
-
-/**
- * Get the proxy-settings reference object.
- * @returns {Object} The settings reference object.
- */
-function Stg() {
-	if (!mModules) {
-        console.warn("[CDE] Module manager not loaded yet");
-        return false;
-    }
-	return mModules.getSettings()?.SettingsReference;
-}
-/**
- * Get the proxy-boolean value for a settings reference.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-	if (!mModules) {
-        console.warn("[CDE] Module manager not loaded yet", reference);
-        return false;
-    }
-	return mModules.getSettings()?.isCfg(reference);
-}
-
-/**
- * Process and collect data for export.
- * This function is called to collect data when the game starts or when the export UI is opened.
- * It uses the `mModules.getExport().processCollectData` method to handle the data collection.
- * The `onCombat`, `onNonCombat`, `onActiveSkill`, and `onSkillsUpdate` callbacks are used to process respective events.
- * 
- * @returns {*} The collected export data.
- */
-export const doCollectData = (extractEta=false, timeBuffer=50) => {
-	const value = mModules.getExport().processCollectData(
-		mModules.getETA().onCombat, 
-		mModules.getETA().onNonCombat, 
-		mModules.getETA().onActiveSkill,
-		mModules.getETA().onSkillsUpdate,
-		extractEta,
-		timeBuffer,
-		(meta) => {
-			meta.modVersion = MOD_VERSION
-		}
-	);
-	if (mModules.getSettings().isDebug()) {
-		console.log("[CDE] Requested: processCollectData", value);
-	}
-	return value;
-}
+let doCollectData = () => {
+    throw new Error("[CDE] Application orchestrator is not ready yet");
+};
 
 /**
  * Main setup entry point for the mod.
@@ -135,6 +89,7 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 	onModsLoaded(async (ctx) => {
 		mModules = await ctx.loadModule("modules.mjs");
 		await mModules.onModuleLoad(ctx, MOD_VERSION);
+		doCollectData = mModules.getAppOrchestrator().createCollectDataUseCase();
 		console.info("[CDE] Modules loaded !");
 	});
 
@@ -144,25 +99,13 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async (ctx) => {
-		await mModules.onDataLoad(settings, characterStorage, accountStorage);
-		const autoExportOnLoad = mModules.getCloudStorage().loadSetting(Stg().AUTO_EXPORT_ONLOAD);
-		if ((autoExportOnLoad ?? isCfg(Stg().AUTO_EXPORT_ONLOAD))) {
-			doCollectData();
-		}
+		await mModules.getAppOrchestrator().loadCharacterData(settings, characterStorage, accountStorage, doCollectData);
 		console.info("[CDE] Data loaded !");
 	});
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		await mModules.onViewLoad(ctx);
-		
-		// Override processCollectData callback (Viewer / Panel)
-		mModules.getViewer().getExportView().setCollectCb(doCollectData);
-		mModules.getPages().setCollectCb(doCollectData);
-
-		mModules.getPages().triggerObservers(isCfg(Stg().ETA_DISPLAY));
-		mModules.getPages().worker(ctx);
-
+		await mModules.getAppOrchestrator().prepareInterface(ctx, doCollectData);
 		console.log("[CDE] Interface ready !");
 	});
 	

@@ -1,9 +1,9 @@
 ## task_004_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
 > Status: In progress
-> Understanding: 96%
-> Confidence: 98%
-> Progress: 35%
+> Understanding: 97%
+> Confidence: 99%
+> Progress: 45%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -64,4 +64,5 @@ flowchart LR
 - `task_005_extract_export_domain_logic_behind_runtime_adapters` is implemented and locally validated
 - `task_006_extract_settings_domain_logic_behind_storage_adapters` is implemented and locally validated
 - `task_007_extract_selected_eta_calculations_behind_runtime_adapters` is implemented and locally validated
+- `task_008_define_application_orchestration_between_domain_and_runtime_adapters` is implemented and locally validated
 - subsequent slices remain gated behind the same local validation and commit discipline

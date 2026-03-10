@@ -1,9 +1,9 @@
 ## item_007_define_application_orchestration_between_domain_and_runtime_adapters - Define application orchestration between domain and runtime adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 93%
-> Confidence: 95%
-> Progress: 0%
+> Status: Done
+> Understanding: 96%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -54,3 +54,7 @@ flowchart LR
 - Source file: `logics/request/req_008_define_application_orchestration_between_domain_and_runtime_adapters.md`.
 - Execution order: 4 of 11 rewrite items.
 - Dependencies: `item_004_extract_export_domain_logic_behind_runtime_adapters`, `item_005_extract_settings_domain_logic_behind_storage_adapters`, `item_006_extract_selected_eta_calculations_behind_runtime_adapters`.
+- Delivery result:
+- `modules/appOrchestrator.mjs` now centralizes startup sequencing, collect-data orchestration, auto-export-on-load, and interface-ready coordination.
+- `setup.mjs` delegates these flows through the application layer instead of coordinating them inline.
+- Local tests, repository validation, and workflow audit passed for this slice.
