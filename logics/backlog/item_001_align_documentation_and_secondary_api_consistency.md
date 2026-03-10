@@ -1,9 +1,9 @@
 ## item_001_align_documentation_and_secondary_api_consistency - Align documentation and secondary API consistency
 > From version: 2.1.227
-> Status: Ready
-> Understanding: 94%
-> Confidence: 95%
-> Progress: 0%
+> Status: In progress
+> Understanding: 95%
+> Confidence: 96%
+> Progress: 85%
 > Complexity: Low
 > Theme: Documentation
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -46,7 +46,7 @@ flowchart LR
 
 # Links
 - Request: `req_002_align_documentation_and_secondary_api_consistency`
-- Primary task(s): `task_TBD_after_backlog_breakdown`
+- Primary task(s): `task_002_align_documentation_and_secondary_api_consistency`
 
 # Priority
 - Impact: P2. Improves correctness, trust, and maintainability of the public surface, but does not address the most immediate runtime risk.

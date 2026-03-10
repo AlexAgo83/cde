@@ -340,8 +340,8 @@ export const SettingsReference = {
 		section: Sections.Advance,
 		type: "switch",
 		key: "export-compress",
-		label: "Compress Export Output",
-		hint: "Export JSON in a compressed single-line format", 
+		label: "Compact Export Output",
+		hint: "Export JSON in a compact single-line format instead of pretty-printed output", 
 		toggle: true
 	},
 	SAVE_TO_STORAGE: {

@@ -292,7 +292,7 @@ export function getMasteryProgressPercent(currentLevel, currentXp) {
 	const nextLevelXp = getXpForLevel(nextLevel);
 
 	if (currentXp < nextLevelXp) {
-		const percent = ((currentLevelXp - currentXp) / (nextLevelXp - currentLevelXp)) * 100;
+		const percent = ((currentXp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
 		return { nextLevel, percent: +percent.toFixed(2) };
 	}
 
