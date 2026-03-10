@@ -427,13 +427,16 @@ export function collectGameStats() {
  */
 export function collectAstrology() {
 	const result = {};
+	const constellations = _game()?.astrology?.masteryXPConstellations;
 	
-	if (!_game()?.astrology?.masteryXPConstellations) {
-		console.warn("[CDE] astrology.masteryXPConstellations is missing");
+	if (!constellations) {
+		if (mods.getSettings().isDebug()) {
+			console.warn("[CDE] astrology.masteryXPConstellations is missing");
+		}
 		return result;
 	}
 
-	_game().astrology.masteryXPConstellations.forEach((entry) => {
+	constellations.forEach((entry) => {
 		const item = {
 			id: entry.localID,
 			name: entry.name,
@@ -599,26 +602,31 @@ export function collectStrongholds() {
  */
 export function collectCompletion() {
 	const result = {};
-	try {
-		const itemCur = _game().completion.itemProgress.currentCount.data;
-		const itemMax = _game().completion.itemProgress.maximumCount.data;
-		const monCur = _game().completion.monsterProgress.currentCount.data;
-		const monMax = _game().completion.monsterProgress.maximumCount.data;
-		mods.getUtils().NameSpaces.forEach((n) => {
-			const itemCount = itemCur.get(n) || 0;
-			const itemMaxCount = itemMax.get(n);
-			const itemPct = Math.round((itemCount / itemMaxCount) * 100);
-			const monsterCount = monCur.get(n) || 0;
-			const monsterMax = monMax.get(n);
-			const monsterPct = Math.round((monsterCount / monsterMax) * 100);
-			result[n] = {
-				items: { count: itemCount, max: itemMaxCount, percent: itemPct },
-				monsters: { count: monsterCount, max: monsterMax, percent: monsterPct }
-			};
-		});
-	} catch (error) {
-		console.warn("[CDE] Completion not found", error);
+	const completion = _game()?.completion;
+	const itemCur = completion?.itemProgress?.currentCount?.data;
+	const itemMax = completion?.itemProgress?.maximumCount?.data;
+	const monCur = completion?.monsterProgress?.currentCount?.data;
+	const monMax = completion?.monsterProgress?.maximumCount?.data;
+
+	if (!itemCur || !itemMax || !monCur || !monMax) {
+		if (mods.getSettings().isDebug()) {
+			console.warn("[CDE] Completion data is not ready");
+		}
+		return result;
 	}
+
+	mods.getUtils().NameSpaces.forEach((n) => {
+		const itemCount = itemCur.get(n) || 0;
+		const itemMaxCount = itemMax.get(n) || 0;
+		const itemPct = itemMaxCount > 0 ? Math.round((itemCount / itemMaxCount) * 100) : 0;
+		const monsterCount = monCur.get(n) || 0;
+		const monsterMax = monMax.get(n) || 0;
+		const monsterPct = monsterMax > 0 ? Math.round((monsterCount / monsterMax) * 100) : 0;
+		result[n] = {
+			items: { count: itemCount, max: itemMaxCount, percent: itemPct },
+			monsters: { count: monsterCount, max: monsterMax, percent: monsterPct }
+		};
+	});
 	return result;
 }
 

@@ -15,6 +15,21 @@ test("melvor runtime exposes game ui and named globals", () => {
   assert.equal(runtime.getGlobal("CombatManager").name, "CombatManager");
 });
 
+test("melvor runtime resolves game ui and globals from window-like fallback scopes", () => {
+  const hostWindow = {
+    game: { id: "window-game" },
+    ui: { id: "window-ui" },
+    CombatManager: function CombatManager() {},
+  };
+  const runtime = createMelvorRuntime({
+    window: hostWindow,
+  });
+
+  assert.deepEqual(runtime.getGame(), { id: "window-game" });
+  assert.deepEqual(runtime.getUi(), { id: "window-ui" });
+  assert.equal(runtime.getGlobal("CombatManager").name, "CombatManager");
+});
+
 test("melvor runtime delegates loader module loading and patching", async () => {
   const calls = [];
   const runtime = createMelvorRuntime({});

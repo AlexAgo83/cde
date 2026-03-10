@@ -6,6 +6,37 @@
 
 let runtime = null;
 
+function getScopeCandidates(env) {
+    const candidates = [env];
+
+    for (const key of ["window", "self", "top", "parent"]) {
+        try {
+            const value = env?.[key];
+            if (value && !candidates.includes(value)) {
+                candidates.push(value);
+            }
+        } catch (_error) {
+            // Ignore inaccessible cross-scope handles.
+        }
+    }
+
+    return candidates;
+}
+
+function resolveNamedValue(env, name) {
+    for (const scope of getScopeCandidates(env)) {
+        try {
+            const value = scope?.[name];
+            if (typeof value !== "undefined") {
+                return value;
+            }
+        } catch (_error) {
+            // Ignore inaccessible cross-scope handles.
+        }
+    }
+    return undefined;
+}
+
 function ensureRuntime() {
     if (!runtime) {
         runtime = createMelvorRuntime(globalThis);
@@ -16,13 +47,13 @@ function ensureRuntime() {
 export function createMelvorRuntime(env) {
     return {
         getGame() {
-            return env.game;
+            return resolveNamedValue(env, "game");
         },
         getUi() {
-            return env.ui;
+            return resolveNamedValue(env, "ui");
         },
         getGlobal(name) {
-            return env[name];
+            return resolveNamedValue(env, name);
         },
         async loadModule(ctx, path) {
             return ctx.loadModule(path);

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { init, collectBasics, collectCurrentActivity } from "../modules/collector.mjs";
+import { init, collectBasics, collectCurrentActivity, collectAstrology, collectCompletion } from "../modules/collector.mjs";
 
 test("collectBasics falls back safely when combat and modifiers are not ready yet", () => {
   init({
@@ -114,4 +114,66 @@ test("collectCurrentActivity falls back safely when combat is not ready yet", ()
 
   assert.equal(activity.Combat.attackType, undefined);
   assert.equal(activity.Combat.monster.killCount, 0);
+});
+
+test("collectAstrology returns an empty object when astrology runtime data is not ready", () => {
+  init({
+    getMelvorRuntime() {
+      return {
+        getGame() {
+          return {};
+        },
+        getGlobal() {
+          return undefined;
+        },
+      };
+    },
+    getCollectorDomain() {
+      return {};
+    },
+    getUtils() {
+      return {};
+    },
+    getSettings() {
+      return {
+        isDebug() {
+          return false;
+        },
+      };
+    },
+  });
+
+  assert.deepEqual(collectAstrology(), {});
+});
+
+test("collectCompletion returns an empty object when completion runtime data is not ready", () => {
+  init({
+    getMelvorRuntime() {
+      return {
+        getGame() {
+          return {};
+        },
+        getGlobal() {
+          return undefined;
+        },
+      };
+    },
+    getCollectorDomain() {
+      return {};
+    },
+    getUtils() {
+      return {
+        NameSpaces: ["melvorD"],
+      };
+    },
+    getSettings() {
+      return {
+        isDebug() {
+          return false;
+        },
+      };
+    },
+  });
+
+  assert.deepEqual(collectCompletion(), {});
 });
