@@ -59,7 +59,32 @@ let lazyBtCde = null;
  * @param {*} cb - The callback function to execute when the button is clicked.
  */
 function setupExportButtonUI(cb) {
-    mods.getMelvorRuntime().getUi().create(CDEButton("#cde-button-topbar", cb), document.body);
+    if (document.getElementById("cde")) {
+        lazyBtCde = document.getElementById("cde");
+        return;
+    }
+
+    const runtimeUi = mods.getMelvorRuntime().getUi();
+    if (runtimeUi && typeof runtimeUi.create === "function") {
+        runtimeUi.create(CDEButton("#cde-button-topbar", cb), document.body);
+    } else {
+        const template = document.getElementById("cde-button-topbar");
+        const templateRoot = template?.content?.firstElementChild;
+        if (!templateRoot) {
+            console.warn("[CDE] Export button template not found");
+            return;
+        }
+        const root = templateRoot.cloneNode(true);
+        const button = root.querySelector("#cde");
+        if (button instanceof HTMLElement) {
+            button.addEventListener("click", () => {
+                button.blur();
+                if (typeof cb === "function") cb();
+            });
+        }
+        document.body.appendChild(root);
+    }
+
     const cde = document.getElementById("cde");
     const potions = document.getElementById("page-header-potions-dropdown")?.parentNode;
     if (potions instanceof Element && cde instanceof Element) {
