@@ -1,9 +1,9 @@
 ## item_006_extract_selected_eta_calculations_behind_runtime_adapters - Extract selected ETA calculations behind runtime adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 93%
-> Confidence: 95%
-> Progress: 0%
+> Status: Done
+> Understanding: 96%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -54,3 +54,7 @@ flowchart LR
 - Source file: `logics/request/req_007_extract_selected_eta_calculations_behind_runtime_adapters.md`.
 - Execution order: 3 of 11 rewrite items.
 - Dependencies: `item_004_extract_export_domain_logic_behind_runtime_adapters`, preferably `item_005_extract_settings_domain_logic_behind_storage_adapters`.
+- Delivery result:
+- `modules/etaDomain.mjs` now owns selected pure ETA calculations for rates, DPS, durations, combat summaries, and XP prediction maps.
+- `modules/eta.mjs` consumes the extracted seam while runtime observation and UI refresh remain adapter-facing.
+- Local tests, repository validation, and workflow audit passed for this slice.

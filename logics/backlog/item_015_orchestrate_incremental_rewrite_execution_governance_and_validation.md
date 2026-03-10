@@ -1,9 +1,9 @@
 ## item_015_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
 > Status: In progress
-> Understanding: 95%
-> Confidence: 97%
-> Progress: 25%
+> Understanding: 96%
+> Confidence: 98%
+> Progress: 35%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -69,4 +69,5 @@ flowchart LR
 - `item_014_harden_release_gating_packaging_and_runtime_validation`
 - Current state:
 - `item_004_extract_export_domain_logic_behind_runtime_adapters` is complete locally and committed
-- `item_005_extract_settings_domain_logic_behind_storage_adapters` is complete locally and ready to commit
+- `item_005_extract_settings_domain_logic_behind_storage_adapters` is complete locally and committed
+- `item_006_extract_selected_eta_calculations_behind_runtime_adapters` is complete locally and ready to commit

@@ -1,8 +1,8 @@
 ## req_007_extract_selected_eta_calculations_behind_runtime_adapters - Extract selected ETA calculations behind runtime adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 92%
-> Confidence: 94%
+> Status: Done
+> Understanding: 96%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -70,3 +70,8 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_006_extract_selected_eta_calculations_behind_runtime_adapters`
+
+# Outcome
+- The ETA migration slice is now implemented.
+- Selected pure ETA calculations were extracted into `modules/etaDomain.mjs`, with `modules/eta.mjs` rewired to consume the seam while keeping runtime hooks and UI refresh behavior outside the domain layer.
+- Automated checks now cover the extracted ETA calculations through `tests/test_eta_domain.mjs`, alongside repository validation and workflow audit.

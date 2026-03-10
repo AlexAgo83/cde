@@ -15,6 +15,7 @@
     "modules/utils.mjs",
     "modules/export.mjs",
     "modules/exportDomain.mjs",
+    "modules/etaDomain.mjs",
     "modules/eta.mjs",
     "modules/viewer.mjs",
     "modules/pages.mjs",

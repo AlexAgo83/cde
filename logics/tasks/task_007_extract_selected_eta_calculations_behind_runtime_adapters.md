@@ -1,9 +1,9 @@
 ## task_007_extract_selected_eta_calculations_behind_runtime_adapters - Extract selected ETA calculations behind runtime adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 94%
-> Confidence: 96%
-> Progress: 0%
+> Status: Done
+> Understanding: 97%
+> Confidence: 98%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -23,10 +23,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Audit `modules/eta.mjs`, `modules/pages.mjs`, `modules/collector.mjs`, and supporting helpers to identify ETA rules that can become pure calculations without taking runtime hooks or UI refresh logic with them.
-- [ ] 2. Extract those calculations into a dedicated ETA-domain module with normalized inputs and outputs, leaving runtime observation and panel refresh behavior outside the seam.
-- [ ] 3. Rewire ETA consumers onto the extracted seam and add focused tests for rates, durations, summaries, and preserved ETA outputs.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Audit `modules/eta.mjs`, `modules/pages.mjs`, `modules/collector.mjs`, and supporting helpers to identify ETA rules that can become pure calculations without taking runtime hooks or UI refresh logic with them.
+- [x] 2. Extract those calculations into a dedicated ETA-domain module with normalized inputs and outputs, leaving runtime observation and panel refresh behavior outside the seam.
+- [x] 3. Rewire ETA consumers onto the extracted seam and add focused tests for rates, durations, summaries, and preserved ETA outputs.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 2. Proof: selected pure ETA calculations extracted into a domain module.
@@ -46,16 +46,18 @@ flowchart LR
 - run the new ETA-domain test file added by this slice
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
-- Target seam for this task:
-- pure duration and rate calculations
-- ETA summaries derived from normalized inputs
-- Runtime concerns that must stay outside the seam:
-- page observers
-- patch hooks
-- UI refresh timing
+- Extracted `modules/etaDomain.mjs` as a pure ETA seam for reusable rate, DPS, duration, combat-summary, and XP-prediction calculations.
+- Rewired `modules/eta.mjs` to consume the ETA domain helpers while keeping runtime hooks, page observers, and UI refresh timing outside the seam.
+- Added `tests/test_eta_domain.mjs` and extended CI coverage for the new domain module.
+- Validation executed:
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs`
+- `python3 -m unittest discover -s tests -p "test_*.py" -v`
+- `bash validate.sh`
+- `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
+- `python3 logics/skills/logics-flow-manager/scripts/workflow_audit.py`

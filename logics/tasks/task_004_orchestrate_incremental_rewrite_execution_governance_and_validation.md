@@ -1,9 +1,9 @@
 ## task_004_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
 > Status: In progress
-> Understanding: 95%
-> Confidence: 97%
-> Progress: 25%
+> Understanding: 96%
+> Confidence: 98%
+> Progress: 35%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -24,8 +24,8 @@ flowchart LR
 
 # Plan
 - [x] 1. Define the active execution order for `item_004` to `item_014`, making explicit which slices can progress now and which should remain gated behind earlier work.
-- [ ] 2. Keep local tests, CI, and repository-native validation green for each landed slice, using them as the default confidence path until late live-game verification becomes necessary.
-- [ ] 3. Update related `logics` docs and make regular commits as slices progress so roadmap status, dependencies, and delivered work remain reviewable.
+- [x] 2. Keep local tests, CI, and repository-native validation green for each landed slice, using them as the default confidence path until late live-game verification becomes necessary.
+- [x] 3. Update related `logics` docs and make regular commits as slices progress so roadmap status, dependencies, and delivered work remain reviewable.
 - [ ] FINAL: Update related Logics docs
 
 # AC Traceability
@@ -42,7 +42,7 @@ flowchart LR
 - `bash validate.sh`
 - `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
 - `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- `node --test tests/test_utils.mjs`
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs`
 
 # Definition of Done (DoD)
 - [ ] Scope implemented and acceptance criteria covered.
@@ -63,4 +63,5 @@ flowchart LR
 - Active execution state:
 - `task_005_extract_export_domain_logic_behind_runtime_adapters` is implemented and locally validated
 - `task_006_extract_settings_domain_logic_behind_storage_adapters` is implemented and locally validated
+- `task_007_extract_selected_eta_calculations_behind_runtime_adapters` is implemented and locally validated
 - subsequent slices remain gated behind the same local validation and commit discipline

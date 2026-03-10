@@ -37,6 +37,10 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+function domain() {
+	return mods.getEtaDomain();
+}
+
 /**
  * ETA - Callback for combat event.
  * This function processes combat entries, updating the current monster data with kill count,
@@ -101,30 +105,21 @@ export function onCombat(activity, entry, syncDate=new Date()) {
             entry.monster.diffUpdated = now.getTime() - entry.monster.updateTime.getTime();
             entry.monster.diffUpdatedStr = mods.getUtils().formatDuration(entry.monster.diffUpdated);
 
-            if (entry.monster.diffUpdated > 0) {
-                /* Compute value metrics */
-				entry.monster.kph = Math.round(
-					(entry.monster.diffKillcount / (entry.monster.diffUpdated / 3600000)) || 0
-				);
-            } else {
-                entry.monster.kph = "NaN";
-            }
+            const combatMetrics = domain().computeCombatMetrics({
+                diffKillcount: entry.monster.diffKillcount,
+                diffUpdatedMs: entry.monster.diffUpdated,
+                diffDmgDealt: entry.monster.diffDmgDealt,
+                diffDmgTaken: entry.monster.diffDmgTaken,
+                diffTimeMs: entry.monster.diffTime,
+                includeLiveDps: isCfg(Stg().ETA_LIVE_DPS)
+            });
+            entry.monster.kph = combatMetrics.kph;
+            entry.monster.dpsDealt = combatMetrics.dpsDealt;
+            entry.monster.dpsTaken = combatMetrics.dpsTaken;
 
-			if (entry.monster.diffTime > 0) {
-                /* Compute value metrics */
-                if (isCfg(Stg().ETA_LIVE_DPS)) {
-                    const dpsDealtRaw = (entry.monster.diffDmgDealt / (entry.monster.diffTime / 1000)) || 0;
-                    const dpsTakenRaw = (entry.monster.diffDmgTaken / (entry.monster.diffTime / 1000)) || 0;
-                    entry.monster.dpsDealt = Math.round(dpsDealtRaw * 100) / 100;
-                    entry.monster.dpsTaken = Math.round(dpsTakenRaw * 100) / 100;
-                }
-                if (mods.getSettings().isDebug()) {
-                    console.log("[CDE] onCombat:computeMetrics", entry.monster);
-                }
-			} else {
-                entry.monster.dpsDealt = "NaN";
-                entry.monster.dpsTaken = "NaN";
-			}
+            if (mods.getSettings().isDebug()) {
+                console.log("[CDE] onCombat:computeMetrics", entry.monster);
+            }
 
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] onCombat:Matching current monster data", entry.monster);
@@ -228,30 +223,22 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
 			m.masteryNextLvl = currMasteryLvl + 1;
 			m.masteryNextLvlXp = utl.getXpForLevel(m.masteryNextLvl);
 			m.masteryNextXpDiff = m.masteryNextLvlXp - currMasteryXP;
-			m.secondsToNextLvl = +(m.masteryNextXpDiff / (m.mphValue / 3600)).toFixed(0);
+			m.secondsToNextLvl = domain().calculateSecondsToTarget(m.masteryNextXpDiff, m.mphValue);
 			m.timeToNextLvlStr = utl.formatDuration(m.secondsToNextLvl * 1000);
 			m.currentActionInterval = activity?.actionInterval ?? 0;
 
 			// ETA - Predict next masteries lvl
-			m.predictLevels = {};
 			const prdArr = utl.parseNextMasteries(currMasteryLvl, currMasteryMaxLvl);
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] ETA Mastery Predicts for ("+currMasteryLvl+"/"+currMasteryMaxLvl+")", prdArr, m);
 			}
-			prdArr?.forEach((item) => {
-				const xpCap = utl.getXpForLevel(item);
-
-				const value = {
-					xpCap: xpCap,
-					xpDiff: xpCap - currMasteryXP
-				};
-
-				const secondsToCapLevel = m.mphValue > 0 ? value.xpDiff / (m.mphValue / 3600) : 0;
-				value.secondsToCap = +secondsToCapLevel.toFixed(0);
-				value.timeToCapStr = utl.formatDuration(value.secondsToCap * 1000);
-
-				m.predictLevels[item] = value;
-			});
+            const masteryCaps = prdArr?.map((item) => utl.getXpForLevel(item)) ?? [];
+			m.predictLevels = domain().buildXpPredictionMap({
+                caps: masteryCaps,
+                currentXp: currMasteryXP,
+                ratePerHour: m.mphValue,
+                formatDuration: utl.formatDuration
+            });
 			if (mods.getSettings().isDebug()) {
 				console.log("[CDE] ETA Mastery Predict entries", m);
 			}
@@ -565,21 +552,21 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 	data.xpLeft = nextLevelXp > currentXp ? nextLevelXp - currentXp : 0;
 	data.nextLevelXp = nextLevelXp > currentXp ? nextLevelXp : 0;
 
-	data.predictLevels = {};
-	if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
-		let predictNextLevels = mods.getUtils().parseNextLevels(currLevel, maxLevel);
-		if (mods.getSettings().isDebug()) {
-			console.log("[ETA] ETA - Level predict (max:"+maxLevel+")", predictNextLevels);
+		if (isCfg(Stg().ETA_LEVEL_PREDICT)) {
+			let predictNextLevels = mods.getUtils().parseNextLevels(currLevel, maxLevel);
+			if (mods.getSettings().isDebug()) {
+				console.log("[ETA] ETA - Level predict (max:"+maxLevel+")", predictNextLevels);
+			}
+            const predictCaps = predictNextLevels
+                .filter((cap) => cap <= maxLevel)
+                .map((cap) => mods.getUtils().getXpForLevel(cap));
+			data.predictLevels = domain().buildXpPredictionMap({
+                caps: predictCaps,
+                currentXp,
+                ratePerHour: 0,
+                formatDuration: mods.getUtils().formatDuration
+            });
 		}
-		predictNextLevels.forEach((cap) => {
-			const xpCap = mods.getUtils().getXpForLevel(cap);
-			const predictItem = {
-				xpCap: xpCap,
-				xpDiff: xpCap - currentXp
-			};
-			if (cap <= maxLevel) data.predictLevels[cap] = predictItem;
-		});
-	}
 
 	// Request first record for skill data
 	let currentActivityData = mods.getCloudStorage().getCurrentActivityData();
@@ -735,22 +722,10 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		/* Save mDiff */
 
 		// XP per Hour
-		if (data.diffTime > 0) {
-			data.xph = Math.round(
-				(data.diffXp / (data.diffTime / 3600000)) || 0
-			);
-		} else {
-			data.xph = "NaN";
-		}
+		data.xph = domain().calculateRatePerHour(data.diffXp, data.diffTime);
 
 		// Mastery per Hour
-		if (data.diffTime > 0) {
-			mEta.mph = Math.round(
-				(mEta.diffXp / (data.diffTime / 3600000)) || 0
-			);
-		} else {
-			mEta.mph = "NaN";
-		}
+		mEta.mph = domain().calculateRatePerHour(mEta.diffXp, data.diffTime);
 
 		// Copy mEta into data.recipeEta[data.recipe] to persist the values
 		// This is necessary because the mEta object is reused for each skill and recipe
@@ -758,8 +733,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		
 		// Time before next level
 		if (data.xph > 0 && data.xpLeft > 0) {
-			const secondsToNextLevel = data.xpLeft / (data.xph / 3600);
-			data.secondsToNextLevel = +secondsToNextLevel.toFixed(0);
+			data.secondsToNextLevel = domain().calculateSecondsToTarget(data.xpLeft, data.xph);
 			data.timeToNextLevelStr = mods.getUtils().formatDuration(data.secondsToNextLevel * 1000);
 		}
 
@@ -767,12 +741,12 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		const predictObj = mods.getUtils().getIfExist(data, "predictLevels");
 		const predictkeys = predictObj ? Object.keys(predictObj) : null;
 		if (isCfg(Stg().ETA_LEVEL_PREDICT) && predictkeys !== null && predictkeys?.length > 0) {
-			predictkeys.forEach((key) => {
-				const value = predictObj[key];
-				const secondsToCapLevel = value.xpDiff / (data.xph / 3600);
-				value.secondsToCap = +secondsToCapLevel.toFixed(0);
-				value.timeToCapStr = mods.getUtils().formatDuration(value.secondsToCap * 1000);
-			});
+            data.predictLevels = domain().buildXpPredictionMap({
+                caps: predictkeys.map((key) => predictObj[key].xpCap),
+                currentXp: data.skillXp,
+                ratePerHour: data.xph,
+                formatDuration: mods.getUtils().formatDuration
+            });
 		}
 	}
 }
