@@ -14,6 +14,13 @@ let changelogView = null;
 export function getExportView() { return exportView; }
 export function getChangelogView() { return changelogView; }
 
+export function createViewerDependencies(moduleManager) {
+  return {
+    browserRuntime: moduleManager.getBrowserRuntime(),
+    utils: moduleManager.getUtils()
+  };
+}
+
 /**
  * Loads views submodules for the viewer.
  * This should be called once during initialization to set up the viewer's submodules.
@@ -30,6 +37,12 @@ export async function loadSubModule(ctx) {
  * @param {Object} modules - The modules object containing dependencies.
  */
 export function init(modules) {
+  if (typeof modules?.getBrowserRuntime === "function") {
+    mods = createViewerDependencies(modules);
+    initSubModule(modules);
+    return;
+  }
+
   mods = modules;
   initSubModule(modules);
 }
@@ -84,7 +97,7 @@ export function popupSuccess(titleStr, content = null) {
     popup.showConfirmButton = false;
     popup.timer = 1200;
   }
-  mods.getBrowserRuntime().showModal(popup);
+  mods.browserRuntime.showModal(popup);
   return popup;
 }
 
@@ -94,7 +107,7 @@ export function popupSuccess(titleStr, content = null) {
  * @param {string} msgStr - The message text to display in the popup.
  */
 export function popupInfo(titleStr, msgStr) {
-  mods.getBrowserRuntime().showModal({
+  mods.browserRuntime.showModal({
       icon: 'info',
       title: titleStr,
       text: msgStr
@@ -107,7 +120,7 @@ export function popupInfo(titleStr, msgStr) {
  * @param {string} msgStr - The error message text to display in the popup.
  */
 export function popupError(titleStr, msgStr) {
-  mods.getBrowserRuntime().showModal({
+  mods.browserRuntime.showModal({
       icon: 'error',
       title: titleStr,
       text: msgStr
@@ -122,7 +135,7 @@ export function popupError(titleStr, msgStr) {
  */
 export async function doCopyClipboard(contentString, withPopupSuccess=true) {
     try {
-        await mods.getBrowserRuntime().copyText(contentString);
+        await mods.browserRuntime.copyText(contentString);
         if (withPopupSuccess)
           popupSuccess('Copied to clipboard!');
     } catch (err) {
@@ -140,8 +153,8 @@ export async function doCopyClipboard(contentString, withPopupSuccess=true) {
  */
 export async function doShareFile(identifier, contentString, timestampStr = null) {
     const date = new Date();
-    const timestamp = timestampStr == null ? mods.getUtils().parseTimestamp(date) : timestampStr;
-    mods.getBrowserRuntime().downloadTextFile(
+    const timestamp = timestampStr == null ? mods.utils.parseTimestamp(date) : timestampStr;
+    mods.browserRuntime.downloadTextFile(
       `melvor-${identifier}-${timestamp}.json`,
       contentString,
       "application/json"
@@ -155,17 +168,17 @@ export async function doShareFile(identifier, contentString, timestampStr = null
  */
 export async function doShareHastebin(contentString) {
     try {
-        const hastebinLink = await mods.getUtils().uploadToHastebin(contentString);
+        const hastebinLink = await mods.utils.uploadToHastebin(contentString);
         doCopyClipboard(hastebinLink, false);
 
-        mods.getViewer().popupSuccess('Hastebin link copied!', `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`);
+        popupSuccess('Hastebin link copied!', `URL:<br><a href="${hastebinLink}" target="_blank">${hastebinLink}</a>`);
         // window.open(hastebinLink, "_blank");
     } catch (err) {
         console.error("Failed to upload to Hastebin:", err);
-        mods.getViewer().popupError('Upload failed', 'Could not upload to Hastebin. Please try again later.')
+        popupError('Upload failed', 'Could not upload to Hastebin. Please try again later.')
     }
 }
 
 export function showModal(config) {
-  return mods.getBrowserRuntime().showModal(config);
+  return mods.browserRuntime.showModal(config);
 }
