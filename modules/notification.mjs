@@ -15,12 +15,39 @@ const registeredNotifications = new Map();
 
 const URL_MELVORIDLE_ICON = "https://cdn2-main.melvor.net/assets/media/main/logo_no_text.png";
 
+export function createNotificationDependencies(moduleManager) {
+    return {
+        melvorRuntime: moduleManager.getMelvorRuntime(),
+        settings: moduleManager.getSettings(),
+        utils: moduleManager.getUtils(),
+        browserRuntime: moduleManager.getBrowserRuntime(),
+        viewer: moduleManager.getViewer(),
+        cloudStorage: moduleManager.getCloudStorage(),
+        assetManager: moduleManager.getAssetManager()
+    };
+}
+
 /**
  * Initialize notification module.
  * @param {Object} modules - The modules object containing dependencies.
  */
-export function init(modules) {
-  mods = modules;
+export function init(moduleManagerOrDependencies) {
+  if (_internalTimer) {
+    clearTimeout(_internalTimer);
+  }
+  _internalTimer = null;
+  _builder = null;
+  _notify = null;
+  _permGranted = null;
+  _lastChecked = null;
+  registeredNotifications.clear();
+
+  if (typeof moduleManagerOrDependencies?.getMelvorRuntime === "function") {
+    mods = createNotificationDependencies(moduleManagerOrDependencies);
+    return;
+  }
+
+  mods = moduleManagerOrDependencies;
 }
 
 /**
@@ -37,7 +64,7 @@ export function init(modules) {
  * @param {...*} args - The arguments to log.
  */
 export function logger(label, step, from, to, ...args) {
-    mods.getUtils().logger(label, step, "notification", from, to, ...args);
+    mods.utils.logger(label, step, "notification", from, to, ...args);
 }
 
 /**
@@ -56,7 +83,7 @@ export function loggerNotif(step, from, to, ...args) {
 
 // --- MOCK ---
 function _game() {
-	return mods.getMelvorRuntime().getGame();
+	return mods.melvorRuntime.getGame();
 }
 
 /**
@@ -64,7 +91,7 @@ function _game() {
  * @returns {string} The character's name.
  */
 function getCharName() {
-    return mods.getUtils().sanitizeCharacterName(_game().characterName);
+    return mods.utils.sanitizeCharacterName(_game().characterName);
 }
 
 /**
@@ -72,7 +99,7 @@ function getCharName() {
  * @returns {Object} The settings reference object.
  */
 function Stg() {
-	return mods.getSettings()?.SettingsReference;
+	return mods.settings?.SettingsReference;
 }
 
 /**
@@ -80,7 +107,39 @@ function Stg() {
  * @returns {boolean} True if the reference is allowed, false otherwise.
  */
 function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
+	return mods.settings?.isCfg(reference);
+}
+
+export function getNotificationPlayerName(builder) {
+    return builder?.playerName ?? builder?.charName ?? "";
+}
+
+export function normalizeNotificationBuilder(builder) {
+    if (!builder || typeof builder !== "object") {
+        return null;
+    }
+
+    const playerName = getNotificationPlayerName(builder);
+    if (!playerName
+        || typeof builder.actionName !== "string"
+        || typeof builder.requestAt !== "number"
+        || typeof builder.timeInMs !== "number") {
+        return null;
+    }
+
+    return {
+        playerName,
+        actionName: builder.actionName,
+        media: builder.media ?? URL_MELVORIDLE_ICON,
+        requestAt: builder.requestAt,
+        timeInMs: builder.timeInMs
+    };
+}
+
+export function adjustNotificationDelay(timeMs) {
+    if (timeMs <= 15000) return timeMs - 5000;
+    if (timeMs <= 60000) return timeMs - 10000;
+    return timeMs - 15000;
 }
 
 /**
@@ -124,7 +183,7 @@ function newNotificationCb(notifBuilder) {
         
         if (isRequestPermissionAllowed()) {
             /* Native notification */
-            const result = mods.getBrowserRuntime().showNativeNotification(
+            const result = mods.browserRuntime.showNativeNotification(
                 notifLabel, {
                     body: notifDescription,
                     icon: notifBuilder.media
@@ -139,7 +198,7 @@ function newNotificationCb(notifBuilder) {
         popupHtml += `<img class="cde-ignotif-media" src="${notifBuilder.media}" />`;
         popupHtml += `<span class="cde-ignotif">${notifDescription}</span>`;
         popupHtml += `</div>`;
-        return mods.getViewer().popupSuccess(popupTitre, popupHtml);
+        return mods.viewer.popupSuccess(popupTitre, popupHtml);
     }
 }
 
@@ -199,8 +258,8 @@ function loadBuilder(builder, withPoupup=false) {
     loggerNotif("Loading Builder", "loadBuilder", "(Call)registerNotify", newNotif, builder.timeInMs);
     registerNotify(newNotif, builder.timeInMs);
     if (withPoupup) {
-        const etaStr = mods.getUtils().dateToLocalString(new Date(builder.requestAt + builder.timeInMs));
-        mods.getViewer().popupSuccess('Timer set to: ' + etaStr);
+        const etaStr = mods.utils.dateToLocalString(new Date(builder.requestAt + builder.timeInMs));
+        mods.viewer.popupSuccess('Timer set to: ' + etaStr);
     }
     return builder;
 }
@@ -212,14 +271,14 @@ function loadBuilder(builder, withPoupup=false) {
  */
 function saveBuilder() {
     loggerNotif("Save", "saveBuilder", "(Call)setCurrentNotification", _builder);
-    mods.getCloudStorage().setCurrentNotification(_builder);
+    mods.cloudStorage.setCurrentNotification(_builder);
     if (isCfg(Stg().ETA_SHARED_NOTIFY)) {
         if (_builder) {
             loggerNotif("Save", "saveBuilder", "(Call)updatePendingNotificationForCurrentCharacter", _builder);
-            mods.getCloudStorage().updatePendingNotificationForCurrentCharacter(() => _builder);
+            mods.cloudStorage.updatePendingNotificationForCurrentCharacter(() => _builder);
         } else {
             loggerNotif("Save", "saveBuilder", "(Call)removePlayerPendingNotification");
-            mods.getCloudStorage().removePlayerPendingNotification();
+            mods.cloudStorage.removePlayerPendingNotification();
         }
     }   
 }
@@ -233,14 +292,14 @@ function saveBuilder() {
  * @returns {object} An object with the notification properties (label, desc, media, etaStr).
  */
 function initBuilder(dataObject) {
-    let timeMs = dataObject.timeInMs;
-
-    if (timeMs <= 15000) timeMs -= 5000;     /* Adjust short time */
-    else if (timeMs <= 60000) timeMs -= 10000;    /* Adjust mid time */
-    else timeMs -= 15000;    /* Adjust long time */
-
     const now = Date.now();
-    const notifBuilder = newNotifBuilder(getCharName(), dataObject.etaName, dataObject.media, now, timeMs);
+    const notifBuilder = newNotifBuilder(
+        getCharName(),
+        dataObject.etaName,
+        dataObject.media,
+        now,
+        adjustNotificationDelay(dataObject.timeInMs)
+    );
     
     loggerNotif("*", "initBuilder", "New builder created:", notifBuilder);
     return notifBuilder;
@@ -257,7 +316,7 @@ function initBuilder(dataObject) {
  */
 export function newNotifBuilder(playerName, actionName, media, requestAt, timeMs) {
     return {
-        charName: playerName,
+        playerName: playerName,
         actionName: actionName,
         media: media ?? URL_MELVORIDLE_ICON,
         requestAt: requestAt,
@@ -277,7 +336,7 @@ export function newNotifBuilder(playerName, actionName, media, requestAt, timeMs
 
 function createNotifLabel(builder) {
     if (builder.label) return builder.label; /* Use deprecated label */
-    return `${builder.charName} complete "${builder.actionName}" action.`;
+    return `${getNotificationPlayerName(builder)} complete "${builder.actionName}" action.`;
 }
 
 /**
@@ -330,7 +389,7 @@ export function clearNotify(withBuilder=true) {
  * @returns {string} The HTML structure for the button.
  */
 export function createButton(buttonId) {
-    const pngScheduledId = mods.getAssetManager().getAssetHtml(mods.getAssetManager()._png_scheduled_id, ["cde-asset-small"]);
+    const pngScheduledId = mods.assetManager.getAssetHtml(mods.assetManager._png_scheduled_id, ["cde-asset-small"]);
     return `<span class="btn-info m-1 cde-eta-btn clickable" title="New ETA Notification" id="${buttonId}">${pngScheduledId}</span>`;
 }
 
@@ -421,22 +480,22 @@ export function onSubmit_fromAutoNotify(buttonId, dataObject) {
  * @param {*} ctx - The context object used for the load operation.
  */
 export function load(ctx) {
-    const savedBuilder = mods.getCloudStorage().getCurrentNotification();
+    const savedBuilder = normalizeNotificationBuilder(mods.cloudStorage.getCurrentNotification());
     
     /* Notification is disabled */
     if (!isCfg(Stg().ETA_NOTIFICATION)) { 
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:disabled");
+        if (mods.settings.isDebug()) console.log("[CDE] Notification:disabled");
         return;
     }
     /* No notification saved to reload */
     if (savedBuilder === null || savedBuilder === undefined) {
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:no saved builder found");
+        if (mods.settings.isDebug()) console.log("[CDE] Notification:no saved builder found");
         return;
     }
 
     /* All notifications are already loaded */
     if (_builder && _builder.timeInMs === savedBuilder.timeInMs) {
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:builder already setup", savedBuilder);
+        if (mods.settings.isDebug()) console.log("[CDE] Notification:builder already setup", savedBuilder);
         return;
     }
 
@@ -445,13 +504,13 @@ export function load(ctx) {
     const targetTime = savedBuilder.requestAt + savedBuilder.timeInMs;
     const remainingTime = now - targetTime;
     if (remainingTime > 0) {
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:builder already expired", savedBuilder, remainingTime);
+        if (mods.settings.isDebug()) console.log("[CDE] Notification:builder already expired", savedBuilder, remainingTime);
         return;
     } else {
         /* Update saved builder to match new current time */
         savedBuilder.requestAt = now;
         savedBuilder.timeInMs = -remainingTime;
-        if (mods.getSettings().isDebug()) console.log("[CDE] Notification:update current builder", savedBuilder, remainingTime);
+        if (mods.settings.isDebug()) console.log("[CDE] Notification:update current builder", savedBuilder, remainingTime);
     }
 
     requestPermission(() => {
@@ -459,7 +518,7 @@ export function load(ctx) {
         saveBuilder();
     });
 
-    if (mods.getSettings().isDebug()) console.log("[CDE] Notification:loaded", savedBuilder);
+    if (mods.settings.isDebug()) console.log("[CDE] Notification:loaded", savedBuilder);
 }
 
 /**
@@ -475,7 +534,7 @@ export function isPermissionGranted() {
  * @returns {boolean} True if the method is supported, false otherwise.
  */
 export function isRequestPermissionAllowed() {
-    return isCfg(Stg().ETA_BROWSER_NOTIFY) && mods.getBrowserRuntime().isNotificationPermissionRequestSupported();
+    return isCfg(Stg().ETA_BROWSER_NOTIFY) && mods.browserRuntime.isNotificationPermissionRequestSupported();
 }
 
 /**
@@ -484,23 +543,21 @@ export function isRequestPermissionAllowed() {
  * Logs the permission result if debug mode is enabled.
  * @param {Function} onSuccess - The callback to execute if permission is granted.
  */
-export function requestPermission(onSuccess, onFail=() => {}) {
+export async function requestPermission(onSuccess, onFail=() => {}) {
     if (isRequestPermissionAllowed() && !isPermissionGranted()) {
-        mods.getBrowserRuntime().requestNotificationPermission().then(permission => {
-            if (permission === "granted") {
-                _permGranted = true;
-                loggerNotif("*", "requestPermission", "Success!");
-                onSuccess();
-            } else {
-                _permGranted = false;
-                loggerNotif("*", "requestPermission", "Failed!");
-                onFail();
-            }
-        });
-    } else {
-        /* Force onSuccess, permission is already granted or native notification system not allowed */
-        onSuccess();
+        const permission = await mods.browserRuntime.requestNotificationPermission();
+        if (permission === "granted") {
+            _permGranted = true;
+            loggerNotif("*", "requestPermission", "Success!");
+            return onSuccess();
+        }
+        _permGranted = false;
+        loggerNotif("*", "requestPermission", "Failed!");
+        return onFail();
     }
+
+    /* Force onSuccess, permission is already granted or native notification system not allowed */
+    return onSuccess();
 }
 
 /**
@@ -537,7 +594,7 @@ export const handleOnCheck = (key, builder) => {
             requestPermission(() => {
                 notif();    
             });
-            mods.getCloudStorage().removeOtherPlayerPendingNotification(key);  
+            mods.cloudStorage.removeOtherPlayerPendingNotification(key);  
         }
 
     } else {
@@ -563,7 +620,7 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
     if (isCfg(Stg().ETA_NOTIFICATION)
         && isCfg(Stg().ETA_SHARED_NOTIFY)) {
         loggerNotif("Check Shared", "checkSharedNotification", "Start checking shared notifications");
-        const sharedBuilder = mods.getCloudStorage().getOtherPlayerPendingNotifications();
+        const sharedBuilder = mods.cloudStorage.getOtherPlayerPendingNotifications();
         if (Object.keys(sharedBuilder).length > 0) {
             Object.keys(sharedBuilder).forEach((key) => {
                 const playerBuilder = sharedBuilder[key];
@@ -581,10 +638,17 @@ export function checkSharedNotification(onCheck = defaultOnCheck) {
  * @returns {Object} An object containing the player name, ETA date, and media URL.
  */
 function createDisplayableNotification(playerName, pNotif) {
+    const builder = normalizeNotificationBuilder({
+        playerName,
+        media: pNotif.media,
+        requestAt: pNotif.requestAt,
+        timeInMs: pNotif.timeInMs,
+        actionName: pNotif.actionName ?? ""
+    });
     return {
-        player: playerName,
-        eta: new Date(pNotif.requestAt + pNotif.timeInMs),
-        media: pNotif.media
+        player: builder ? builder.playerName : playerName,
+        eta: new Date((builder?.requestAt ?? pNotif.requestAt) + (builder?.timeInMs ?? pNotif.timeInMs)),
+        media: builder?.media ?? pNotif.media
     }
 }
 
@@ -600,7 +664,7 @@ export function displayNotification() {
     if (!isCfg(Stg().ETA_NOTIFICATION)) return result;
     
     const notifs = [];
-    const pNotif = mods.getCloudStorage().getPlayerPendingNotification();
+    const pNotif = normalizeNotificationBuilder(mods.cloudStorage.getPlayerPendingNotification());
     if (pNotif
         && pNotif.requestAt
         && pNotif.timeInMs
@@ -608,10 +672,10 @@ export function displayNotification() {
         notifs.push(createDisplayableNotification(getCharName(), pNotif));
     }
 
-    const oNotif = mods.getCloudStorage().getOtherPlayerPendingNotifications();
+    const oNotif = mods.cloudStorage.getOtherPlayerPendingNotifications();
     if (oNotif && typeof oNotif === "object") {
         Object.keys(oNotif).forEach((key) => {
-            const notification = oNotif[key];
+            const notification = normalizeNotificationBuilder(oNotif[key]);
             if (notification
                 && notification.requestAt
                 && notification.timeInMs
@@ -632,7 +696,7 @@ export function displayNotification() {
         notifs.forEach((notif) => {
             const mediaImg = notif.media ? `<img class="skill-media skill-media-short" src="${notif.media}" />` : `<span class="skill-media"></span>`;
             // const etaStr = mods.getUtils().formatDuration(notif.eta, "span-notif-fade");
-            const etaStr = notif.eta ? mods.getUtils().dateToLocalString(notif.eta) : "N/A";
+            const etaStr = notif.eta ? mods.utils.dateToLocalString(notif.eta) : "N/A";
             result.push(`<div class="cde-generic-panel cde-notif-panel">
                 <span class="skill-label span-notif vph-tiny">⏰</span>
                 ${mediaImg}

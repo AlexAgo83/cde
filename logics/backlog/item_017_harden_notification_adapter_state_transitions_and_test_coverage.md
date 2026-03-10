@@ -1,9 +1,9 @@
 ## item_017_harden_notification_adapter_state_transitions_and_test_coverage - Harden notification adapter state transitions and test coverage
 > From version: 3.0.1
-> Status: Ready
-> Understanding: 89%
-> Confidence: 91%
-> Progress: 0%
+> Status: Done
+> Understanding: 100%
+> Confidence: 96%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -53,3 +53,7 @@ flowchart LR
 # Notes
 - Derived from request `req_018_harden_notification_adapter_state_transitions_and_test_coverage`.
 - Source file: `logics/request/req_018_harden_notification_adapter_state_transitions_and_test_coverage.md`.
+- Outcome:
+- notification adapter hardened through `task_022_harden_notification_adapter_state_transitions_and_test_coverage`
+- direct tests now cover builder normalization, permission flow, and display payload generation
+- current semantics remain intact while storage compatibility now accepts both `playerName` and legacy `charName`

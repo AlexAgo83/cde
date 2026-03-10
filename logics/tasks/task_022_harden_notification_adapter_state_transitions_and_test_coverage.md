@@ -1,9 +1,9 @@
 ## task_022_harden_notification_adapter_state_transitions_and_test_coverage - Harden notification adapter state transitions and test coverage
 > From version: 3.0.1
-> Status: Ready
-> Understanding: 90%
-> Confidence: 92%
-> Progress: 0%
+> Status: Done
+> Understanding: 100%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -22,10 +22,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Refactor `modules/notification.mjs` only as needed to make permission and builder state transitions clearer and more testable.
-- [ ] 2. Add direct tests for permission flow, builder lifecycle, shared-notification checks, and display payload generation.
-- [ ] 3. Validate the slice through local tests, `validate.sh`, and `logics` audits.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Refactor `modules/notification.mjs` only as needed to make permission and builder state transitions clearer and more testable.
+- [x] 2. Add direct tests for permission flow, builder lifecycle, shared-notification checks, and display payload generation.
+- [x] 3. Validate the slice through local tests, `validate.sh`, and `logics` audits.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1. Proof: bounded refactor clarifies critical state transitions.
@@ -43,10 +43,17 @@ flowchart LR
 - `python3 logics/skills/logics-flow-manager/scripts/workflow_audit.py`
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
-- This task extends the post-roadmap hardening work to another runtime-heavy adapter with low direct test coverage.
+- Added explicit dependency creation and full state reset on `init()` so `modules/notification.mjs` can be exercised directly in tests.
+- Normalized notification builders around `playerName` while keeping compatibility with legacy `charName` payloads.
+- Added direct tests for builder normalization, delay adjustment, permission flow, and display payload ordering in `tests/test_notification.mjs`.
+- Validation executed:
+- `node --test tests/test_notification.mjs`
+- `bash validate.sh`
+- `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
+- `python3 logics/skills/logics-flow-manager/scripts/workflow_audit.py`

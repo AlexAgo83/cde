@@ -1,8 +1,8 @@
 ## req_018_harden_notification_adapter_state_transitions_and_test_coverage - Harden notification adapter state transitions and test coverage
 > From version: 3.0.1
-> Status: Ready
-> Understanding: 88%
-> Confidence: 90%
+> Status: Done
+> Understanding: 100%
+> Confidence: 96%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -55,3 +55,8 @@ flowchart TD
 
 # Backlog
 - `item_017_harden_notification_adapter_state_transitions_and_test_coverage`
+
+# Outcome
+- The notification adapter is now hardened through `item_017_harden_notification_adapter_state_transitions_and_test_coverage`.
+- `modules/notification.mjs` now supports direct dependency injection, resets internal state cleanly on init, and normalizes builders around `playerName` while staying compatible with legacy `charName` payloads.
+- Direct tests now cover builder normalization, delay adjustment, permission flow, and display payload ordering without requiring live Melvor execution.

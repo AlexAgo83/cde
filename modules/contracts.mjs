@@ -71,7 +71,8 @@
 
 /**
  * @typedef {{
- *   playerName: string,
+ *   playerName?: string,
+ *   charName?: string,
  *   actionName: string,
  *   media: string,
  *   requestAt: number,
@@ -168,7 +169,7 @@ export function isCurrentActivityStorageContract(value) {
 
 export function isNotificationBuilderContract(value) {
     return !!value
-        && typeof value.playerName === "string"
+        && (typeof value.playerName === "string" || typeof value.charName === "string")
         && typeof value.actionName === "string"
         && typeof value.media === "string"
         && typeof value.requestAt === "number"
