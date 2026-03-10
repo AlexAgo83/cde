@@ -1,8 +1,8 @@
 ## req_001_stabilize_mod_loading_and_export_consistency - Stabilize mod loading, packaging, and export consistency
 > From version: 2.1.227
-> Status: In progress
-> Understanding: 93%
-> Confidence: 96%
+> Status: Done
+> Understanding: 94%
+> Confidence: 97%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -59,3 +59,7 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_000_stabilize_mod_loading_packaging_and_export_consistency`
+
+# Outcome
+- Accepted as delivered.
+- The remaining real-runtime Melvor verification was explicitly accepted by project decision, so the implemented stabilization work is considered complete.

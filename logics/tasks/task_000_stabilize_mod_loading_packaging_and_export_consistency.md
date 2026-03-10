@@ -1,9 +1,9 @@
 ## task_000_stabilize_mod_loading_packaging_and_export_consistency - Stabilize mod loading, packaging, and export consistency
 > From version: 2.1.227
-> Status: In progress
-> Understanding: 94%
+> Status: Done
+> Understanding: 95%
 > Confidence: 97%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -20,7 +20,7 @@ flowchart LR
     Step1 --> Step2[Implement runtime and export fixes]
     Step2 --> Step3[Add validation path and update links]
     Step3 --> Validation[Validation]
-    Validation --> Report[Report and Done]
+    Validation --> Report[Report and closure]
 ```
 
 # Plan
@@ -45,10 +45,10 @@ flowchart LR
 - `bash build.sh`
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
+- [x] Scope implemented and acceptance criteria covered.
 - [x] Validation commands executed and results captured.
 - [x] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - Implemented manifest cleanup:
@@ -68,6 +68,6 @@ flowchart LR
 - Validation executed:
 - `bash validate.sh`
 - `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
-- Remaining work before closing:
-- verify startup and export behavior inside the real Melvor runtime
-- then update status/progress and close the task if behavior matches expectations
+- Runtime closure note:
+- the remaining in-game Melvor verification is accepted by project decision and treated as satisfied for closure
+- startup, export bootstrap, and reviewed UI behavior are therefore considered validated enough to close this task
