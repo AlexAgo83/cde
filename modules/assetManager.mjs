@@ -27,38 +27,23 @@ const ASSET_IDS = [
     _png_visible_id
 ];
 
+export function createAssetManagerDependencies(moduleManager) {
+    return {
+        settings: moduleManager.getSettings()
+    };
+}
+
 /**
  * Initialize asset manager module.
  * @param {Object} modules - The modules object containing dependencies.
  */
-export function init(modules) { 
-    mods = modules;
-}
+export function init(moduleManagerOrDependencies) { 
+    if (typeof moduleManagerOrDependencies?.getSettings === "function") {
+        mods = createAssetManagerDependencies(moduleManagerOrDependencies);
+        return;
+    }
 
-/**
- * Get the proxy-settings reference object.
- * @returns {Object} The settings reference object.
- */
-function Stg() {
-	return mods.getSettings()?.SettingsReference;
-}
-
-/**
- * Get the boolean value for a settings reference.
- * @param {*} reference - The settings reference to check.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
-}
-
-/**
- * Get the value for a settings reference.
- * @param {*} reference - The settings reference to get.
- * @returns {*} The value for the reference, or null if not found.
- */
-function getCfg(reference) {
-    return mods.getSettings()?.getCfg(reference);
+    mods = moduleManagerOrDependencies;
 }
 
 /**
@@ -69,7 +54,7 @@ export function load(ctx) {
     ASSET_IDS.forEach((id) => {
         registeredIds[id] = ctx.getResourceUrl(id);
     });
-    if (mods?.getSettings().isDebug()) {
+    if (mods?.settings.isDebug()) {
         console.log("[CDE] Loaded assets", registeredIds);
     }
 }
@@ -107,10 +92,10 @@ export function getAssetHtml(assetId, classExtends=[]) {
  * @param {string} newAssetId - The ID of the new asset to replace the current content.
  */
 export function changeAsset (parent, objectId, newAssetId) {
-    const assetHtml = mods.getAssetManager().getAssetHtml(newAssetId);
+    const assetHtml = getAssetHtml(newAssetId);
     if (assetHtml != null && assetHtml.length > 0) {
         const elementBtn = parent.querySelector(objectId);
         if (elementBtn) elementBtn.innerHTML = assetHtml;
-        else if (mods.getSettings().isDebug()) console.log("[CDE] Can't find subWrapper:", elementBtn);
+        else if (mods.settings.isDebug()) console.log("[CDE] Can't find subWrapper:", elementBtn);
     }
 }
