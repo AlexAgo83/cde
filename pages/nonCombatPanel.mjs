@@ -1,3 +1,8 @@
+import {
+    getPanelRefreshDecision,
+    renderEtaPanelShell,
+} from "../modules/pagesRuntime.mjs";
+
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
@@ -157,14 +162,14 @@ export function createInstance(innerType) {
             parent = parentPanel;
             summaryId = summaryIdentifier;
             identity = identifier;
-            
-            const etaStr = etaData ? etaData : "n/a";
-            const controlsPanel = controlsPanelCb();
-            const etaSize = mods.getCloudStorage().getCurrentETASize(identity);
-
-            let wrapper = `<span class="cde-eta-summary ${etaSize == "small" ? "cde-eta-summary-small" : ""}" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}`;
-            let isVisible = mods.getCloudStorage().isEtaVisible() ? ``:` cde-eta-generic-flat`;
-            return `<div class="cde-${identity}-panel cde-eta-generic${isVisible}"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
+            return renderEtaPanelShell({
+                identity,
+                summaryId: summaryIdentifier,
+                etaData,
+                controlsPanel: controlsPanelCb(),
+                etaSize: mods.getCloudStorage().getCurrentETASize(identity),
+                isEtaVisible: mods.getCloudStorage().isEtaVisible(),
+            });
         },
 
         /**
@@ -208,13 +213,12 @@ export function createInstance(innerType) {
             dr.isSmallMode = (etaSize === "small");
             dr.isNotSmallMode = !dr.isSmallMode;
             dr.currTime = new Date();
-            
-            if (lastCallTime == null || (lastCallTime.getTime() + 25) < dr.currTime.getTime()) {
-                lastCallTime = dr.currTime;
-            } else {
+            const refreshDecision = getPanelRefreshDecision(lastCallTime, dr.currTime);
+            if (!refreshDecision.shouldRefresh) {
                 if (mods.getSettings().isDebug()) console.log("[CDE] onRefresh skipped for: " + identity);
                 return null;
             }
+            lastCallTime = refreshDecision.nextLastCallTime;
             
             if (parent && typeof extractETA === "function" && self.isCfg(self.Stg().ETA_DISPLAY)) {
                 

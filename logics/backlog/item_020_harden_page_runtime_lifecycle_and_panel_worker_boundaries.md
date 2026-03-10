@@ -1,9 +1,9 @@
 ## item_020_harden_page_runtime_lifecycle_and_panel_worker_boundaries - Harden page runtime lifecycle and panel worker boundaries
 > From version: 3.0.1
-> Status: In progress
-> Understanding: 96%
-> Confidence: 95%
-> Progress: 0%
+> Status: Done
+> Understanding: 100%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -54,4 +54,6 @@ flowchart LR
 - Derived from request `req_021_harden_page_runtime_lifecycle_and_panel_worker_boundaries`.
 - Source file: `logics/request/req_021_harden_page_runtime_lifecycle_and_panel_worker_boundaries.md`.
 - Outcome:
-- None yet.
+- runtime matching, global-tick gating, control transitions, and shared panel shell markup were extracted into `modules/pagesRuntime.mjs`
+- `modules/pages.mjs`, `pages/combatPanel.mjs`, and `pages/nonCombatPanel.mjs` were re-anchored on those helpers without changing the visible ETA experience
+- direct tests now cover worker matching, control transitions, refresh throttling, and panel refresh behavior

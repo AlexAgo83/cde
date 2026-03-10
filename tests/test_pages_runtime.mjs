@@ -1,0 +1,91 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import {
+  getNextEtaPosition,
+  getNextEtaSize,
+  getNextEtaVisibility,
+  getPanelRefreshDecision,
+  renderEtaPanelShell,
+  resolveWorkerActionID,
+  shouldHidePanelForContext,
+  shouldRunGlobalTick,
+} from "../modules/pagesRuntime.mjs";
+
+test("pagesRuntime resolves worker action identifiers and page visibility rules", () => {
+  assert.equal(resolveWorkerActionID("AltMagic", false), "Magic");
+  assert.equal(resolveWorkerActionID("AltMagic", true), "AltMagic");
+
+  assert.equal(
+    shouldHidePanelForContext({
+      userPage: { localID: "Magic" },
+      activeAction: { localID: "Magic" },
+      localID: "AltMagic",
+      isCombat: false,
+    }),
+    true,
+  );
+  assert.equal(
+    shouldHidePanelForContext({
+      userPage: { localID: "AltMagic" },
+      activeAction: { localID: "Magic" },
+      localID: "AltMagic",
+      isCombat: false,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldHidePanelForContext({
+      userPage: { localID: "Fishing" },
+      activeAction: { localID: "Fishing" },
+      localID: "Fishing",
+      isCombat: false,
+    }),
+    false,
+  );
+});
+
+test("pagesRuntime computes global tick and control transitions", () => {
+  assert.equal(shouldRunGlobalTick({ lastTick: null, now: 1000, minTick: 50 }), true);
+  assert.equal(shouldRunGlobalTick({ lastTick: 980, now: 1000, minTick: 50 }), false);
+  assert.equal(shouldRunGlobalTick({ lastTick: 900, now: 1000, minTick: 50 }), true);
+
+  assert.equal(getNextEtaPosition("cde-btn-eta-displayLeft", "center"), "left");
+  assert.equal(getNextEtaPosition("cde-btn-eta-displayRight", "left"), "center");
+  assert.equal(getNextEtaPosition("noop", "right"), "right");
+
+  assert.equal(getNextEtaSize("cde-btn-eta-displaySmall", "large"), "small");
+  assert.equal(getNextEtaSize("cde-btn-eta-displaySmall", "small"), "large");
+  assert.equal(getNextEtaVisibility("cde-btn-eta-extra", true), false);
+  assert.equal(getNextEtaVisibility("noop", false), false);
+});
+
+test("pagesRuntime computes refresh throttling and shared panel shell markup", () => {
+  const first = getPanelRefreshDecision(null, new Date("2026-03-10T10:00:00.000Z"));
+  assert.equal(first.shouldRefresh, true);
+
+  const second = getPanelRefreshDecision(
+    first.nextLastCallTime,
+    new Date("2026-03-10T10:00:00.010Z"),
+  );
+  assert.equal(second.shouldRefresh, false);
+
+  const third = getPanelRefreshDecision(
+    first.nextLastCallTime,
+    new Date("2026-03-10T10:00:00.040Z"),
+  );
+  assert.equal(third.shouldRefresh, true);
+
+  const html = renderEtaPanelShell({
+    identity: "fishing",
+    summaryId: "summary-fishing",
+    etaData: "<div>ETA</div>",
+    controlsPanel: "<button />",
+    etaSize: "small",
+    isEtaVisible: false,
+  });
+  assert.match(html, /cde-fishing-panel/);
+  assert.match(html, /cde-eta-summary-small/);
+  assert.match(html, /cde-eta-generic-flat/);
+  assert.match(html, /<button \/>/);
+});

@@ -1,3 +1,8 @@
+import {
+    getPanelRefreshDecision,
+    renderEtaPanelShell,
+} from "../modules/pagesRuntime.mjs";
+
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
@@ -133,15 +138,14 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
     parent = parentPanel;
     summaryId = summaryIdentifier;
     identity = identifier;
-
-    const etaStr = etaData ? etaData : "n/a";
-    const controlsPanel = controlsPanelCb();
-    const etaSize = mods.getCloudStorage().getCurrentETASize(identity);
-
-    let wrapper = `<span class="cde-eta-summary ${etaSize == "small" ? "cde-eta-summary-small" : ""}" id="${summaryIdentifier}">${etaStr}</span>${controlsPanel}`;
-    let isVisible = mods.getCloudStorage().isEtaVisible() ? ``:` cde-eta-generic-flat`;
-
-    return `<div class="cde-${identity}-panel cde-eta-generic${isVisible}"><div class="cde-eta-wrapper">${wrapper}</div></div>`;
+    return renderEtaPanelShell({
+        identity,
+        summaryId: summaryIdentifier,
+        etaData,
+        controlsPanel: controlsPanelCb(),
+        etaSize: mods.getCloudStorage().getCurrentETASize(identity),
+        isEtaVisible: mods.getCloudStorage().isEtaVisible(),
+    });
 }
 
 /**
@@ -161,12 +165,11 @@ export const onRefresh = (etaSize) => {
     let updated = false;
     const isSmallMode = (etaSize === "small");
     const isNotSmallMode = !isSmallMode;
-
-    if (lastCallTime == null || lastCallTime.getTime() + 25 < currTime.getTime()) {
-        lastCallTime = currTime;
-    } else {
+    const refreshDecision = getPanelRefreshDecision(lastCallTime, currTime);
+    if (!refreshDecision.shouldRefresh) {
         return null;
     }
+    lastCallTime = refreshDecision.nextLastCallTime;
     
     if (parent && typeof extractETA === "function" && isCfg(Stg().ETA_DISPLAY)) {
         

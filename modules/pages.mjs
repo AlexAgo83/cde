@@ -1,3 +1,11 @@
+import {
+    getNextEtaPosition,
+    getNextEtaSize,
+    getNextEtaVisibility,
+    shouldHidePanelForContext,
+    shouldRunGlobalTick,
+} from "./pagesRuntime.mjs";
+
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
@@ -236,13 +244,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
     let updated = false;
     // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:run:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
-        let patchedLoginID = localID;
-
-        /** Matching screen */
-        const isNotActionPage = userPage && (userPage.localID !== localID);
-        if (localID === "AltMagic" && !isCombat) patchedLoginID = "Magic";
-        const isNotActiveAction = activeAction && (activeAction.localID !== patchedLoginID);
-        if (isNotActionPage || isNotActiveAction) {
+        if (shouldHidePanelForContext({ userPage, activeAction, localID, isCombat })) {
             // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:"+localID);
             panel.show(false);
             chartPanel.showChart(panel.getIdentity(), false);
@@ -323,7 +325,7 @@ export function worker(ctx) {
 
         const now = Date.now();
         const minTick = mods.getSettings().getCfg(Stg().ETA_GLOBAL_EVENTS_RATE);
-        if (_lastTick && now - _lastTick < minTick) return;
+        if (!shouldRunGlobalTick({ lastTick: _lastTick, now, minTick })) return;
         _lastTick = now;
         
         if (mods.getSettings().isDebug()) {
@@ -642,14 +644,13 @@ function setupClickListener(event, currPanel, contentPanel) {
         
         const sizeCursor = currPanel.getIdentity();
         const etaSize = mods.getCloudStorage().getCurrentETASize(sizeCursor);
+        const nextPosition = getNextEtaPosition(id, currState);
+        const nextSize = getNextEtaSize(id, etaSize);
+        const nextVisibility = getNextEtaVisibility(id, mods.getCloudStorage().isEtaVisible());
 
         /* Setup position */
-        if (id === "cde-btn-eta-displayLeft") {
-            if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("left");
-            if (currState === "right") mods.getCloudStorage().setCurrentETAPostion("center");
-        } else if (id === "cde-btn-eta-displayRight") {
-            if (currState === "center") mods.getCloudStorage().setCurrentETAPostion("right");
-            if (currState === "left") mods.getCloudStorage().setCurrentETAPostion("center");
+        if (nextPosition !== currState) {
+            mods.getCloudStorage().setCurrentETAPostion(nextPosition);
         }
 
         /* Update Position */
@@ -660,10 +661,9 @@ function setupClickListener(event, currPanel, contentPanel) {
         }
 
         /* Setup size */
-        if (id === "cde-btn-eta-displaySmall") {
-            if (etaSize === "large") mods.getCloudStorage().setCurrentETASize(sizeCursor, "small");
-            if (etaSize === "small") mods.getCloudStorage().setCurrentETASize(sizeCursor, "large");
-            currPanel.onRefresh(etaSize);
+        if (nextSize !== etaSize) {
+            mods.getCloudStorage().setCurrentETASize(sizeCursor, nextSize);
+            currPanel.onRefresh(nextSize);
         }
 
         /* Notification */
@@ -677,21 +677,19 @@ function setupClickListener(event, currPanel, contentPanel) {
 
         /* Show / Hide subWrapper */
         if (id === "cde-btn-eta-extra") {
-            // Toggle visibility
-            const newVisibility = !mods.getCloudStorage().isEtaVisible();
-            mods.getCloudStorage().setEtaVisibility(newVisibility);
+            mods.getCloudStorage().setEtaVisibility(nextVisibility);
 
             // Dynamic show or hide wrapper panel
             const subWrapper = contentPanel.querySelector("#cde-subwrapper");
             if (subWrapper && subWrapper instanceof HTMLElement)
-                subWrapper.style.display = newVisibility ? "" : "none";
+                subWrapper.style.display = nextVisibility ? "" : "none";
             else {
                 if (mods.getSettings().isDebug())
                     console.log("[CDE] Can't find subWrapper:", subWrapper, contentPanel);
             }
 
             // Change asset for button
-            const currPngId = newVisibility ? 
+            const currPngId = nextVisibility ? 
                 mods.getAssetManager()._png_visible_id : 
                 mods.getAssetManager()._png_hidden_id;
             mods.getAssetManager().changeAsset(contentPanel, "#cde-btn-eta-extra", currPngId);

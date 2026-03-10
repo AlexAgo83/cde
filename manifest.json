@@ -27,6 +27,7 @@
     "modules/viewer.mjs",
     "modules/viewerActions.mjs",
     "modules/panelRenderer.mjs",
+    "modules/pagesRuntime.mjs",
     "modules/pages.mjs",
     "views/exportView.mjs",
     "views/changelogView.mjs",
