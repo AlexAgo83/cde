@@ -77,6 +77,7 @@ function setupExportButtonUI(cb) {
         const root = templateRoot.cloneNode(true);
         const button = root.querySelector("#cde");
         if (button instanceof HTMLElement) {
+            button.removeAttribute("@click");
             button.addEventListener("click", () => {
                 button.blur();
                 if (typeof cb === "function") cb();

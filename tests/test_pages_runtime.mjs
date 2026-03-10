@@ -6,6 +6,7 @@ import {
   getNextEtaSize,
   getNextEtaVisibility,
   getPanelRefreshDecision,
+  resolvePatchTarget,
   renderEtaPanelShell,
   resolveWorkerActionID,
   shouldHidePanelForContext,
@@ -58,6 +59,15 @@ test("pagesRuntime computes global tick and control transitions", () => {
   assert.equal(getNextEtaSize("cde-btn-eta-displaySmall", "small"), "large");
   assert.equal(getNextEtaVisibility("cde-btn-eta-extra", true), false);
   assert.equal(getNextEtaVisibility("noop", false), false);
+});
+
+test("pagesRuntime resolves the first patchable constructor candidate", () => {
+  function RuntimeCtor() {}
+  function FallbackCtor() {}
+
+  assert.equal(resolvePatchTarget(null, RuntimeCtor, FallbackCtor), RuntimeCtor);
+  assert.equal(resolvePatchTarget(undefined, null, FallbackCtor), FallbackCtor);
+  assert.equal(resolvePatchTarget(undefined, null, {}), null);
 });
 
 test("pagesRuntime computes refresh throttling and shared panel shell markup", () => {

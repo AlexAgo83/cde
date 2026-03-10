@@ -13,6 +13,7 @@ class FakeElement {
     this.listeners = new Map();
     this._id = "";
     this.content = null;
+    this.attributes = new Map();
   }
 
   set id(value) {
@@ -39,6 +40,10 @@ class FakeElement {
 
   addEventListener(name, handler) {
     this.listeners.set(name, handler);
+  }
+
+  removeAttribute(name) {
+    this.attributes.delete(name);
   }
 
   blur() {}
@@ -82,6 +87,7 @@ function createDocument() {
   const root = new FakeElement("div", document);
   const button = new FakeElement("button", document);
   button.id = "cde";
+  button.attributes.set("@click", "clickedButton");
   root.appendChild(button);
   template.content = { firstElementChild: root };
 

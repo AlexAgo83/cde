@@ -121,29 +121,32 @@ export function loadMutableRecipe(skillID) {
  * @returns {Object} The basics object.
  */
 export function collectBasics() {
-	const player = _game().combat.player;
-	const stats = _game().stats;
+	const game = _game();
+	const player = game?.combat?.player;
+	const stats = game?.stats;
+	const modifiers = game?.modifiers ?? {};
+	const currencies = game?.currencies;
 	const now = new Date();
 	return domain().buildBasicsSnapshot({
 		now,
-		rawCreation: stats.General.stats.get(3),
-		characterName: _game().characterName,
-		gameModeId: _game().currentGamemode.localID,
-		gameVersion: _game().lastLoadedGameVersion,
-		gp: _game().currencies.getObject('melvorD', 'GP').amount,
-		slayerCoins: _game().currencies.getObject('melvorD', 'SlayerCoins').amount,
-		prayerPoints: player.prayerPoints,
+		rawCreation: stats?.General?.stats?.get?.(3),
+		characterName: game?.characterName ?? "Unknown",
+		gameModeId: game?.currentGamemode?.localID ?? "Unknown",
+		gameVersion: game?.lastLoadedGameVersion ?? "Unknown",
+		gp: currencies?.getObject?.('melvorD', 'GP')?.amount ?? 0,
+		slayerCoins: currencies?.getObject?.('melvorD', 'SlayerCoins')?.amount ?? 0,
+		prayerPoints: player?.prayerPoints ?? 0,
 		configuration: {
-			lootStacking: player.modifiers.allowLootContainerStacking,
-			merchantsPermit: _game().merchantsPermitRead,
-			autoSlayer: player.modifiers.autoSlayerUnlocked,
-			autoSwapFood: player.modifiers.autoSwapFoodUnlocked,
-			autoBurying: player.modifiers.autoBurying,
-			autoEatLimit: _game().modifiers.autoEatHPLimit,
-			autoLooting: _game().modifiers.autoLooting
+			lootStacking: player?.modifiers?.allowLootContainerStacking ?? false,
+			merchantsPermit: game?.merchantsPermitRead ?? false,
+			autoSlayer: player?.modifiers?.autoSlayerUnlocked ?? false,
+			autoSwapFood: player?.modifiers?.autoSwapFoodUnlocked ?? false,
+			autoBurying: player?.modifiers?.autoBurying ?? false,
+			autoEatLimit: modifiers.autoEatHPLimit ?? 0,
+			autoLooting: modifiers.autoLooting ?? false
 		},
 		modifiers: {
-			thievingStealth: _game().modifiers.thievingStealth
+			thievingStealth: modifiers.thievingStealth ?? 0
 		},
 		formatDate: mods.getUtils().dateToLocalString
 	});

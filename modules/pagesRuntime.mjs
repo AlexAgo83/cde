@@ -7,6 +7,21 @@
 export const PANEL_REFRESH_INTERVAL_MS = 25;
 
 /**
+ * Returns the first patchable constructor from the provided candidates.
+ * Melvor globals can differ between runtimes, so callers may pass globals and instance constructors.
+ * @param  {...any} candidates
+ * @returns {Function|null}
+ */
+export function resolvePatchTarget(...candidates) {
+    for (const candidate of candidates) {
+        if (typeof candidate === "function" && candidate !== Object) {
+            return candidate;
+        }
+    }
+    return null;
+}
+
+/**
  * Returns the action identifier that should match the current page worker.
  * Alt Magic is surfaced under the Magic page when not in combat.
  * @param {string} localID
