@@ -1,9 +1,9 @@
 ## item_010_isolate_collector_logic_behind_runtime_collection_adapters - Isolate collector logic behind runtime collection adapters
 > From version: 3.0.0
-> Status: In progress
-> Understanding: 95%
-> Confidence: 96%
-> Progress: 45%
+> Status: Done
+> Understanding: 97%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -59,4 +59,4 @@ flowchart LR
 - extract aggregation logic second
 - Current delivery state:
 - collector export boundaries and fixture-backed adapter validation are implemented and locally validated through `task_013_define_collector_adapter_fixtures_and_boundaries`
-- aggregation extraction remains pending in `task_014_extract_collector_aggregation_behind_collection_adapters`
+- selected collector aggregation rules are extracted into `modules/collectorDomain.mjs` and locally validated through `task_014_extract_collector_aggregation_behind_collection_adapters`

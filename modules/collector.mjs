@@ -29,6 +29,10 @@ function _PointOfInterest() {
 	return mods.getMelvorRuntime().getGlobal("PointOfInterest");
 }
 
+function domain() {
+	return mods.getCollectorDomain();
+}
+
 /**
  * Get the settings reference object.
  * @returns {Object} The settings reference object.
@@ -120,23 +124,15 @@ export function collectBasics() {
 	const player = _game().combat.player;
 	const stats = _game().stats;
 	const now = new Date();
-	const rawCreation = stats.General.stats.get(3);
-	const creation = rawCreation ? new Date(rawCreation) : new Date(0);
-	const daysPlayed = Math.floor((now.getTime() - creation.getTime()) / (1000 * 60 * 60 * 24));
-	return {
-		general: {
-			currentTime: mods.getUtils().dateToLocalString(now),
-			daysPlayed,
-			creationDate: mods.getUtils().dateToLocalString(creation),
-			character: _game().characterName,
-			gameMode: _game().currentGamemode.localID,
-			version: _game().lastLoadedGameVersion
-		},
-		currency: {
-			gp: _game().currencies.getObject('melvorD', 'GP').amount,
-			slayerCoins: _game().currencies.getObject('melvorD', 'SlayerCoins').amount,
-			prayerPoints: player.prayerPoints
-		},
+	return domain().buildBasicsSnapshot({
+		now,
+		rawCreation: stats.General.stats.get(3),
+		characterName: _game().characterName,
+		gameModeId: _game().currentGamemode.localID,
+		gameVersion: _game().lastLoadedGameVersion,
+		gp: _game().currencies.getObject('melvorD', 'GP').amount,
+		slayerCoins: _game().currencies.getObject('melvorD', 'SlayerCoins').amount,
+		prayerPoints: player.prayerPoints,
 		configuration: {
 			lootStacking: player.modifiers.allowLootContainerStacking,
 			merchantsPermit: _game().merchantsPermitRead,
@@ -148,8 +144,9 @@ export function collectBasics() {
 		},
 		modifiers: {
 			thievingStealth: _game().modifiers.thievingStealth
-		}
-	};
+		},
+		formatDate: mods.getUtils().dateToLocalString
+	});
 }
 
 /**
@@ -157,19 +154,12 @@ export function collectBasics() {
  * @returns {Object} An object containing the skills and their levels.
  */
 export function collectSkills() {
-	const result = {};
 	if (_game().skills) {
-		_game().skills.forEach((skill) => {
-			result[skill.id] = {
-				name: skill.name,
-				level: skill.level,
-				xp: skill.xp
-			};
-		});
+		return domain().buildSkillsSnapshot(_game().skills);
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No skills found");
 	}
-	return result;
+	return {};
 }
 
 /**
@@ -177,29 +167,12 @@ export function collectSkills() {
  * @returns {Object} An object containing the mastery progress for each skill.
  */
 export function collectMastery() {
-	const result = {};
 	if (_game().skills) {
-		_game().skills.registeredObjects.forEach((skill) => {
-			const masteryMap = skill.actionMastery;
-			if (!masteryMap || masteryMap.size === 0) return;
-			
-			const entries = {};
-			masteryMap.forEach((progress, entry) => {
-				entries[entry.localID] = {
-					id: entry.localID,
-					level: progress.level,
-					xp: progress.xp
-				};
-			});
-			
-			if (Object.keys(entries).length > 0) {
-				result[skill.localID] = entries;
-			}
-		});
+		return domain().buildMasterySnapshot(_game().skills.registeredObjects);
  	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No skills found");
 	}
-	return result;
+	return {};
 }
 
 /**
@@ -207,30 +180,13 @@ export function collectMastery() {
  * @returns {Object} An object containing the player's agility course data.
  */
 export function collectAgility() {
-	const result = {};
-
 	if (_game().agility && _game().agility.courses) {
-		_game().agility.courses.forEach((course, realm) => {
-			const courseData = {}
-			courseData.realmId = realm.localID;
-			courseData.obstacles = {};
-				
-			course.builtObstacles?.forEach((obstacle, position) => {
-				const row = {
-					position: position,
-					id: obstacle.localID,
-					name: obstacle.name
-				};
-				courseData.obstacles[row.id] = row;
-			});
-
-			result[courseData.realmId] = courseData;
-		});
+		return domain().buildAgilitySnapshot(_game().agility.courses);
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No agility found");
 	}
 	
-	return result;
+	return {};
 }
 
 /**
@@ -238,20 +194,12 @@ export function collectAgility() {
  * @returns {Object} An object containing the active potions.
  */
 export function collectActivePotions() {
-	const result = {};
 	if (_game().potions && _game().potions.activePotions) {
-		_game().potions.activePotions?.forEach((currPotion, activity) => {
-			const item = {
-				activity: activity.localID,
-				potion: currPotion.item.localID,
-				charges: currPotion.charges
-			};
-			result[item.activity] = item;
-		});
+		return domain().buildActivePotionsSnapshot(_game().potions.activePotions);
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No potions found");
 	}
-	return result;
+	return {};
 }
 
 /**

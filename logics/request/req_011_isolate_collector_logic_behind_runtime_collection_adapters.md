@@ -1,8 +1,8 @@
 ## req_011_isolate_collector_logic_behind_runtime_collection_adapters - Isolate collector logic behind runtime collection adapters
 > From version: 3.0.0
-> Status: In progress
-> Understanding: 95%
-> Confidence: 96%
+> Status: Done
+> Understanding: 97%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -68,6 +68,6 @@ flowchart TD
 - `item_010_isolate_collector_logic_behind_runtime_collection_adapters`
 
 # Outcome
-- Collector-boundary work has started with `modules/collectorAdapter.mjs`, which now defines explicit export collector descriptors, callback wiring for activity collection, and fixture-backed boundary validation.
+- Collector-boundary work landed through `modules/collectorAdapter.mjs`, which defines explicit export collector descriptors, callback wiring for activity collection, and fixture-backed boundary validation.
 - `modules/export.mjs` no longer carries the collector export mapping as a raw hard-coded list; it now consumes the collector plan while preserving the current export schema and legacy fallback messages.
-- The remaining work for this request is the later extraction of collector aggregation rules from `modules/collector.mjs` into a cleaner seam via `task_014_extract_collector_aggregation_behind_collection_adapters`.
+- Selected collector aggregation rules now live in `modules/collectorDomain.mjs`, while `modules/collector.mjs` remains responsible for raw runtime access. This reduces runtime coupling for basics, skills, mastery, agility, and active potions without forcing a one-shot rewrite of every collector path.

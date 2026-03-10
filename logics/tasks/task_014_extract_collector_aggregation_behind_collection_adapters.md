@@ -1,9 +1,9 @@
 ## task_014_extract_collector_aggregation_behind_collection_adapters - Extract collector aggregation behind collection adapters
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 91%
-> Confidence: 93%
-> Progress: 0%
+> Status: Done
+> Understanding: 96%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -23,10 +23,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Use the boundaries and fixtures from the preceding collector task to select the aggregation rules that can move behind collection adapters without changing export coverage.
-- [ ] 2. Extract collector aggregation logic into a cleaner seam while leaving raw runtime collection access behind explicit adapters.
-- [ ] 3. Rewire collector consumers onto the seam and validate the preserved output through fixtures or equivalent controlled checks.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Use the boundaries and fixtures from the preceding collector task to select the aggregation rules that can move behind collection adapters without changing export coverage.
+- [x] 2. Extract collector aggregation logic into a cleaner seam while leaving raw runtime collection access behind explicit adapters.
+- [x] 3. Rewire collector consumers onto the seam and validate the preserved output through fixtures or equivalent controlled checks.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 2. Proof: collector aggregation is separated from runtime collection access.
@@ -42,14 +42,21 @@ flowchart LR
 - `bash validate.sh`
 - `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
 - `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- `node --test tests/test_utils.mjs`
-- run the new collector-aggregation test file added by this slice
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs tests/test_panel_renderer.mjs tests/test_collector_adapter.mjs tests/test_collector_domain.mjs`
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - This task depends on the fixture and boundary work from `task_013_define_collector_adapter_fixtures_and_boundaries`.
+- Selected the simple, high-signal collectors where runtime access and export-shape assembly could be split safely without touching `collectCurrentActivity`: basics, skills, mastery, agility, and active potions.
+- Added `modules/collectorDomain.mjs` to hold pure aggregation rules for those sections while leaving live Melvor reads inside `modules/collector.mjs`.
+- Rewired `modules/collector.mjs` to pass raw runtime values into `collectorDomain`, reducing embedded export-shape assembly in the runtime-heavy collector module.
+- Added `tests/test_collector_domain.mjs` to validate the extracted aggregation logic against controlled fixtures and preserve the existing export payload shape.
+- Validation executed:
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs tests/test_panel_renderer.mjs tests/test_collector_adapter.mjs tests/test_collector_domain.mjs`
+- `python3 -m unittest discover -s tests -p "test_*.py" -v`
+- `bash validate.sh`
