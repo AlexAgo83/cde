@@ -1,8 +1,8 @@
 ## req_021_harden_page_runtime_lifecycle_and_panel_worker_boundaries - Harden page runtime lifecycle and panel worker boundaries
 > From version: 3.0.1
 > Status: Done
-> Understanding: 100%
-> Confidence: 97%
+> Understanding: 100%+
+> Confidence: 98%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -63,3 +63,4 @@ flowchart TD
 - `modules/pagesRuntime.mjs` now centralizes worker matching, global-tick gating, control-state transitions, refresh throttling, and shared panel shell markup.
 - `modules/pages.mjs`, `pages/combatPanel.mjs`, and `pages/nonCombatPanel.mjs` now rely on these shared helpers for worker/page matching, controls behavior, and refresh timing instead of duplicating that logic inline.
 - Local validation now covers the runtime helper and the two panel modules directly without requiring live Melvor execution.
+- A late in-game replay also confirmed that Melvor's loader rejects relative ESM imports in runtime modules, so the slice was finalized with loader-compatible wiring through `ctx.loadModule` and the module manager instead of static runtime imports.

@@ -1,8 +1,3 @@
-import {
-    getPanelRefreshDecision,
-    renderEtaPanelShell,
-} from "../modules/pagesRuntime.mjs";
-
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
@@ -31,6 +26,10 @@ export function createInstance(innerType) {
      * Placeholder for Controls Panel function.
      */
     let controlsPanelCb = () => {};
+
+    function pagesRuntime() {
+        return mods.getPagesRuntime();
+    }
 
     const self = {
         /**
@@ -162,7 +161,7 @@ export function createInstance(innerType) {
             parent = parentPanel;
             summaryId = summaryIdentifier;
             identity = identifier;
-            return renderEtaPanelShell({
+            return pagesRuntime().renderEtaPanelShell({
                 identity,
                 summaryId: summaryIdentifier,
                 etaData,
@@ -213,7 +212,7 @@ export function createInstance(innerType) {
             dr.isSmallMode = (etaSize === "small");
             dr.isNotSmallMode = !dr.isSmallMode;
             dr.currTime = new Date();
-            const refreshDecision = getPanelRefreshDecision(lastCallTime, dr.currTime);
+            const refreshDecision = pagesRuntime().getPanelRefreshDecision(lastCallTime, dr.currTime);
             if (!refreshDecision.shouldRefresh) {
                 if (mods.getSettings().isDebug()) console.log("[CDE] onRefresh skipped for: " + identity);
                 return null;

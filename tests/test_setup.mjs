@@ -75,6 +75,40 @@ function createFixture() {
   const ctx = {
     async loadModule(path) {
       calls.push(["ctx.loadModule", path]);
+      if (path === "modules/compositionRoot.mjs") {
+        return {
+          createSetupComposition() {
+            calls.push(["compositionRoot.createSetupComposition"]);
+            return {
+              async loadModules(innerCtx) {
+                const runtime = await innerCtx.loadModule("modules/melvorRuntime.mjs");
+                moduleManager = await runtime.loadModule(innerCtx, "modules.mjs");
+                await moduleManager.onModuleLoad(innerCtx, "v3.0.2");
+                this.collectData = moduleManager.getAppOrchestrator().createCollectDataUseCase();
+              },
+              async loadCharacterData() {
+                return moduleManager
+                  .getAppOrchestrator()
+                  .loadCharacterData("settings", "character", "account", this.collectData);
+              },
+              async prepareInterface(innerCtx) {
+                return moduleManager
+                  .getAppOrchestrator()
+                  .prepareInterface(innerCtx, this.collectData);
+              },
+              createApi() {
+                return {
+                  generate: () => this.collectData(),
+                  getModules: () => moduleManager,
+                  getViews: () => moduleManager.getViewer().getViews(),
+                  setDebug: (toggle) => moduleManager.getSettings().setDebug(toggle),
+                  getVersion: () => "v3.0.2",
+                };
+              },
+            };
+          },
+        };
+      }
       if (path === "modules/melvorRuntime.mjs") {
         return {
           async loadModule(innerCtx, innerPath) {
@@ -134,6 +168,8 @@ test("setup registers hooks and exposes versioned API", async () => {
     ["register", "onCharacterLoaded"],
     ["register", "onInterfaceReady"],
     ["register", "api"],
+    ["ctx.loadModule", "modules/compositionRoot.mjs"],
+    ["compositionRoot.createSetupComposition"],
     ["ctx.loadModule", "modules/melvorRuntime.mjs"],
     ["runtime.loadModule", fixture.ctx, "modules.mjs"],
     ["modules.onModuleLoad", fixture.ctx, "v3.0.2"],

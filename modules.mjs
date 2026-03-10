@@ -6,6 +6,7 @@
 
 let currModVersion = null;
 let mLZString = null;
+let mContracts = null;
 let mSettings = null;
 let mSettingsDomain = null;
 let mUtils = null;
@@ -27,6 +28,7 @@ let mEta = null;
 let mViewer = null;
 let mViewerActions = null;
 let mPanelRenderer = null;
+let mPagesRuntime = null;
 let mPages = null;
 
 export function getModVersion() {
@@ -35,6 +37,10 @@ export function getModVersion() {
 
 export function getSettings() {
     return mSettings;
+}
+
+export function getContracts() {
+    return mContracts;
 }
 
 export function getSettingsDomain() {
@@ -121,6 +127,10 @@ export function getPanelRenderer() {
     return mPanelRenderer;
 }
 
+export function getPagesRuntime() {
+    return mPagesRuntime;
+}
+
 export function getPages() {
     return mPages;
 }
@@ -140,6 +150,7 @@ export async function onModuleLoad(ctx, modVersion) {
     }
     
     // Load Modules :
+    mContracts = await ctx.loadModule("modules/contracts.mjs");
     mSettings = await ctx.loadModule("modules/settings.mjs");
     mSettingsDomain = await ctx.loadModule("modules/settingsDomain.mjs");
     mUtils = await ctx.loadModule("modules/utils.mjs");
@@ -161,6 +172,7 @@ export async function onModuleLoad(ctx, modVersion) {
     mViewer = await ctx.loadModule("modules/viewer.mjs");
     mViewerActions = await ctx.loadModule("modules/viewerActions.mjs");
     mPanelRenderer = await ctx.loadModule("modules/panelRenderer.mjs");
+    mPagesRuntime = await ctx.loadModule("modules/pagesRuntime.mjs");
     mPages = await ctx.loadModule("modules/pages.mjs");
     
     // Load subModules :

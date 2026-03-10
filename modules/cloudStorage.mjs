@@ -4,12 +4,39 @@
 // @ts-check
 // cloudStorage.mjs
 
-import {
-	isCurrentActivityStorageContract,
-	isCurrentMonsterStorageContract,
-	isNotificationBuilderContract,
-	isPendingNotificationStoreContract
-} from "./contracts.mjs";
+let contractFns = {
+	isCurrentMonsterStorageContract(value) {
+		return !!value
+			&& typeof value.id === "string"
+			&& typeof value.killCount === "number"
+			&& typeof value.startKillcount === "number"
+			&& typeof value.diffKillcount === "number"
+			&& (typeof value.startTime === "string" || typeof value.startTime === "number" || value.startTime instanceof Date)
+			&& (typeof value.updateTime === "string" || typeof value.updateTime === "number" || value.updateTime instanceof Date)
+			&& typeof value.startDmgDealt === "number"
+			&& typeof value.startDmgTaken === "number";
+	},
+	isCurrentActivityStorageContract(value) {
+		if (!value || typeof value !== "object" || Array.isArray(value)) {
+			return false;
+		}
+		return Object.values(value).every((entry) => !!entry && typeof entry === "object" && !Array.isArray(entry));
+	},
+	isNotificationBuilderContract(value) {
+		return !!value
+			&& (typeof value.playerName === "string" || typeof value.charName === "string")
+			&& typeof value.actionName === "string"
+			&& typeof value.media === "string"
+			&& typeof value.requestAt === "number"
+			&& typeof value.timeInMs === "number";
+	},
+	isPendingNotificationStoreContract(value) {
+		if (!value || typeof value !== "object" || Array.isArray(value)) {
+			return false;
+		}
+		return Object.values(value).every((entry) => contractFns.isNotificationBuilderContract(entry));
+	},
+};
 
 const CS_SETTINGS = "cde-settings";
 
@@ -34,6 +61,7 @@ let sharedStorage = null;
  */
 export function init(modules, characterStorage, accountStorage) {
     mods = modules;
+	contractFns = modules?.getContracts?.() ?? contractFns;
 	cloudStorage = characterStorage;
 	sharedStorage = accountStorage;
 }
@@ -109,7 +137,7 @@ export function getCurrentMonsterData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
 		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
-		return value == null || isCurrentMonsterStorageContract(value) ? value : null;
+		return value == null || contractFns.isCurrentMonsterStorageContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid monster data in characterStorage");
 		return null;
@@ -121,7 +149,7 @@ export function getCurrentMonsterData() {
  * @param {*} monsterData - The monster data object to store.
  */
 export function setCurrentMonsterData(monsterData)  {
-	if (monsterData != null && !isCurrentMonsterStorageContract(monsterData)) {
+	if (monsterData != null && !contractFns.isCurrentMonsterStorageContract(monsterData)) {
 		console.warn("[CDE] Invalid monster data for characterStorage");
 		return null;
 	}
@@ -182,7 +210,7 @@ export function getCurrentActivityData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_ACTIVITY_DATA);
 		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
-		return value == null || isCurrentActivityStorageContract(value) ? value : null;
+		return value == null || contractFns.isCurrentActivityStorageContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid activity data in characterStorage");
 		return null;
@@ -194,7 +222,7 @@ export function getCurrentActivityData() {
  * @param {*} activityData - The activity data object to store.
  */
 export function setCurrentActivityData(activityData)  {
-	if (activityData != null && !isCurrentActivityStorageContract(activityData)) {
+	if (activityData != null && !contractFns.isCurrentActivityStorageContract(activityData)) {
 		console.warn("[CDE] Invalid activity data for characterStorage");
 		return null;
 	}
@@ -306,7 +334,7 @@ export function getCurrentETASize(cursor) {
  * @param {*} notificationData - The notification data to store.
  */
 export function setCurrentNotification(notificationData) {
-	if (notificationData != null && !isNotificationBuilderContract(notificationData)) {
+	if (notificationData != null && !contractFns.isNotificationBuilderContract(notificationData)) {
 		console.warn("[CDE] Invalid notification data for characterStorage");
 		return null;
 	}
@@ -325,7 +353,7 @@ export function getCurrentNotification() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_NOTIFICATION);
 		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
-		return value == null || isNotificationBuilderContract(value) ? value : null;
+		return value == null || contractFns.isNotificationBuilderContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid notification data in characterStorage");
 		return null;
@@ -340,7 +368,7 @@ function getPendingNotification() {
 	try {
 		const raw = sharedStorage?.getItem(AS_PENDING_NOTIFICATION);
 		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
-		return value == null || isPendingNotificationStoreContract(value) ? value : null;
+		return value == null || contractFns.isPendingNotificationStoreContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid pending notification data in accountStorage");
 		return null;
@@ -352,7 +380,7 @@ function getPendingNotification() {
  * @param {*} pendingNotification - The pending notification data to store.
  */
 export function setPendingNotification(pendingNotification)  {
-	if (pendingNotification != null && !isPendingNotificationStoreContract(pendingNotification)) {
+	if (pendingNotification != null && !contractFns.isPendingNotificationStoreContract(pendingNotification)) {
 		console.warn("[CDE] Invalid pending notification data for accountStorage");
 		return null;
 	}

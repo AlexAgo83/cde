@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import * as combatPanel from "../pages/combatPanel.mjs";
 import { createInstance as createNonCombatPanel } from "../pages/nonCombatPanel.mjs";
+import * as pagesRuntime from "../modules/pagesRuntime.mjs";
 
 function createModulesFixture({
   settingsFlags = {},
@@ -96,6 +97,9 @@ function createModulesFixture({
           return game;
         },
       };
+    },
+    getPagesRuntime() {
+      return pagesRuntime;
     },
   };
 }

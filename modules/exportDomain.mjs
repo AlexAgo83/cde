@@ -4,7 +4,26 @@
 // @ts-check
 // exportDomain.mjs
 
-import { isChangesHistoryContract } from "./contracts.mjs";
+let contractFns = {
+    isChangesHistoryContract(history) {
+        if (!(history instanceof Map)) {
+            return false;
+        }
+        for (const [key, value] of history.entries()) {
+            if (typeof key !== "string") {
+                return false;
+            }
+            if (!Array.isArray(value) || value.some((line) => typeof line !== "string")) {
+                return false;
+            }
+        }
+        return true;
+    },
+};
+
+export function init(modules) {
+    contractFns = modules?.getContracts?.() ?? contractFns;
+}
 
 /**
  * Resolve export cache by loading persisted data only when the in-memory cache is empty.
@@ -35,7 +54,7 @@ export function stringifyExport(exportJson, compact) {
  * @returns {Map<any, any>}
  */
 export function normalizeChangesHistory(storedHistory) {
-    return isChangesHistoryContract(storedHistory) ? new Map(storedHistory) : new Map();
+    return contractFns.isChangesHistoryContract(storedHistory) ? new Map(storedHistory) : new Map();
 }
 
 /**

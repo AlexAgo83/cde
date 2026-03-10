@@ -1,11 +1,3 @@
-import {
-    getNextEtaPosition,
-    getNextEtaSize,
-    getNextEtaVisibility,
-    shouldHidePanelForContext,
-    shouldRunGlobalTick,
-} from "./pagesRuntime.mjs";
-
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
@@ -196,6 +188,10 @@ function renderer() {
     return mods.getPanelRenderer();
 }
 
+function pagesRuntime() {
+    return mods.getPagesRuntime();
+}
+
 /**
  * Returns the list of loaded panel submodules (e.g., combatPanel).
  * @returns {Array} An array of loaded submodule instances.
@@ -244,7 +240,7 @@ function doWorker(userPage, isCombat, activeAction, panel, localID) {
     let updated = false;
     // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:run:"+localID, userPage);
     if (panel && typeof panel.onRefresh === "function") {
-        if (shouldHidePanelForContext({ userPage, activeAction, localID, isCombat })) {
+        if (pagesRuntime().shouldHidePanelForContext({ userPage, activeAction, localID, isCombat })) {
             // if (mods.getSettings().isDebug()) console.log("[CDE] doWorker:Not matching current screen:"+localID);
             panel.show(false);
             chartPanel.showChart(panel.getIdentity(), false);
@@ -325,7 +321,7 @@ export function worker(ctx) {
 
         const now = Date.now();
         const minTick = mods.getSettings().getCfg(Stg().ETA_GLOBAL_EVENTS_RATE);
-        if (!shouldRunGlobalTick({ lastTick: _lastTick, now, minTick })) return;
+        if (!pagesRuntime().shouldRunGlobalTick({ lastTick: _lastTick, now, minTick })) return;
         _lastTick = now;
         
         if (mods.getSettings().isDebug()) {
@@ -644,9 +640,9 @@ function setupClickListener(event, currPanel, contentPanel) {
         
         const sizeCursor = currPanel.getIdentity();
         const etaSize = mods.getCloudStorage().getCurrentETASize(sizeCursor);
-        const nextPosition = getNextEtaPosition(id, currState);
-        const nextSize = getNextEtaSize(id, etaSize);
-        const nextVisibility = getNextEtaVisibility(id, mods.getCloudStorage().isEtaVisible());
+        const nextPosition = pagesRuntime().getNextEtaPosition(id, currState);
+        const nextSize = pagesRuntime().getNextEtaSize(id, etaSize);
+        const nextVisibility = pagesRuntime().getNextEtaVisibility(id, mods.getCloudStorage().isEtaVisible());
 
         /* Setup position */
         if (nextPosition !== currState) {

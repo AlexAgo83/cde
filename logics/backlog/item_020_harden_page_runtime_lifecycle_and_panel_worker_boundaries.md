@@ -1,9 +1,9 @@
 ## item_020_harden_page_runtime_lifecycle_and_panel_worker_boundaries - Harden page runtime lifecycle and panel worker boundaries
 > From version: 3.0.1
 > Status: Done
-> Understanding: 100%
-> Confidence: 97%
-> Progress: 100%
+> Understanding: 100%+
+> Confidence: 98%
+> Progress: 100%+
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -57,3 +57,4 @@ flowchart LR
 - runtime matching, global-tick gating, control transitions, and shared panel shell markup were extracted into `modules/pagesRuntime.mjs`
 - `modules/pages.mjs`, `pages/combatPanel.mjs`, and `pages/nonCombatPanel.mjs` were re-anchored on those helpers without changing the visible ETA experience
 - direct tests now cover worker matching, control transitions, refresh throttling, and panel refresh behavior
+- loader compatibility was preserved by removing static runtime imports from the shipped modules and routing runtime dependencies back through Melvor-compatible module loading

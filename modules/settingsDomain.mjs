@@ -4,7 +4,22 @@
 // @ts-check
 // settingsDomain.mjs
 
-import { isPersistedSettingEntryContract, isSettingsReferenceContract } from "./contracts.mjs";
+let contractFns = {
+    isSettingsReferenceContract(reference) {
+        return !!reference
+            && typeof reference.section === "string"
+            && typeof reference.key === "string";
+    },
+    isPersistedSettingEntryContract(entry) {
+        return !!entry
+            && contractFns.isSettingsReferenceContract(entry.reference)
+            && "value" in entry;
+    },
+};
+
+export function init(modules) {
+    contractFns = modules?.getContracts?.() ?? contractFns;
+}
 
 /**
  * @param {*} reference
@@ -19,7 +34,7 @@ export function getSettingDefault(reference) {
  * @returns {boolean}
  */
 export function isValidSettingReference(reference) {
-    return isSettingsReferenceContract(reference);
+    return contractFns.isSettingsReferenceContract(reference);
 }
 
 /**
@@ -80,7 +95,7 @@ export function collectPersistedSettings(settingsReference, loadPersistedValue) 
         const value = loadPersistedValue(reference);
         if (value !== undefined && value !== null) {
             const entry = { reference, value };
-            if (isPersistedSettingEntryContract(entry)) {
+            if (contractFns.isPersistedSettingEntryContract(entry)) {
                 persistedEntries.push(entry);
             }
         }

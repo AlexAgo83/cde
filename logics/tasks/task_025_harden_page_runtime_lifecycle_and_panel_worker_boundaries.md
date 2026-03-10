@@ -1,9 +1,9 @@
 ## task_025_harden_page_runtime_lifecycle_and_panel_worker_boundaries - Harden page runtime lifecycle and panel worker boundaries
 > From version: 3.0.1
 > Status: Done
-> Understanding: 100%
-> Confidence: 97%
-> Progress: 100%
+> Understanding: 100%+
+> Confidence: 98%
+> Progress: 100%+
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -54,6 +54,7 @@ flowchart LR
 - Added `modules/pagesRuntime.mjs` to centralize worker action matching, global-tick gating, control-state transitions, refresh throttling, and shared ETA panel shell rendering.
 - Rewired `modules/pages.mjs` to use those helpers for worker matching, global event gating, position/size/visibility transitions, and the small-size refresh path.
 - Rewired `pages/combatPanel.mjs` and `pages/nonCombatPanel.mjs` to use shared refresh throttling and shell rendering instead of duplicating that lifecycle logic inline.
+- After the first in-game replay exposed Melvor loader incompatibility with relative ESM imports, rewired `setup.mjs`, `modules/pages.mjs`, `pages/combatPanel.mjs`, `pages/nonCombatPanel.mjs`, `modules/settingsDomain.mjs`, `modules/exportDomain.mjs`, and `modules/cloudStorage.mjs` back to loader-compatible dependency access.
 - Added direct tests in `tests/test_pages_runtime.mjs` and `tests/test_panels.mjs`.
 - Validation executed:
 - `node --test tests/test_pages_runtime.mjs tests/test_panels.mjs`

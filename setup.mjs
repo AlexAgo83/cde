@@ -4,8 +4,6 @@
 // @ts-check
 // setup.mjs
 
-import { createSetupComposition } from "./modules/compositionRoot.mjs";
-
 // === Plan to 1.4.X ===
 // Stage 0 - Renamed openExportUI callback to onExportOpen
 // Stage 1 – Unified data collection (processCollectData)
@@ -81,16 +79,26 @@ const MOD_VERSION = "v3.0.2";
  * @param {function(Object): Promise<void>} context.onInterfaceReady - Called when the interface is ready, receives the context.
  */
 export function setup({settings, api, characterStorage, accountStorage, onModsLoaded, onCharacterSelectionLoaded, onCharacterLoaded, onInterfaceReady}) {
-	const composition = createSetupComposition({
-		settings,
-		characterStorage,
-		accountStorage,
-		modVersion: MOD_VERSION
-	});
+	let composition = null;
+
+	async function getComposition(ctx) {
+		if (composition) {
+			return composition;
+		}
+		const compositionRoot = await ctx.loadModule("modules/compositionRoot.mjs");
+		composition = compositionRoot.createSetupComposition({
+			settings,
+			characterStorage,
+			accountStorage,
+			modVersion: MOD_VERSION
+		});
+		return composition;
+	}
 
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
-		await composition.loadModules(ctx);
+		const loadedComposition = await getComposition(ctx);
+		await loadedComposition.loadModules(ctx);
 		console.info("[CDE] Modules loaded !");
 	});
 
@@ -100,16 +108,25 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async (ctx) => {
-		await composition.loadCharacterData();
+		await (await getComposition(ctx)).loadCharacterData();
 		console.info("[CDE] Data loaded !");
 	});
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		await composition.prepareInterface(ctx);
+		await (await getComposition(ctx)).prepareInterface(ctx);
 		console.log("[CDE] Interface ready !");
 	});
 	
 	// Setup API
-	api(composition.createApi());
+	api({
+		generate: () => composition?.createApi().generate(),
+		getModules: () => composition?.createApi().getModules(),
+		getViews: () => composition?.createApi().getViews(),
+		setDebug: (toggle) => composition?.createApi().setDebug(toggle),
+		getVersion: () => MOD_VERSION,
+		debugNotif_readStorage: () => composition?.createApi().debugNotif_readStorage(),
+		debugNotif_readETA: () => composition?.createApi().debugNotif_readETA(),
+		debugNotif_injectData: () => composition?.createApi().debugNotif_injectData(),
+	});
 }

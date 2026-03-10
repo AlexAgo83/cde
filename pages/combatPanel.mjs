@@ -1,8 +1,3 @@
-import {
-    getPanelRefreshDecision,
-    renderEtaPanelShell,
-} from "../modules/pagesRuntime.mjs";
-
 // Copyright (c) 2025 <a.agostini.fr@gmail.com>
 // This work is free. You can redistribute it and/or modify it
 
@@ -63,6 +58,10 @@ function Stg() {
  */
 function isCfg(reference) {
     return mods.getSettings()?.isCfg(reference);
+}
+
+function pagesRuntime() {
+    return mods.getPagesRuntime();
 }
 
 /**
@@ -138,7 +137,7 @@ export const container = (parentPanel, summaryIdentifier, identifier) => {
     parent = parentPanel;
     summaryId = summaryIdentifier;
     identity = identifier;
-    return renderEtaPanelShell({
+    return pagesRuntime().renderEtaPanelShell({
         identity,
         summaryId: summaryIdentifier,
         etaData,
@@ -165,7 +164,7 @@ export const onRefresh = (etaSize) => {
     let updated = false;
     const isSmallMode = (etaSize === "small");
     const isNotSmallMode = !isSmallMode;
-    const refreshDecision = getPanelRefreshDecision(lastCallTime, currTime);
+    const refreshDecision = pagesRuntime().getPanelRefreshDecision(lastCallTime, currTime);
     if (!refreshDecision.shouldRefresh) {
         return null;
     }
