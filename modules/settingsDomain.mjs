@@ -4,6 +4,8 @@
 // @ts-check
 // settingsDomain.mjs
 
+import { isPersistedSettingEntryContract, isSettingsReferenceContract } from "./contracts.mjs";
+
 /**
  * @param {*} reference
  * @returns {*}
@@ -17,7 +19,7 @@ export function getSettingDefault(reference) {
  * @returns {boolean}
  */
 export function isValidSettingReference(reference) {
-    return !!reference && typeof reference.section === "string" && typeof reference.key === "string";
+    return isSettingsReferenceContract(reference);
 }
 
 /**
@@ -72,9 +74,15 @@ export function collectPersistedSettings(settingsReference, loadPersistedValue) 
     const persistedEntries = [];
     for (const key in settingsReference) {
         const reference = settingsReference[key];
+        if (!isValidSettingReference(reference)) {
+            continue;
+        }
         const value = loadPersistedValue(reference);
         if (value !== undefined && value !== null) {
-            persistedEntries.push({ reference, value });
+            const entry = { reference, value };
+            if (isPersistedSettingEntryContract(entry)) {
+                persistedEntries.push(entry);
+            }
         }
     }
     return persistedEntries;

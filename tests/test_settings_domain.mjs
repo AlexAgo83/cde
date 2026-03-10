@@ -31,7 +31,8 @@ test("collectPersistedSettings keeps only non nullish persisted values", () => {
     const refs = {
         FIRST: { section: "General", key: "first", toggle: true },
         SECOND: { section: "General", key: "second", toggle: false },
-        THIRD: { section: "General", key: "third", toggle: false }
+        THIRD: { section: "General", key: "third", toggle: false },
+        INVALID: { section: "General", toggle: false }
     };
     const persisted = new Map([
         ["first", false],

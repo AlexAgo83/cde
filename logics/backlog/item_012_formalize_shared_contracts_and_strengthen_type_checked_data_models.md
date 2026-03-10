@@ -1,9 +1,9 @@
 ## item_012_formalize_shared_contracts_and_strengthen_type_checked_data_models - Formalize shared contracts and strengthen type checked data models
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 92%
-> Confidence: 94%
-> Progress: 0%
+> Status: In progress
+> Understanding: 95%
+> Confidence: 96%
+> Progress: 50%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -57,3 +57,6 @@ flowchart LR
 - Execution slices:
 - export and settings contracts first
 - ETA, collector, and storage contracts second
+- Current delivery state:
+- export and settings contracts are implemented and locally validated through `task_017_formalize_export_and_settings_contracts`
+- ETA, collector, and storage contract hardening remains pending in `task_018_formalize_eta_collector_and_storage_contracts`

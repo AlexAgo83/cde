@@ -4,6 +4,8 @@
 // @ts-check
 // exportDomain.mjs
 
+import { isChangesHistoryContract } from "./contracts.mjs";
+
 /**
  * Resolve export cache by loading persisted data only when the in-memory cache is empty.
  * @param {*} cachedExport
@@ -33,7 +35,7 @@ export function stringifyExport(exportJson, compact) {
  * @returns {Map<any, any>}
  */
 export function normalizeChangesHistory(storedHistory) {
-    return storedHistory instanceof Map ? new Map(storedHistory) : new Map();
+    return isChangesHistoryContract(storedHistory) ? new Map(storedHistory) : new Map();
 }
 
 /**

@@ -3,7 +3,7 @@
 > Status: In progress
 > Understanding: 100%
 > Confidence: 99%
-> Progress: 98%
+> Progress: 99%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -76,3 +76,4 @@ flowchart LR
 - `item_009_establish_a_ui_rendering_boundary_for_injected_views_and_panels` is complete locally and committed
 - `item_010_isolate_collector_logic_behind_runtime_collection_adapters` is complete locally with collector-boundary and selected aggregation extraction work completed through `task_013_define_collector_adapter_fixtures_and_boundaries` and `task_014_extract_collector_aggregation_behind_collection_adapters`
 - `item_011_converge_on_an_explicit_composition_root_and_reduce_the_global_module_manager` is complete locally with explicit dependency bundles in feature modules and startup wiring moved into `modules/compositionRoot.mjs`
+- `item_012_formalize_shared_contracts_and_strengthen_type_checked_data_models` is in progress with export and settings contracts completed through `task_017_formalize_export_and_settings_contracts`
