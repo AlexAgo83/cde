@@ -1,9 +1,9 @@
 ## item_002_improve_testability_testing_and_ci_hardening - Improve testability, testing, and CI hardening
 > From version: 2.1.227
-> Status: Ready
-> Understanding: 94%
-> Confidence: 95%
-> Progress: 0%
+> Status: In progress
+> Understanding: 95%
+> Confidence: 96%
+> Progress: 70%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -48,7 +48,7 @@ flowchart LR
 
 # Links
 - Request: `req_003_improve_testability_testing_and_ci_hardening`
-- Primary task(s): `task_TBD_after_backlog_breakdown`
+- Primary task(s): `task_001_improve_testability_testing_and_ci_hardening`
 
 # Priority
 - Impact: P1. This is the main leverage item for making the project safer to evolve after immediate stabilization.
