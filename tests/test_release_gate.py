@@ -22,7 +22,7 @@ class ReleaseGateTests(unittest.TestCase):
 
         (root / "assets").mkdir(parents=True)
         (root / "modules").mkdir(parents=True)
-        (root / "setup.mjs").write_text('const MOD_VERSION = "v3.0.3"\n', encoding="utf-8")
+        (root / "setup.mjs").write_text('const MOD_VERSION = "v3.0.4"\n', encoding="utf-8")
         (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
         (root / "assets" / "icon.png").write_text("icon", encoding="utf-8")
         (root / "assets" / "templates.html").write_text("<div></div>", encoding="utf-8")
@@ -31,7 +31,7 @@ class ReleaseGateTests(unittest.TestCase):
         return tmp_dir, root
 
     def write_archive(self, root: Path, entries: dict[str, str]):
-        archive_path = root / build_archive_name("3.0.3")
+        archive_path = root / build_archive_name("3.0.4")
         with zipfile.ZipFile(archive_path, "w") as archive:
             for name, content in entries.items():
                 archive.writestr(name, content)
@@ -44,7 +44,7 @@ class ReleaseGateTests(unittest.TestCase):
             root,
             {
                 "manifest.json": "{}",
-                "setup.mjs": 'const MOD_VERSION = "v3.0.3"\n',
+                "setup.mjs": 'const MOD_VERSION = "v3.0.4"\n',
                 "assets/icon.png": "icon",
                 "assets/templates.html": "<div></div>",
                 "modules/sample.mjs": "// sample\n",
@@ -61,7 +61,7 @@ class ReleaseGateTests(unittest.TestCase):
             root,
             {
                 "manifest.json": "{}",
-                "setup.mjs": 'const MOD_VERSION = "v3.0.3"\n',
+                "setup.mjs": 'const MOD_VERSION = "v3.0.4"\n',
                 "assets/icon.png": "icon",
             },
         )
@@ -80,7 +80,7 @@ class ReleaseGateTests(unittest.TestCase):
             root,
             {
                 "manifest.json": "{}",
-                "setup.mjs": 'const MOD_VERSION = "v3.0.3"\n',
+                "setup.mjs": 'const MOD_VERSION = "v3.0.4"\n',
                 "assets/icon.png": "icon",
                 "assets/templates.html": "<div></div>",
                 "modules/sample.mjs": "// sample\n",
