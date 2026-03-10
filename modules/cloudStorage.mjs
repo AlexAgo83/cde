@@ -4,6 +4,13 @@
 // @ts-check
 // cloudStorage.mjs
 
+import {
+	isCurrentActivityStorageContract,
+	isCurrentMonsterStorageContract,
+	isNotificationBuilderContract,
+	isPendingNotificationStoreContract
+} from "./contracts.mjs";
+
 const CS_SETTINGS = "cde-settings";
 
 const CS_CURRENT_MONSTER_DATA = "cde_current_monster_data_X1";
@@ -101,7 +108,8 @@ function domain() {
 export function getCurrentMonsterData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_MONSTER_DATA);
-		return typeof raw === "string" ? JSON.parse(raw) : raw;
+		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
+		return value == null || isCurrentMonsterStorageContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid monster data in characterStorage");
 		return null;
@@ -113,10 +121,15 @@ export function getCurrentMonsterData() {
  * @param {*} monsterData - The monster data object to store.
  */
 export function setCurrentMonsterData(monsterData)  {
+	if (monsterData != null && !isCurrentMonsterStorageContract(monsterData)) {
+		console.warn("[CDE] Invalid monster data for characterStorage");
+		return null;
+	}
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] currentMonsterData changed:"+monsterData);
 	}
 	cloudStorage?.setItem(CS_CURRENT_MONSTER_DATA, JSON.stringify(monsterData));
+	return monsterData;
 }
 
 /**
@@ -168,7 +181,8 @@ export function isEtaVisible() {
 export function getCurrentActivityData() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_ACTIVITY_DATA);
-		return typeof raw === "string" ? JSON.parse(raw) : raw;
+		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
+		return value == null || isCurrentActivityStorageContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid activity data in characterStorage");
 		return null;
@@ -180,10 +194,15 @@ export function getCurrentActivityData() {
  * @param {*} activityData - The activity data object to store.
  */
 export function setCurrentActivityData(activityData)  {
+	if (activityData != null && !isCurrentActivityStorageContract(activityData)) {
+		console.warn("[CDE] Invalid activity data for characterStorage");
+		return null;
+	}
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] currentActivityData changed:"+activityData);
 	}
 	cloudStorage?.setItem(CS_CURRENT_ACTIVITY_DATA, JSON.stringify(activityData));
+	return activityData;
 }
 
 /**
@@ -287,10 +306,15 @@ export function getCurrentETASize(cursor) {
  * @param {*} notificationData - The notification data to store.
  */
 export function setCurrentNotification(notificationData) {
+	if (notificationData != null && !isNotificationBuilderContract(notificationData)) {
+		console.warn("[CDE] Invalid notification data for characterStorage");
+		return null;
+	}
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] currentNotification changed:" + notificationData);
 	}
 	cloudStorage?.setItem(CS_CURRENT_NOTIFICATION, notificationData);
+	return notificationData;
 }
 
 /**
@@ -300,7 +324,8 @@ export function setCurrentNotification(notificationData) {
 export function getCurrentNotification() {
 	try {
 		const raw = cloudStorage?.getItem(CS_CURRENT_NOTIFICATION);
-		return typeof raw === "string" ? JSON.parse(raw) : raw;
+		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
+		return value == null || isNotificationBuilderContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid notification data in characterStorage");
 		return null;
@@ -314,7 +339,8 @@ export function getCurrentNotification() {
 function getPendingNotification() {
 	try {
 		const raw = sharedStorage?.getItem(AS_PENDING_NOTIFICATION);
-		return typeof raw === "string" ? JSON.parse(raw) : raw;
+		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
+		return value == null || isPendingNotificationStoreContract(value) ? value : null;
 	} catch (e) {
 		console.warn("[CDE] Invalid pending notification data in accountStorage");
 		return null;
@@ -326,10 +352,15 @@ function getPendingNotification() {
  * @param {*} pendingNotification - The pending notification data to store.
  */
 export function setPendingNotification(pendingNotification)  {
+	if (pendingNotification != null && !isPendingNotificationStoreContract(pendingNotification)) {
+		console.warn("[CDE] Invalid pending notification data for accountStorage");
+		return null;
+	}
 	if (mods.getSettings().isDebug()) {
 		console.log("[CDE] Pending notification changed:"+pendingNotification);
 	}
 	sharedStorage?.setItem(AS_PENDING_NOTIFICATION, JSON.stringify(pendingNotification));
+	return pendingNotification;
 }
 
 /**

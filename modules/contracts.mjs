@@ -35,6 +35,50 @@
  * @typedef {Map<string, string[]>} ChangesHistoryContract
  */
 
+/**
+ * @typedef {{
+ *   xpCap: number,
+ *   xpDiff: number,
+ *   secondsToCap: number,
+ *   timeToCapStr: string
+ * }} EtaPredictionEntryContract
+ */
+
+/**
+ * @typedef {{
+ *   activity: string,
+ *   potion: string,
+ *   charges: number
+ * }} CollectorActivePotionContract
+ */
+
+/**
+ * @typedef {{
+ *   id: string,
+ *   killCount: number,
+ *   startKillcount: number,
+ *   diffKillcount: number,
+ *   startTime: string|number|Date,
+ *   updateTime: string|number|Date,
+ *   startDmgDealt: number,
+ *   startDmgTaken: number
+ * }} CurrentMonsterStorageContract
+ */
+
+/**
+ * @typedef {Record<string, Record<string, any>|any>} CurrentActivityStorageContract
+ */
+
+/**
+ * @typedef {{
+ *   playerName: string,
+ *   actionName: string,
+ *   media: string,
+ *   requestAt: number,
+ *   timeInMs: number
+ * }} NotificationBuilderContract
+ */
+
 export function isSettingsReferenceContract(reference) {
     return !!reference
         && typeof reference.section === "string"
@@ -73,4 +117,68 @@ export function isChangesHistoryContract(history) {
     }
 
     return true;
+}
+
+export function isEtaPredictionMapContract(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+    }
+
+    return Object.values(value).every((entry) =>
+        !!entry
+        && typeof entry.xpCap === "number"
+        && typeof entry.xpDiff === "number"
+        && typeof entry.secondsToCap === "number"
+        && typeof entry.timeToCapStr === "string"
+    );
+}
+
+export function isCollectorActivePotionSnapshotContract(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+    }
+
+    return Object.values(value).every((entry) =>
+        !!entry
+        && typeof entry.activity === "string"
+        && typeof entry.potion === "string"
+        && typeof entry.charges === "number"
+    );
+}
+
+export function isCurrentMonsterStorageContract(value) {
+    return !!value
+        && typeof value.id === "string"
+        && typeof value.killCount === "number"
+        && typeof value.startKillcount === "number"
+        && typeof value.diffKillcount === "number"
+        && (typeof value.startTime === "string" || typeof value.startTime === "number" || value.startTime instanceof Date)
+        && (typeof value.updateTime === "string" || typeof value.updateTime === "number" || value.updateTime instanceof Date)
+        && typeof value.startDmgDealt === "number"
+        && typeof value.startDmgTaken === "number";
+}
+
+export function isCurrentActivityStorageContract(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+    }
+
+    return Object.values(value).every((entry) => !!entry && typeof entry === "object" && !Array.isArray(entry));
+}
+
+export function isNotificationBuilderContract(value) {
+    return !!value
+        && typeof value.playerName === "string"
+        && typeof value.actionName === "string"
+        && typeof value.media === "string"
+        && typeof value.requestAt === "number"
+        && typeof value.timeInMs === "number";
+}
+
+export function isPendingNotificationStoreContract(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+    }
+
+    return Object.values(value).every((entry) => isNotificationBuilderContract(entry));
 }

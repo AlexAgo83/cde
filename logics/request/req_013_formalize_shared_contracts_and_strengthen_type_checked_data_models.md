@@ -1,8 +1,8 @@
 ## req_013_formalize_shared_contracts_and_strengthen_type_checked_data_models - Formalize shared contracts and strengthen type checked data models
 > From version: 3.0.0
-> Status: In progress
-> Understanding: 95%
-> Confidence: 96%
+> Status: Done
+> Understanding: 97%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -67,6 +67,6 @@ flowchart TD
 - `item_012_formalize_shared_contracts_and_strengthen_type_checked_data_models`
 
 # Outcome
-- Shared contract hardening has started with `modules/contracts.mjs`, which now defines explicit validators for settings references, persisted setting entries, export meta payloads, and export changes-history maps.
-- `modules/settingsDomain.mjs` and `modules/exportDomain.mjs` now apply those contracts to reject malformed persisted structures without changing current product behavior.
-- The remaining work for this request is the second slice that formalizes ETA, collector, and storage record contracts via `task_018_formalize_eta_collector_and_storage_contracts`.
+- Shared contract hardening now lives in `modules/contracts.mjs`, which defines explicit validators for settings references, persisted setting entries, export meta payloads, export changes-history maps, ETA prediction maps, collector potion snapshots, and storage record shapes.
+- `modules/settingsDomain.mjs`, `modules/exportDomain.mjs`, and `modules/cloudStorage.mjs` now apply those contracts to reject malformed persisted structures without changing current product behavior.
+- The request is complete without a blanket TypeScript rewrite; the current `@ts-check` codebase now has materially stronger shared contracts across export, settings, ETA, collector, and storage paths.

@@ -2,7 +2,7 @@
 > From version: 3.0.0
 > Status: In progress
 > Understanding: 100%
-> Confidence: 99%
+> Confidence: 98%
 > Progress: 99%
 > Complexity: High
 > Theme: Architecture
@@ -74,4 +74,5 @@ flowchart LR
 - `task_015_reduce_service_locator_reads_in_feature_modules` is implemented and locally validated
 - `task_016_introduce_an_explicit_composition_root_for_startup_wiring` is implemented and locally validated
 - `task_017_formalize_export_and_settings_contracts` is implemented and locally validated
+- `task_018_formalize_eta_collector_and_storage_contracts` is implemented and locally validated
 - subsequent slices remain gated behind the same local validation and commit discipline

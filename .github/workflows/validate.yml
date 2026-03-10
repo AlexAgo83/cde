@@ -30,7 +30,7 @@ jobs:
       - name: Run project tests
         run: |
           python3 -m unittest discover -s tests -p "test_*.py" -v
-          node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs tests/test_panel_renderer.mjs tests/test_collector_adapter.mjs tests/test_collector_domain.mjs tests/test_composition_root.mjs tests/test_contracts.mjs
+          node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs tests/test_panel_renderer.mjs tests/test_collector_adapter.mjs tests/test_collector_domain.mjs tests/test_composition_root.mjs tests/test_contracts.mjs tests/test_cloud_storage.mjs
 
       - name: Run Logics linter
         run: python3 logics/skills/logics-doc-linter/scripts/logics_lint.py

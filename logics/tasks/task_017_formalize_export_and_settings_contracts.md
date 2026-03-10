@@ -1,9 +1,9 @@
 ## task_017_formalize_export_and_settings_contracts - Formalize export and settings contracts
 > From version: 3.0.0
-> Status: In progress
+> Status: Done
 > Understanding: 96%
 > Confidence: 97%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -48,7 +48,7 @@ flowchart LR
 - [x] Scope implemented and acceptance criteria covered.
 - [x] Validation commands executed and results captured.
 - [x] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - Contract families in scope:

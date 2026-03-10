@@ -2,7 +2,7 @@
 > From version: 3.0.0
 > Status: In progress
 > Understanding: 100%
-> Confidence: 98%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -64,4 +64,4 @@ flowchart TD
 
 # Outcome
 - Execution governance is now active.
-- The rewrite has started with the export-domain, settings-domain, ETA-domain, application-orchestration, browser-adapter, Melvor-runtime-adapter, modal-boundary, injected-panel-boundary, collector-boundary, selected collector-aggregation, composition-root convergence, and export-settings contract slices under local validation, CI-backed checks, regular `logics` updates, and checkpoint commits.
+- The rewrite has started with the export-domain, settings-domain, ETA-domain, application-orchestration, browser-adapter, Melvor-runtime-adapter, modal-boundary, injected-panel-boundary, collector-boundary, selected collector-aggregation, composition-root convergence, and full contract-hardening slices under local validation, CI-backed checks, regular `logics` updates, and checkpoint commits.

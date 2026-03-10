@@ -6,6 +6,12 @@ import {
   isPersistedSettingEntryContract,
   isExportMetaContract,
   isChangesHistoryContract,
+  isEtaPredictionMapContract,
+  isCollectorActivePotionSnapshotContract,
+  isCurrentMonsterStorageContract,
+  isCurrentActivityStorageContract,
+  isNotificationBuilderContract,
+  isPendingNotificationStoreContract,
 } from "../modules/contracts.mjs";
 
 test("settings and persisted-setting contracts accept valid shapes", () => {
@@ -69,5 +75,65 @@ test("changes history contract validates string keyed changelog maps", () => {
       ])
     ),
     false
+  );
+});
+
+test("eta and collector contracts validate shared prediction and potion snapshot shapes", () => {
+  assert.equal(
+    isEtaPredictionMapContract({
+      1200: { xpCap: 1200, xpDiff: 200, secondsToCap: 7200, timeToCapStr: "7200000ms" },
+    }),
+    true
+  );
+  assert.equal(
+    isCollectorActivePotionSnapshotContract({
+      Fishing: { activity: "Fishing", potion: "Potion_A", charges: 12 },
+    }),
+    true
+  );
+});
+
+test("storage contracts validate monster activity and notification payloads", () => {
+  assert.equal(
+    isCurrentMonsterStorageContract({
+      id: "Monster_A",
+      killCount: 10,
+      startKillcount: 2,
+      diffKillcount: 8,
+      startTime: new Date(),
+      updateTime: Date.now(),
+      startDmgDealt: 100,
+      startDmgTaken: 25,
+    }),
+    true
+  );
+  assert.equal(
+    isCurrentActivityStorageContract({
+      Woodcutting: { startTime: Date.now(), startXp: 100 },
+      Fishing: { currentSkillXp: 2500, lastChange: Date.now() },
+    }),
+    true
+  );
+  assert.equal(
+    isNotificationBuilderContract({
+      playerName: "Hero",
+      actionName: "Fishing",
+      media: "icon.png",
+      requestAt: Date.now(),
+      timeInMs: 5000,
+    }),
+    true
+  );
+  assert.equal(
+    isPendingNotificationStoreContract({
+      Hero: {
+        playerName: "Hero",
+        actionName: "Fishing",
+        media: "icon.png",
+        requestAt: 1000,
+        timeInMs: 5000,
+      },
+    }),
+    true
   );
 });
