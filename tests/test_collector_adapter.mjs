@@ -135,3 +135,24 @@ test("collectCollectorDescriptors returns legacy info fallback for disabled opti
     skills: { melvorD: { level: 99 } },
   });
 });
+
+test("collectCollectorDescriptors falls back instead of throwing when a collector crashes", () => {
+  const collector = {
+    collectCurrentActivity() {
+      throw new Error("runtime not ready");
+    },
+  };
+  const plan = createCollectorExportPlan(createSettingsReference());
+  const errors = [];
+
+  const result = collectCollectorDescriptors(collector, [plan.always[1]], {
+    onError(descriptor, error) {
+      errors.push([descriptor.key, error.message]);
+    },
+  });
+
+  assert.deepEqual(result, {
+    currentActivity: { info: "Current activity data unavailable" },
+  });
+  assert.deepEqual(errors, [["currentActivity", "runtime not ready"]]);
+});

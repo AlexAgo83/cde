@@ -106,7 +106,7 @@ function _game() {
  * @returns {string} The character's name.
  */
 function getCharName() {
-    return mods.getUtils().sanitizeCharacterName(_game().characterName);
+    return mods.getUtils().sanitizeCharacterName(_game()?.characterName ?? "Unknown");
 }
 
 /**

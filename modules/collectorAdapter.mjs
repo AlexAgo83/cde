@@ -18,19 +18,24 @@ function freezeDescriptor(descriptor) {
 export function createCollectorExportPlan(settingsReference) {
     return Object.freeze({
         always: Object.freeze([
-            freezeDescriptor({ key: "basics", method: "collectBasics" }),
+            freezeDescriptor({
+                key: "basics",
+                method: "collectBasics",
+                fallback: "Basic data unavailable"
+            }),
             freezeDescriptor({
                 key: "currentActivity",
                 method: "collectCurrentActivity",
-                callbackKeys: ACTIVITY_CALLBACK_KEYS
+                callbackKeys: ACTIVITY_CALLBACK_KEYS,
+                fallback: "Current activity data unavailable"
             })
         ]),
         full: Object.freeze([
-            freezeDescriptor({ key: "agility", method: "collectAgility" }),
-            freezeDescriptor({ key: "activePotions", method: "collectActivePotions" }),
-            freezeDescriptor({ key: "dungeons", method: "collectDungeons" }),
-            freezeDescriptor({ key: "strongholds", method: "collectStrongholds" }),
-            freezeDescriptor({ key: "ancientRelics", method: "collectAncientRelics" })
+            freezeDescriptor({ key: "agility", method: "collectAgility", fallback: "Agility data unavailable" }),
+            freezeDescriptor({ key: "activePotions", method: "collectActivePotions", fallback: "Active potions data unavailable" }),
+            freezeDescriptor({ key: "dungeons", method: "collectDungeons", fallback: "Dungeon data unavailable" }),
+            freezeDescriptor({ key: "strongholds", method: "collectStrongholds", fallback: "Stronghold data unavailable" }),
+            freezeDescriptor({ key: "ancientRelics", method: "collectAncientRelics", fallback: "Ancient relics data unavailable" })
         ]),
         optional: Object.freeze([
             freezeDescriptor({
@@ -138,13 +143,21 @@ export function collectCollectorDescriptors(collector, descriptors, options = {}
     const result = {};
     const callbacks = options.callbacks ?? {};
     const isEnabled = options.isEnabled ?? (() => true);
+    const onError = options.onError ?? (() => {});
 
     for (const descriptor of descriptors) {
         if (descriptor.configRef && !isEnabled(descriptor.configRef)) {
             result[descriptor.key] = { info: descriptor.fallback };
             continue;
         }
-        result[descriptor.key] = invokeCollectorDescriptor(collector, descriptor, callbacks);
+        try {
+            result[descriptor.key] = invokeCollectorDescriptor(collector, descriptor, callbacks);
+        } catch (error) {
+            onError(descriptor, error);
+            result[descriptor.key] = descriptor.fallback
+                ? { info: descriptor.fallback }
+                : {};
+        }
     }
 
     return result;

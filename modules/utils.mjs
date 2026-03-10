@@ -433,7 +433,7 @@ export function parseNextMasteries(currMasteryLvl, masteryLvlCap = 99) {
  * @returns {Object} The original map of skills
  */
 export function getSkills() {
-	return _game().skills;
+	return _game()?.skills ?? [];
 }
 
 /**
@@ -467,21 +467,21 @@ export function getMasteryByLocalID(skillID, masteryID) {
  * @returns	{Object} The active action
  */
 export function getActiveAction() {
-	return _game().activeAction;
+	return _game()?.activeAction;
 }
 /**
  * Get the active actions
  * @returns {Object} The active actions
  */
 export function getActiveActions() {
-	return _game().activeActions;
+	return _game()?.activeActions ?? { registeredObjects: [] };
 }
 /**
  * Get the active skills
  * @returns {Object} The active skills
  */
 export function getActiveSkills() {
-	return getActiveAction()?.activeSkills;
+	return getActiveAction()?.activeSkills ?? [];
 }
 
 /**
@@ -575,7 +575,7 @@ export function getProducesForRecipe(recipe) {
  * @returns {number} The number of times the dungeon has been completed
  */
 export function getDungeonCount(dungeon) {
-	return _game().combat?.getDungeonCompleteCount(dungeon);
+	return _game()?.combat?.getDungeonCompleteCount?.(dungeon) ?? 0;
 }
 
 /**
@@ -584,7 +584,7 @@ export function getDungeonCount(dungeon) {
  * @returns {number} The quantity of the item
  */
 export function getQteInBank(item) {
-	return _game().bank.getQty(item);
+	return _game()?.bank?.getQty?.(item) ?? 0;
 }
 
 /**

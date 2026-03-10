@@ -109,7 +109,7 @@ function saveToStorage(key, jsonData) {
  * @returns {string} The export key.
  */
 function getStorage_ExportKey() {
-	return CS_LAST_EXPORT+"_"+(deps.utils.sanitizeCharacterName(_game().characterName));
+	return CS_LAST_EXPORT+"_"+(deps.utils.sanitizeCharacterName(_game()?.characterName ?? "Unknown"));
 }
 /**
  * Loads the last export data for the current character from localStorage.
@@ -136,7 +136,7 @@ export function removeExportFromStorage() {
  * @returns {string} The changes key.
  */
 function getStorage_ChangesKey() {
-	return CS_LAST_CHANGES+"_"+(deps.utils.sanitizeCharacterName(_game().characterName));
+	return CS_LAST_CHANGES+"_"+(deps.utils.sanitizeCharacterName(_game()?.characterName ?? "Unknown"));
 }
 /**
  * Loads the last changes data for the current character from localStorage.

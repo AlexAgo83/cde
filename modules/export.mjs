@@ -127,6 +127,12 @@ export function cleanChangesHistory() {
 	}
 }
 
+function onCollectorError(descriptor, error) {
+	if (mods.getSettings().isDebug()) {
+		console.warn(`[CDE] Collector failed for ${descriptor.key}:`, error);
+	}
+}
+
 /**
  * Collects all character data, calls all collectors, handles saving and diff generation.
  * @param {Function} onCombat - Callback for combat events.
@@ -174,22 +180,30 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 
 	Object.assign(newData, mods.getCollectorAdapter().collectCollectorDescriptors(_mc, [
 		collectorPlan.always[0]
-	]));
+	], {
+		onError: onCollectorError
+	}));
 
 	const startExecutionTime = new Date().getTime();
 	Object.assign(newData, mods.getCollectorAdapter().collectCollectorDescriptors(
 		_mc,
 		[collectorPlan.always[1]],
-		{ callbacks: activityCallbacks }
+		{
+			callbacks: activityCallbacks,
+			onError: onCollectorError
+		}
 	));
 	const endExecutionTime = new Date().getTime();
 
 	if (!extractEta) {
-		Object.assign(newData, mods.getCollectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.full));
+		Object.assign(newData, mods.getCollectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.full, {
+			onError: onCollectorError
+		}));
 		Object.assign(
 			newData,
 			mods.getCollectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.optional, {
-				isEnabled: (reference) => settings.isCfg(reference)
+				isEnabled: (reference) => settings.isCfg(reference),
+				onError: onCollectorError
 			})
 		);
 	}
@@ -202,7 +216,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		lastProcessTime: diffExecution,
 		processBuffer: timeBuffer,
 		isFullExport: !extractEta,
-		gameVersion: mods.getMelvorRuntime().getGame().lastLoadedGameVersion,
+		gameVersion: mods.getMelvorRuntime().getGame()?.lastLoadedGameVersion ?? "Unknown",
 		modVersion: mods.getModVersion()
 	};
     if (typeof onMeta === "function") onMeta(newData.meta);
@@ -222,7 +236,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		// Generate Diff
 		if (settings.isCfg(settingsRefs.GENERATE_DIFF)) {
 			const lastExport = mods.getLocalStorage().getLastExportFromStorage();	
-			const charName = mods.getMelvorRuntime().getGame().characterName || "Unknown";
+			const charName = mods.getMelvorRuntime().getGame()?.characterName || "Unknown";
 			const exportTime = mods.getUtils().dateToLocalString(new Date());
 			const header = mods.getExportDomain().buildChangesHeader(charName, exportTime);
 			changesData = mods.getExportDomain().buildChangesDiff({

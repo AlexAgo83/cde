@@ -310,7 +310,9 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
 
 function safePatchAfter(ctx, target, method, onPatch, label) {
     if (!target) {
-        console.warn(`[CDE] Skipping patch for ${label}.${method}: target class unavailable`);
+        if (mods.getSettings().isDebug()) {
+            console.warn(`[CDE] Skipping patch for ${label}.${method}: target class unavailable`);
+        }
         return null;
     }
     return runtime().patch(ctx, target, method).after(patcher(onPatch));
