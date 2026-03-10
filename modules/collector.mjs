@@ -632,11 +632,12 @@ export function collectCompletion() {
  */
 export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onSkillsUpdate) {
 	const utl = mods.getUtils();
+	const game = _game();
 
 	const result = {};
 
-	const player = _game().combat.player;
-	const stats = _game().stats;
+	const player = game?.combat?.player;
+	const stats = game?.stats;
 	const actions = utl.getActiveActions();
 	const skills = utl.getActiveSkills();
 
@@ -754,13 +755,13 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 
 			if (a.localID === "Combat") { /** COMBAT SKILLS */
 				// const queue = {};
-				entry.attackType = player.attackType;
+				entry.attackType = player?.attackType;
 				entry.area = { name: a.selectedArea?.name, id: a.selectedArea?.localID };
 				if (a.selectedMonster) {
 					entry.monster = {
 						name: a.selectedMonster.name,
 						id: a.selectedMonster.localID,
-						killCount: stats.monsterKillCount(a.selectedMonster),
+						killCount: stats?.monsterKillCount?.(a.selectedMonster) ?? 0,
 						media: a.selectedMonster.media,
 					};
 					/* Record specific area */
