@@ -4,33 +4,55 @@
 // @ts-check
 // modules/appOrchestrator.mjs
 
-let mods = null;
-let modVersion = null;
+let deps = null;
 
-export function init(moduleManager, version) {
-    mods = moduleManager;
-    modVersion = version;
+export function createAppOrchestratorDependencies(moduleManager, version) {
+    return {
+        settings: moduleManager.getSettings(),
+        cloudStorage: moduleManager.getCloudStorage(),
+        eta: moduleManager.getETA(),
+        exportModule: moduleManager.getExport(),
+        viewer: moduleManager.getViewer(),
+        pages: moduleManager.getPages(),
+        lifecycle: {
+            onDataLoad: moduleManager.onDataLoad.bind(moduleManager),
+            onViewLoad: moduleManager.onViewLoad.bind(moduleManager)
+        },
+        modVersion: version
+    };
+}
+
+export function init(moduleManagerOrDependencies, version) {
+    if (typeof moduleManagerOrDependencies?.getSettings === "function") {
+        deps = createAppOrchestratorDependencies(moduleManagerOrDependencies, version);
+        return;
+    }
+
+    deps = {
+        ...moduleManagerOrDependencies,
+        modVersion: moduleManagerOrDependencies?.modVersion ?? version
+    };
 }
 
 function settingsReference() {
-    return mods?.getSettings?.()?.SettingsReference;
+    return deps?.settings?.SettingsReference;
 }
 
 export function createCollectDataUseCase() {
     return (extractEta = false, timeBuffer = 50) => {
-        const value = mods.getExport().processCollectData(
-            mods.getETA().onCombat,
-            mods.getETA().onNonCombat,
-            mods.getETA().onActiveSkill,
-            mods.getETA().onSkillsUpdate,
+        const value = deps.exportModule.processCollectData(
+            deps.eta.onCombat,
+            deps.eta.onNonCombat,
+            deps.eta.onActiveSkill,
+            deps.eta.onSkillsUpdate,
             extractEta,
             timeBuffer,
             (meta) => {
-                meta.modVersion = modVersion;
+                meta.modVersion = deps.modVersion;
             }
         );
 
-        if (mods.getSettings().isDebug()) {
+        if (deps.settings.isDebug()) {
             console.log("[CDE] Requested: processCollectData", value);
         }
 
@@ -44,22 +66,22 @@ export function shouldAutoExportOnLoad() {
         return false;
     }
 
-    const storedValue = mods.getCloudStorage().loadSetting(reference.AUTO_EXPORT_ONLOAD);
-    return storedValue ?? mods.getSettings().isCfg(reference.AUTO_EXPORT_ONLOAD);
+    const storedValue = deps.cloudStorage.loadSetting(reference.AUTO_EXPORT_ONLOAD);
+    return storedValue ?? deps.settings.isCfg(reference.AUTO_EXPORT_ONLOAD);
 }
 
 export async function loadCharacterData(settings, characterStorage, accountStorage, collectData) {
-    await mods.onDataLoad(settings, characterStorage, accountStorage);
+    await deps.lifecycle.onDataLoad(settings, characterStorage, accountStorage);
     if (shouldAutoExportOnLoad()) {
         collectData();
     }
 }
 
 export async function prepareInterface(ctx, collectData) {
-    await mods.onViewLoad(ctx);
+    await deps.lifecycle.onViewLoad(ctx);
 
-    mods.getViewer().getExportView().setCollectCb(collectData);
-    mods.getPages().setCollectCb(collectData);
-    mods.getPages().triggerObservers(mods.getSettings().isCfg(settingsReference().ETA_DISPLAY));
-    mods.getPages().worker(ctx);
+    deps.viewer.getExportView().setCollectCb(collectData);
+    deps.pages.setCollectCb(collectData);
+    deps.pages.triggerObservers(deps.settings.isCfg(settingsReference().ETA_DISPLAY));
+    deps.pages.worker(ctx);
 }

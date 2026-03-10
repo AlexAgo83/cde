@@ -1,9 +1,9 @@
 ## item_011_converge_on_an_explicit_composition_root_and_reduce_the_global_module_manager - Converge on an explicit composition root and reduce the global module manager
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 92%
-> Confidence: 94%
-> Progress: 0%
+> Status: Done
+> Understanding: 97%
+> Confidence: 97%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -57,3 +57,6 @@ flowchart LR
 - Execution slices:
 - reduce service-locator fanout first
 - converge startup wiring into a composition root second
+- Current delivery state:
+- service-locator fanout is reduced in `modules/appOrchestrator.mjs` and `modules/viewerActions.mjs` through explicit dependency bundles
+- startup wiring is now owned by `modules/compositionRoot.mjs`, with `setup.mjs` reduced to lifecycle hook registration

@@ -4,29 +4,42 @@
 // @ts-check
 // modules/viewerActions.mjs
 
-let mods = null;
+let deps = null;
 
-export function init(moduleManager) {
-    mods = moduleManager;
+export function createViewerActionsDependencies(moduleManager) {
+    return {
+        settings: moduleManager.getSettings(),
+        exportModule: moduleManager.getExport(),
+        viewer: moduleManager.getViewer()
+    };
+}
+
+export function init(moduleManagerOrDependencies) {
+    if (typeof moduleManagerOrDependencies?.getSettings === "function") {
+        deps = createViewerActionsDependencies(moduleManagerOrDependencies);
+        return;
+    }
+
+    deps = moduleManagerOrDependencies;
 }
 
 function Stg() {
-    return mods.getSettings()?.SettingsReference;
+    return deps.settings?.SettingsReference;
 }
 
 export function updateAutoExportOnWindow(isChecked) {
-    const sections = mods.getSettings().getLoadedSections();
+    const sections = deps.settings.getLoadedSections();
     const reference = Stg().AUTO_EXPORT_ONWINDOW;
     const section = sections[reference.section];
     section.set(reference.key, isChecked);
-    if (mods.getSettings().isDebug()) {
+    if (deps.settings.isDebug()) {
         console.log("[CDE] Set section change: ", reference.key, isChecked);
     }
 }
 
 export function resetExport() {
-    mods.getExport().resetExportData();
-    mods.getViewer().popupSuccess("Export reset!");
+    deps.exportModule.resetExportData();
+    deps.viewer.popupSuccess("Export reset!");
 }
 
 export function refreshExport(openExportUI) {
@@ -34,35 +47,35 @@ export function refreshExport(openExportUI) {
 }
 
 export function downloadExport() {
-    mods.getViewer().doShareFile("export", mods.getExport().getExportString());
+    deps.viewer.doShareFile("export", deps.exportModule.getExportString());
 }
 
 export function copyExport() {
-    mods.getViewer().doCopyClipboard(mods.getExport().getExportString());
+    deps.viewer.doCopyClipboard(deps.exportModule.getExportString());
 }
 
 export function shareExportToHastebin() {
-    mods.getViewer().doShareHastebin(mods.getExport().getExportString());
+    deps.viewer.doShareHastebin(deps.exportModule.getExportString());
 }
 
 export function resetChangelogs() {
-    mods.getExport().resetChangesHistory();
-    mods.getViewer().popupSuccess("Changelogs reset!");
+    deps.exportModule.resetChangesHistory();
+    deps.viewer.popupSuccess("Changelogs reset!");
 }
 
 export function downloadChangelog(history, selectedKey) {
     const text = (history.get(selectedKey) || []).join("\n");
-    mods.getViewer().doShareFile("changelog", text, selectedKey);
+    deps.viewer.doShareFile("changelog", text, selectedKey);
 }
 
 export function copyChangelog(history, selectedKey) {
     const text = (history.get(selectedKey) || []).join("\n");
-    mods.getViewer().doCopyClipboard(text);
+    deps.viewer.doCopyClipboard(text);
 }
 
 export function exportAllChangelogs(history) {
     if (!history || history.size === 0) {
-        mods.getViewer().popupInfo("Export All", "No changelog history to export.");
+        deps.viewer.popupInfo("Export All", "No changelog history to export.");
         return;
     }
 
@@ -70,5 +83,5 @@ export function exportAllChangelogs(history) {
     Array.from(history.entries()).forEach(([key, value]) => {
         allData[key] = value;
     });
-    mods.getViewer().doShareFile("changelog-ALL", JSON.stringify(allData, null, 2));
+    deps.viewer.doShareFile("changelog-ALL", JSON.stringify(allData, null, 2));
 }

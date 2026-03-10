@@ -1,8 +1,8 @@
 ## req_012_converge_on_an_explicit_composition_root_and_reduce_the_global_module_manager - Converge on an explicit composition root and reduce the global module manager
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 91%
-> Confidence: 93%
+> Status: Done
+> Understanding: 97%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -63,3 +63,8 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_011_converge_on_an_explicit_composition_root_and_reduce_the_global_module_manager`
+
+# Outcome
+- `modules/appOrchestrator.mjs` and `modules/viewerActions.mjs` now operate on explicit dependency bundles instead of broad service-locator reads at runtime, reducing hidden feature-module coupling.
+- `modules/compositionRoot.mjs` now owns startup composition for module loading, character-data initialization, interface preparation, and API exposure.
+- `setup.mjs` is reduced to lifecycle registration against that composition root, which makes startup ownership clearer without changing current user-visible flows.

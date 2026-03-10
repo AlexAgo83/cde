@@ -4,6 +4,7 @@
   "setup": "setup.mjs",
   "module": [
     "libs/lz-string.js",
+    "modules/compositionRoot.mjs",
     "modules/settings.mjs",
     "modules/settingsDomain.mjs",
     "modules/assetManager.mjs",

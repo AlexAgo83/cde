@@ -4,6 +4,8 @@
 // @ts-check
 // setup.mjs
 
+import { createSetupComposition } from "./modules/compositionRoot.mjs";
+
 // === Plan to 1.4.X ===
 // Stage 0 - Renamed openExportUI callback to onExportOpen
 // Stage 1 – Unified data collection (processCollectData)
@@ -63,12 +65,6 @@
 // --- Configuration ---
 const MOD_VERSION = "v3.0.1";
 
-// --- Module Imports ---
-let mModules = null;
-let doCollectData = () => {
-    throw new Error("[CDE] Application orchestrator is not ready yet");
-};
-
 /**
  * Main setup entry point for the mod.
  * Registers lifecycle hooks for mod loading, character loading, and interface readiness.
@@ -85,12 +81,16 @@ let doCollectData = () => {
  * @param {function(Object): Promise<void>} context.onInterfaceReady - Called when the interface is ready, receives the context.
  */
 export function setup({settings, api, characterStorage, accountStorage, onModsLoaded, onCharacterSelectionLoaded, onCharacterLoaded, onInterfaceReady}) {
+	const composition = createSetupComposition({
+		settings,
+		characterStorage,
+		accountStorage,
+		modVersion: MOD_VERSION
+	});
+
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
-		const melvorRuntime = await ctx.loadModule("modules/melvorRuntime.mjs");
-		mModules = await melvorRuntime.loadModule(ctx, "modules.mjs");
-		await mModules.onModuleLoad(ctx, MOD_VERSION);
-		doCollectData = mModules.getAppOrchestrator().createCollectDataUseCase();
+		await composition.loadModules(ctx);
 		console.info("[CDE] Modules loaded !");
 	});
 
@@ -100,126 +100,16 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async (ctx) => {
-		await mModules.getAppOrchestrator().loadCharacterData(settings, characterStorage, accountStorage, doCollectData);
+		await composition.loadCharacterData();
 		console.info("[CDE] Data loaded !");
 	});
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		await mModules.getAppOrchestrator().prepareInterface(ctx, doCollectData);
+		await composition.prepareInterface(ctx);
 		console.log("[CDE] Interface ready !");
 	});
 	
 	// Setup API
-	api({
-		generate: () => {
-			return doCollectData();
-		},
-		getModules: () => {
-			return mModules;
-		},
-		getViews: () => {
-			return mModules.getViewer().getViews();
-		},
-		setDebug: (toggle) => {
-			mModules.getSettings().setDebug(toggle);
-		},
-		getVersion: () => {
-			return MOD_VERSION;
-		},
-		
-		/**
-		 * Debug function to print the current notification storage data.
-		 * It displays the current player notification and all other player notifications.
-		 * @function debugNotif_readStorage
-		 */
-		debugNotif_readStorage: () => {
-			// ############	DEBUG NOTIFICATION ############
-			console.log("[CDE] Notification:Player:", mModules.getCloudStorage().getPlayerPendingNotification());
-			const otherData = mModules.getCloudStorage().getOtherPlayerPendingNotifications();
-			Object.keys(otherData).forEach((key) => {  
-				console.log("[CDE] Notification:Other:", key, otherData[key]);
-			})
-		},
-
-		
-		/**
-		 * Debug function to print the current ETA for player notifications.
-		 * It displays the current player notification and all other player notifications.
-		 * @function debugNotif_readETA
-		 */
-		debugNotif_readETA: () => {
-			// ############	DEBUG NOTIFICATION ############
-			const pNotif = mModules.getCloudStorage().getPlayerPendingNotification();
-			if (pNotif
-				&& pNotif.requestAt
-				&& pNotif.timeInMs
-				&& pNotif.label
-			) {
-				const eta = new Date(pNotif.requestAt + pNotif.timeInMs);
-				const etaStr = mModules.getUtils().dateToLocalString(eta);
-				console.log("[CDE] Notification:Player:ETA:", pNotif.label, etaStr);
-			}
-
-			const oNotif = mModules.getCloudStorage().getOtherPlayerPendingNotifications();
-			Object.keys(oNotif).forEach((key) => {
-				const notification = oNotif[key];
-				if (notification
-					&& notification.requestAt
-					&& notification.timeInMs
-					&& notification.label
-				) {
-					const eta = new Date(notification.requestAt + notification.timeInMs);
-					const etaStr = mModules.getUtils().dateToLocalString(eta);
-					console.log("[CDE] Notification:Other:ETA:", notification.label, etaStr);
-				}
-			})
-		},
-
-		/**
-		 * Debug function to inject sample data into the notification storage.
-		 * The data consists of 6 sample notifications with different requestAt and timeInMs values,
-		 * allowing for testing of the notification ETA display.
-		 * The injected data is as follows:
-		 * - Joe: already past
-		 * - Max: now ?
-		 * - Denver: now ?
-		 * - Jack: in the future
-		 * - Steve: in the future
-		 * - Marc: in the future
-		 * @function debugNotif_injectData
-		 */
-		debugNotif_injectData: () => {
-			// ############	DEBUG NOTIFICATION ############
-			const now = Date.now();
-			const ms01min = 60 * 1000;
-			const ms05min =  5 * ms01min;
-			const ms10min = 10 * ms01min;
-			const ms20min = 20 * ms01min;
-			const ms30min = 30 * ms01min;
-
-			const objMaker = (name, num) => {
-				return mModules.getNotification().newNotifBuilder(
-					name, 
-					"Action"+num, 
-					"https://cdn2-main.melvor.net/assets/media/main/logo_no_text.png"
-				)
-			}
-
-			const fakePendingNotification = {
-				/* already past */
-				TEST_1: {...objMaker("Joe", 1), requestAt:(now - ms30min), timeInMs:0},
-
-				/* now ? */
-				TEST_2: {...objMaker("Max", 2), requestAt:(now - ms30min), timeInMs:ms20min},
-				TEST_3: {...objMaker("Denver", 3), requestAt:(now - ms05min), timeInMs:ms05min},
-				
-				/* in the future */
-				TEST_4: {...objMaker("Jack", 4), requestAt:(now - ms20min), timeInMs:ms20min+ms01min},
-				TEST_5: {...objMaker("Steve", 5), requestAt:(now - ms10min), timeInMs:ms20min+ms05min},
-				TEST_6: {...objMaker("Marc", 6), requestAt:(now - ms10min), timeInMs:ms20min+ms10min}
-			};
-			mModules.getCloudStorage().setPendingNotification(fakePendingNotification);
-		}
-	});
+	api(composition.createApi());
 }

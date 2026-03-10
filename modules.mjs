@@ -185,7 +185,19 @@ export async function onModuleLoad(ctx, modVersion) {
         mPages.loadSubModule(ctx)
     ]);
 
-    mAppOrchestrator.init?.(this, currModVersion);
+    mAppOrchestrator.init?.({
+        settings: getSettings(),
+        cloudStorage: getCloudStorage(),
+        eta: getETA(),
+        exportModule: getExport(),
+        viewer: getViewer(),
+        pages: getPages(),
+        lifecycle: {
+            onDataLoad: onDataLoad.bind(this),
+            onViewLoad: onViewLoad.bind(this)
+        },
+        modVersion: currModVersion
+    });
 }
 
 /**
@@ -222,7 +234,11 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
 
     // Interfaces
     mViewer.init(this);
-    mViewerActions.init(this);
+    mViewerActions.init({
+        settings: mSettings,
+        exportModule: mExport,
+        viewer: mViewer
+    });
     mPages.init(this);
 }
 

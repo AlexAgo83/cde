@@ -3,7 +3,7 @@
 > Status: In progress
 > Understanding: 100%
 > Confidence: 99%
-> Progress: 95%
+> Progress: 98%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -75,3 +75,4 @@ flowchart LR
 - `item_008_normalize_melvor_and_browser_runtime_adapters` is complete locally and committed
 - `item_009_establish_a_ui_rendering_boundary_for_injected_views_and_panels` is complete locally and committed
 - `item_010_isolate_collector_logic_behind_runtime_collection_adapters` is complete locally with collector-boundary and selected aggregation extraction work completed through `task_013_define_collector_adapter_fixtures_and_boundaries` and `task_014_extract_collector_aggregation_behind_collection_adapters`
+- `item_011_converge_on_an_explicit_composition_root_and_reduce_the_global_module_manager` is complete locally with explicit dependency bundles in feature modules and startup wiring moved into `modules/compositionRoot.mjs`
