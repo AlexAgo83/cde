@@ -1,9 +1,9 @@
 ## item_015_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
-> Status: In progress
+> Status: Done
 > Understanding: 100%
-> Confidence: 98%
-> Progress: 99%
+> Confidence: 99%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -77,3 +77,8 @@ flowchart LR
 - `item_010_isolate_collector_logic_behind_runtime_collection_adapters` is complete locally with collector-boundary and selected aggregation extraction work completed through `task_013_define_collector_adapter_fixtures_and_boundaries` and `task_014_extract_collector_aggregation_behind_collection_adapters`
 - `item_011_converge_on_an_explicit_composition_root_and_reduce_the_global_module_manager` is complete locally with explicit dependency bundles in feature modules and startup wiring moved into `modules/compositionRoot.mjs`
 - `item_012_formalize_shared_contracts_and_strengthen_type_checked_data_models` is complete locally with export-settings contracts and ETA-collector-storage contracts completed through `task_017_formalize_export_and_settings_contracts` and `task_018_formalize_eta_collector_and_storage_contracts`
+- `item_013_remove_legacy_paths_and_align_the_repository_to_architecture_layers` is complete locally with redundant transitional wrappers removed from export and viewer-facing modules through `task_019_remove_legacy_paths_and_align_the_repository_to_architecture_layers`
+- Governance outcome:
+- the roadmap is now fully sequenced and executable slice by slice
+- regular `logics` updates and checkpoint commits have been established as part of delivery discipline
+- local validation and CI are the accepted confidence path until the project returns to live-game execution

@@ -1,9 +1,9 @@
 ## item_013_remove_legacy_paths_and_align_the_repository_to_architecture_layers - Remove legacy paths and align the repository to architecture layers
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 91%
-> Confidence: 93%
-> Progress: 0%
+> Status: Done
+> Understanding: 100%
+> Confidence: 96%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -54,3 +54,7 @@ flowchart LR
 - Source file: `logics/request/req_014_remove_legacy_paths_and_align_the_repository_to_architecture_layers.md`.
 - Execution order: 10 of 11 rewrite items.
 - Dependencies: `item_004` through `item_012` materially in place.
+- Outcome:
+- cleanup slice delivered through `task_019_remove_legacy_paths_and_align_the_repository_to_architecture_layers`
+- redundant transitional wrappers removed from export and viewer-facing modules without changing behavior
+- local validation, packaging validation, and `logics` audit remain green after cleanup

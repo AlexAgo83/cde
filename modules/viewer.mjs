@@ -34,26 +34,6 @@ export function init(modules) {
   initSubModule(modules);
 }
 
-/* @ts-ignore Handle DEVMODE */
-function _game()  {  return mods.getMelvorRuntime().getGame();  }
-/* @ts-ignore Handle DEVMODE */
-function _ui() { return mods.getMelvorRuntime().getUi(); }
-/**
- * Get the settings reference object.
- * @returns {Object} The settings reference object.
- */
-function Stg() {
-	return mods.getSettings()?.SettingsReference;
-}
-
-/**
- * Get the boolean value for a settings reference.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
-}
-
 /**
  * Returns the list of loaded viewer submodules (e.g., exportView, changelogView).
  * @returns {Array} An array of loaded submodule instances.

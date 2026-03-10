@@ -18,41 +18,13 @@ let lastTimeBuffer = null;
 export function init(modules) {
 	mods = modules;
 }
-function _game() {
-	return mods.getMelvorRuntime().getGame();
-}
-
-/**
- * Get the proxy-settings reference object.
- * @returns {Object} The settings reference object.
- */
-function Stg() {
-	return mods.getSettings()?.SettingsReference;
-}
-
-/**
- * Get the boolean value for a settings reference.
- * @param {*} reference - The settings reference to check.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-	return mods.getSettings()?.isCfg(reference);
-}
-
-function domain() {
-	return mods.getExportDomain();
-}
-
-function collectorAdapter() {
-	return mods.getCollectorAdapter();
-}
 
 /**
  * Get the last export data as a JSON object, either from cache or from local storage.
  * @returns {Object} The export data as a JSON object.
  */
 export function getExportJSON() {
-	const resolvedExport = domain().resolveExportCache(
+	const resolvedExport = mods.getExportDomain().resolveExportCache(
 		exportData,
 		() => mods.getLocalStorage().getLastExportFromStorage()
 	);
@@ -70,7 +42,11 @@ export function getExportJSON() {
  * @returns {string} The export data as a JSON string.
  */
 export function getExportString() {
-	return domain().stringifyExport(getExportJSON(), isCfg(Stg().EXPORT_COMPRESS));
+	const settings = mods.getSettings();
+	return mods.getExportDomain().stringifyExport(
+		getExportJSON(),
+		settings.isCfg(settings.SettingsReference.EXPORT_COMPRESS)
+	);
 }
 
 /**
@@ -88,7 +64,7 @@ export function getChangesData() {
 export function getChangesHistory() {
 	if (changesHistory == null) {
 		const stored = mods.getLocalStorage().getChangesFromStorage();
-		changesHistory = domain().normalizeChangesHistory(stored);
+		changesHistory = mods.getExportDomain().normalizeChangesHistory(stored);
 	}
 	return changesHistory;
 }
@@ -101,7 +77,7 @@ export function submitChangesHistory(data) {
 	const date = new Date();
 	const key = mods.getUtils().parseTimestamp(date);
 	
-	const result = domain().appendChangesHistory(
+	const result = mods.getExportDomain().appendChangesHistory(
 		getChangesHistory(),
 		key,
 		data,
@@ -126,8 +102,9 @@ export function submitChangesHistory(data) {
  */
 export function getMaxHistorySetting() {
 	try {
-		return domain().parseMaxHistory(
-			mods.getSettings().getCfg(Stg().MAX_CHANGES_HISTORY),
+		const settings = mods.getSettings();
+		return mods.getExportDomain().parseMaxHistory(
+			settings.getCfg(settings.SettingsReference.MAX_CHANGES_HISTORY),
 			10
 		);
 	} catch (e) {
@@ -140,7 +117,7 @@ export function getMaxHistorySetting() {
  * Clean the changes history to not exceed the configured maximum.
  */
 export function cleanChangesHistory() {
-	const result = domain().trimChangesHistory(getChangesHistory(), getMaxHistorySetting());
+	const result = mods.getExportDomain().trimChangesHistory(getChangesHistory(), getMaxHistorySetting());
 	changesHistory = result.history;
 
 	for (const removedKey of result.removedKeys) {
@@ -163,11 +140,11 @@ export function cleanChangesHistory() {
  */
 export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSkllsUpdate, extractEta=false, timeBuffer=250, onMeta) {
 	const newData = {};
-
+	const settings = mods.getSettings();
 	const _mc = mods.getCollector();
-	const _sr = Stg();
-	const collectorPlan = collectorAdapter().createCollectorExportPlan(_sr);
-	const activityCallbacks = collectorAdapter().createCollectorActivityCallbacks({
+	const settingsRefs = settings.SettingsReference;
+	const collectorPlan = mods.getCollectorAdapter().createCollectorExportPlan(settingsRefs);
+	const activityCallbacks = mods.getCollectorAdapter().createCollectorActivityCallbacks({
 		onCombat,
 		onNonCombat,
 		onActiveSkill,
@@ -195,12 +172,12 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		}
 	}
 
-	Object.assign(newData, collectorAdapter().collectCollectorDescriptors(_mc, [
+	Object.assign(newData, mods.getCollectorAdapter().collectCollectorDescriptors(_mc, [
 		collectorPlan.always[0]
 	]));
 
 	const startExecutionTime = new Date().getTime();
-	Object.assign(newData, collectorAdapter().collectCollectorDescriptors(
+	Object.assign(newData, mods.getCollectorAdapter().collectCollectorDescriptors(
 		_mc,
 		[collectorPlan.always[1]],
 		{ callbacks: activityCallbacks }
@@ -208,11 +185,11 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	const endExecutionTime = new Date().getTime();
 
 	if (!extractEta) {
-		Object.assign(newData, collectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.full));
+		Object.assign(newData, mods.getCollectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.full));
 		Object.assign(
 			newData,
-			collectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.optional, {
-				isEnabled: isCfg
+			mods.getCollectorAdapter().collectCollectorDescriptors(_mc, collectorPlan.optional, {
+				isEnabled: (reference) => settings.isCfg(reference)
 			})
 		);
 	}
@@ -225,7 +202,7 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		lastProcessTime: diffExecution,
 		processBuffer: timeBuffer,
 		isFullExport: !extractEta,
-		gameVersion: _game().lastLoadedGameVersion,
+		gameVersion: mods.getMelvorRuntime().getGame().lastLoadedGameVersion,
 		modVersion: mods.getModVersion()
 	};
     if (typeof onMeta === "function") onMeta(newData.meta);
@@ -239,16 +216,16 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 		return etaData;
 	}
 
-	if (isCfg(Stg().SAVE_TO_STORAGE)) {
-		const copy = domain().cloneExportSnapshot(newData);
+	if (settings.isCfg(settingsRefs.SAVE_TO_STORAGE)) {
+		const copy = mods.getExportDomain().cloneExportSnapshot(newData);
 		
 		// Generate Diff
-		if (isCfg(Stg().GENERATE_DIFF)) {
+		if (settings.isCfg(settingsRefs.GENERATE_DIFF)) {
 			const lastExport = mods.getLocalStorage().getLastExportFromStorage();	
-			const charName = _game().characterName || "Unknown";
+			const charName = mods.getMelvorRuntime().getGame().characterName || "Unknown";
 			const exportTime = mods.getUtils().dateToLocalString(new Date());
-			const header = domain().buildChangesHeader(charName, exportTime);
-			changesData = domain().buildChangesDiff({
+			const header = mods.getExportDomain().buildChangesHeader(charName, exportTime);
+			changesData = mods.getExportDomain().buildChangesDiff({
 				previousExport: lastExport,
 				nextExport: copy,
 				header,

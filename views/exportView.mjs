@@ -15,38 +15,18 @@ export function init(modules) {
   mods = modules;
 }
 
-/* @ts-ignore Handle DEVMODE */
-function _game()  {  return mods.getMelvorRuntime().getGame();  }
-/* @ts-ignore Handle DEVMODE */
-function _ui() { return mods.getMelvorRuntime().getUi(); }
-/**
- * Get the settings reference object.
- * @returns {Object} The settings reference object.
- */
-function Stg() {
-    return mods.getSettings()?.SettingsReference;
-}
-
-/**
- * Get the boolean value for a settings reference.
- * @param {*} reference - The settings reference to check.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-    return mods.getSettings()?.isCfg(reference);
-}
-
 /**
  * Load the export view and setup UI elements.
  * @param {any} ctx - The context object for initialization.
  */
 export function load(ctx) {
+    const settings = mods.getSettings();
     // CSS
     mods.getUtils().createIconCSS(ctx);
 
     // Setup Export Button
     setupExportButtonUI(openExportUI);
-    visibilityExportButton(isCfg(Stg().SHOW_BUTTON));
+    visibilityExportButton(settings.isCfg(settings.SettingsReference.SHOW_BUTTON));
 }
 
 /**
@@ -79,7 +59,7 @@ let lazyBtCde = null;
  * @param {*} cb - The callback function to execute when the button is clicked.
  */
 function setupExportButtonUI(cb) {
-    _ui().create(CDEButton("#cde-button-topbar", cb), document.body);
+    mods.getMelvorRuntime().getUi().create(CDEButton("#cde-button-topbar", cb), document.body);
     const cde = document.getElementById("cde");
     const potions = document.getElementById("page-header-potions-dropdown")?.parentNode;
     if (potions instanceof Element && cde instanceof Element) {
@@ -106,12 +86,13 @@ export function visibilityExportButton(visible) {
  * @returns {void}
  */
 function onExportOpen() {
-    if (!isCfg(Stg().MOD_ENABLED)) return;
+    const settings = mods.getSettings();
+    if (!settings.isCfg(settings.SettingsReference.MOD_ENABLED)) return;
 
     // Clean-up
     const viewDiffButton = document.getElementById("cde-viewdiff-button");
     if (viewDiffButton) {
-        viewDiffButton.style.display = isCfg(Stg().GENERATE_DIFF) ? "" : "none";
+        viewDiffButton.style.display = settings.isCfg(settings.SettingsReference.GENERATE_DIFF) ? "" : "none";
     }
 }
 
@@ -132,13 +113,16 @@ const exportFooter =
  * @returns {void}
  */
 function openExportUI(forceCollect = false) {
-    if (isCfg(Stg().AUTO_EXPORT_ONWINDOW) || forceCollect) {
+    const settings = mods.getSettings();
+    const settingsRefs = settings.SettingsReference;
+
+    if (settings.isCfg(settingsRefs.AUTO_EXPORT_ONWINDOW) || forceCollect) {
         extractETA(false, 0);
     }
-    if (isCfg(Stg().MOD_ENABLED)) {
+    if (settings.isCfg(settingsRefs.MOD_ENABLED)) {
 
         // --- Ajout de la checkbox ---
-        const autoExportChecked = isCfg(Stg().AUTO_EXPORT_ONWINDOW);
+        const autoExportChecked = settings.isCfg(settingsRefs.AUTO_EXPORT_ONWINDOW);
         const autoExportCheckbox =
         `<label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px">
             <input type="checkbox" id="cde-autoexport-checkbox" ${autoExportChecked ? 'checked' : ''} />

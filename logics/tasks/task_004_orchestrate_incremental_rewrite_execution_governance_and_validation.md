@@ -1,9 +1,9 @@
 ## task_004_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
-> Status: In progress
+> Status: Done
 > Understanding: 100%
-> Confidence: 98%
-> Progress: 99%
+> Confidence: 99%
+> Progress: 100%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -26,7 +26,7 @@ flowchart LR
 - [x] 1. Define the active execution order for `item_004` to `item_014`, making explicit which slices can progress now and which should remain gated behind earlier work.
 - [x] 2. Keep local tests, CI, and repository-native validation green for each landed slice, using them as the default confidence path until late live-game verification becomes necessary.
 - [x] 3. Update related `logics` docs and make regular commits as slices progress so roadmap status, dependencies, and delivered work remain reviewable.
-- [ ] FINAL: Update related Logics docs
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 3. Proof: roadmap ordering and linked item status updates.
@@ -45,10 +45,10 @@ flowchart LR
 - `node --test tests/test_utils.mjs tests/test_export_domain.mjs tests/test_settings_domain.mjs tests/test_eta_domain.mjs tests/test_app_orchestrator.mjs tests/test_browser_runtime.mjs tests/test_melvor_runtime.mjs tests/test_viewer_actions.mjs tests/test_panel_renderer.mjs`
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - This task orchestrates execution across the rewrite roadmap instead of implementing a single feature slice.
@@ -75,4 +75,9 @@ flowchart LR
 - `task_016_introduce_an_explicit_composition_root_for_startup_wiring` is implemented and locally validated
 - `task_017_formalize_export_and_settings_contracts` is implemented and locally validated
 - `task_018_formalize_eta_collector_and_storage_contracts` is implemented and locally validated
+- `task_019_remove_legacy_paths_and_align_the_repository_to_architecture_layers` is implemented and locally validated
 - subsequent slices remain gated behind the same local validation and commit discipline
+- Governance outcome:
+- rewrite execution order is now explicit across the roadmap
+- local tests, CI, and repository-native checks were used as the default confidence path while live-game execution stayed deferred
+- `logics` docs and commits were kept current at each validated checkpoint

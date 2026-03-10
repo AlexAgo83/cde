@@ -126,22 +126,6 @@ export function getPages() {
 }
 
 /**
- * Get the settings reference object.
- * @returns {Object} The settings reference object.
- */
-function Stg() {
-	return getSettings()?.SettingsReference;
-}
-
-/**
- * Get the boolean value for a settings reference.
- * @returns {boolean} True if the reference is allowed, false otherwise.
- */
-function isCfg(reference) {
-	return getSettings()?.isCfg(reference);
-}
-
-/**
  * Loads all required libraries and modules for the mod.
  * This should be called once during mod initialization.
  * @param {*} ctx - The context object provided by the mod loader, used to load dependencies.

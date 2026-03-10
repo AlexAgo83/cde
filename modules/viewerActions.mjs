@@ -23,13 +23,9 @@ export function init(moduleManagerOrDependencies) {
     deps = moduleManagerOrDependencies;
 }
 
-function Stg() {
-    return deps.settings?.SettingsReference;
-}
-
 export function updateAutoExportOnWindow(isChecked) {
     const sections = deps.settings.getLoadedSections();
-    const reference = Stg().AUTO_EXPORT_ONWINDOW;
+    const reference = deps.settings.SettingsReference.AUTO_EXPORT_ONWINDOW;
     const section = sections[reference.section];
     section.set(reference.key, isChecked);
     if (deps.settings.isDebug()) {

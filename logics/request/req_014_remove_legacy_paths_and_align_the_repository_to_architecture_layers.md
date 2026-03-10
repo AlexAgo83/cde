@@ -1,8 +1,8 @@
 ## req_014_remove_legacy_paths_and_align_the_repository_to_architecture_layers - Remove legacy paths and align the repository to architecture layers
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 90%
-> Confidence: 92%
+> Status: Done
+> Understanding: 100%
+> Confidence: 96%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -62,3 +62,8 @@ flowchart TD
 # Backlog
 - None yet.
 - `item_013_remove_legacy_paths_and_align_the_repository_to_architecture_layers`
+
+# Outcome
+- Cleanup is now complete through `item_013_remove_legacy_paths_and_align_the_repository_to_architecture_layers`.
+- Transitional helper wrappers that no longer served a compatibility purpose were removed from export and viewer-facing modules while preserving current behavior.
+- Local tests, manifest validation, packaging validation, and workflow/logics audits stayed green after the cleanup slice.
