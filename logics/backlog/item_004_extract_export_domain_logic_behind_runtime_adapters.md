@@ -1,9 +1,9 @@
 ## item_004_extract_export_domain_logic_behind_runtime_adapters - Extract export domain logic behind runtime adapters
 > From version: 3.0.0
-> Status: Ready
+> Status: Done
 > Understanding: 94%
 > Confidence: 96%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -54,3 +54,7 @@ flowchart LR
 - Source file: `logics/request/req_005_extract_export_domain_logic_behind_runtime_adapters.md`.
 - Execution order: 1 of 11 rewrite items.
 - Dependencies: stabilized startup, validation path, and current roadmap governance.
+- Delivery result:
+- export bootstrap, diff, and history rules now flow through `modules/exportDomain.mjs`
+- runtime-facing modules keep storage, viewer, and side-effect responsibilities
+- local validation and CI coverage were extended with `tests/test_export_domain.mjs`

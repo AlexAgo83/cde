@@ -1,9 +1,9 @@
 ## task_004_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 97%
-> Progress: 0%
+> Progress: 15%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -23,7 +23,7 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Define the active execution order for `item_004` to `item_014`, making explicit which slices can progress now and which should remain gated behind earlier work.
+- [x] 1. Define the active execution order for `item_004` to `item_014`, making explicit which slices can progress now and which should remain gated behind earlier work.
 - [ ] 2. Keep local tests, CI, and repository-native validation green for each landed slice, using them as the default confidence path until late live-game verification becomes necessary.
 - [ ] 3. Update related `logics` docs and make regular commits as slices progress so roadmap status, dependencies, and delivered work remain reviewable.
 - [ ] FINAL: Update related Logics docs
@@ -60,3 +60,6 @@ flowchart LR
 - update `logics` docs when status or sequencing changes
 - commit regularly in reviewable increments
 - keep individual slice scope inside its own backlog item
+- Active execution state:
+- `task_005_extract_export_domain_logic_behind_runtime_adapters` is implemented and locally validated
+- subsequent slices remain gated behind the same local validation and commit discipline

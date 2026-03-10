@@ -1,8 +1,8 @@
 ## req_016_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
-> Status: Ready
-> Understanding: 94%
-> Confidence: 96%
+> Status: In progress
+> Understanding: 95%
+> Confidence: 97%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence and references when you edit this doc.
@@ -61,3 +61,7 @@ flowchart TD
 
 # Backlog
 - `item_015_orchestrate_incremental_rewrite_execution_governance_and_validation`
+
+# Outcome
+- Execution governance is now active.
+- The rewrite has started with the export-domain slice under local validation, CI-backed checks, regular `logics` updates, and checkpoint commits.

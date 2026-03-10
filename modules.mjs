@@ -15,6 +15,7 @@ let mNotification = null;
 let mDisplayStats = null;
 let mCollector = null;
 let mExport = null;
+let mExportDomain = null;
 let mEta = null;
 let mViewer = null;
 let mPages = null;
@@ -57,6 +58,10 @@ export function getCollector() {
 
 export function getExport() {
     return mExport;
+}
+
+export function getExportDomain() {
+    return mExportDomain;
 }
 
 export function getETA() {
@@ -115,6 +120,7 @@ export async function onModuleLoad(ctx, modVersion) {
     mNotification = await ctx.loadModule("modules/notification.mjs");
     mCollector = await ctx.loadModule("modules/collector.mjs");
     mExport = await ctx.loadModule("modules/export.mjs");
+    mExportDomain = await ctx.loadModule("modules/exportDomain.mjs");
     mEta = await ctx.loadModule("modules/eta.mjs");
     mViewer = await ctx.loadModule("modules/viewer.mjs");
     mPages = await ctx.loadModule("modules/pages.mjs");
@@ -151,6 +157,7 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
     mDisplayStats.init(this);
     mCollector.init(this);
     mExport.init(this);
+    mExportDomain.init?.(this);
     mEta.init(this);
 
     // Interfaces

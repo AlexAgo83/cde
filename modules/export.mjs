@@ -40,16 +40,24 @@ function isCfg(reference) {
 	return mods.getSettings()?.isCfg(reference);
 }
 
+function domain() {
+	return mods.getExportDomain();
+}
+
 /**
  * Get the last export data as a JSON object, either from cache or from local storage.
  * @returns {Object} The export data as a JSON object.
  */
 export function getExportJSON() {
+	const resolvedExport = domain().resolveExportCache(
+		exportData,
+		() => mods.getLocalStorage().getLastExportFromStorage()
+	);
 	if (exportData == null) {
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] Export cache requested!")
 		}
-		exportData = mods.getLocalStorage().getLastExportFromStorage() ?? {};
+		exportData = resolvedExport;
 	}
 	return exportData;
 }
@@ -59,9 +67,7 @@ export function getExportJSON() {
  * @returns {string} The export data as a JSON string.
  */
 export function getExportString() {
-	return isCfg(Stg().EXPORT_COMPRESS) ? 
-	JSON.stringify(getExportJSON()) : 
-	JSON.stringify(getExportJSON(), null, 2);
+	return domain().stringifyExport(getExportJSON(), isCfg(Stg().EXPORT_COMPRESS));
 }
 
 /**
@@ -79,7 +85,7 @@ export function getChangesData() {
 export function getChangesHistory() {
 	if (changesHistory == null) {
 		const stored = mods.getLocalStorage().getChangesFromStorage();
-		changesHistory = stored instanceof Map ? stored : new Map();
+		changesHistory = domain().normalizeChangesHistory(stored);
 	}
 	return changesHistory;
 }
@@ -92,12 +98,22 @@ export function submitChangesHistory(data) {
 	const date = new Date();
 	const key = mods.getUtils().parseTimestamp(date);
 	
-	const items = getChangesHistory();
-	items.set(key, data);
-	
-	cleanChangesHistory();
+	const result = domain().appendChangesHistory(
+		getChangesHistory(),
+		key,
+		data,
+		getMaxHistorySetting()
+	);
+	changesHistory = result.history;
+
+	for (const removedKey of result.removedKeys) {
+		if (mods.getSettings().isDebug()) {
+			console.log("[CDE] Remove old history entry:", removedKey);
+		}
+	}
+
 	if (getMaxHistorySetting() > 0) {
-		mods.getLocalStorage().saveChangesToStorage(items);
+		mods.getLocalStorage().saveChangesToStorage(changesHistory);
 	}
 }
 
@@ -107,10 +123,10 @@ export function submitChangesHistory(data) {
  */
 export function getMaxHistorySetting() {
 	try {
-		let val = mods.getSettings().getCfg(Stg().MAX_CHANGES_HISTORY);
-		val = parseInt(val, 10);
-		if (isNaN(val)) val = 10; // fallback
-		return val;
+		return domain().parseMaxHistory(
+			mods.getSettings().getCfg(Stg().MAX_CHANGES_HISTORY),
+			10
+		);
 	} catch (e) {
 		console.error(e);
 	}
@@ -121,14 +137,12 @@ export function getMaxHistorySetting() {
  * Clean the changes history to not exceed the configured maximum.
  */
 export function cleanChangesHistory() {
-	const history = getChangesHistory();
-	const maxHistory = getMaxHistorySetting();
-	
-	while (history.size > maxHistory) {
-		const oldestKey = history.keys().next().value;
-		history.delete(oldestKey);
+	const result = domain().trimChangesHistory(getChangesHistory(), getMaxHistorySetting());
+	changesHistory = result.history;
+
+	for (const removedKey of result.removedKeys) {
 		if (mods.getSettings().isDebug()) {
-			console.log("[CDE] Remove old history entry:", oldestKey);
+			console.log("[CDE] Remove old history entry:", removedKey);
 		}
 	}
 }
@@ -233,19 +247,20 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
 	}
 
 	if (isCfg(Stg().SAVE_TO_STORAGE)) {
-		const copy = JSON.parse(JSON.stringify(newData));
+		const copy = domain().cloneExportSnapshot(newData);
 		
 		// Generate Diff
 		if (isCfg(Stg().GENERATE_DIFF)) {
 			const lastExport = mods.getLocalStorage().getLastExportFromStorage();	
 			const charName = _game().characterName || "Unknown";
 			const exportTime = mods.getUtils().dateToLocalString(new Date());
-			const header = `🧾 Changelog for: ${charName} — ${exportTime}`;
-			if (lastExport) {
-				changesData = [header, ...mods.getUtils().deepDiff(lastExport, copy)];
-			} else {
-				changesData = [header, "🆕 First export — no previous data to compare."];
-			}
+			const header = domain().buildChangesHeader(charName, exportTime);
+			changesData = domain().buildChangesDiff({
+				previousExport: lastExport,
+				nextExport: copy,
+				header,
+				diff: mods.getUtils().deepDiff
+			});
 			submitChangesHistory(changesData);
 		}
 		

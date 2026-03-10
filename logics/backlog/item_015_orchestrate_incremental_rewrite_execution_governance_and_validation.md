@@ -1,9 +1,9 @@
 ## item_015_orchestrate_incremental_rewrite_execution_governance_and_validation - Orchestrate incremental rewrite execution governance and validation
 > From version: 3.0.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 97%
-> Progress: 0%
+> Progress: 15%
 > Complexity: High
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
@@ -67,3 +67,4 @@ flowchart LR
 - `item_012_formalize_shared_contracts_and_strengthen_type_checked_data_models`
 - `item_013_remove_legacy_paths_and_align_the_repository_to_architecture_layers`
 - `item_014_harden_release_gating_packaging_and_runtime_validation`
+- Current state: roadmap execution started with `item_004_extract_export_domain_logic_behind_runtime_adapters` and the first implementation slice is complete locally.

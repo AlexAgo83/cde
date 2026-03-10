@@ -1,9 +1,9 @@
 ## task_005_extract_export_domain_logic_behind_runtime_adapters - Extract export domain logic behind runtime adapters
 > From version: 3.0.0
-> Status: Ready
+> Status: Done
 > Understanding: 95%
 > Confidence: 97%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Architecture
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
@@ -23,10 +23,10 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Audit the current export flow in `modules/export.mjs`, `modules/localStorage.mjs`, `modules/cloudStorage.mjs`, and `modules/viewer.mjs`, then define the exact bootstrap, diff, and history rules that should move into a pure export-domain seam.
-- [ ] 2. Extract that pure export-domain logic into a dedicated testable module, keeping storage access, sharing, downloads, clipboard, and UI side effects behind adapters or orchestration code.
-- [ ] 3. Rewire the existing export modules onto the extracted seam and add focused tests for bootstrap, diff generation, history retention, and preserved payload behavior.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Audit the current export flow in `modules/export.mjs`, `modules/localStorage.mjs`, `modules/cloudStorage.mjs`, and `modules/viewer.mjs`, then define the exact bootstrap, diff, and history rules that should move into a pure export-domain seam.
+- [x] 2. Extract that pure export-domain logic into a dedicated testable module, keeping storage access, sharing, downloads, clipboard, and UI side effects behind adapters or orchestration code.
+- [x] 3. Rewire the existing export modules onto the extracted seam and add focused tests for bootstrap, diff generation, history retention, and preserved payload behavior.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 2. Proof: extracted export-domain module and updated responsibility boundaries.
@@ -46,10 +46,10 @@ flowchart LR
 - run the new export-domain test file added by this slice
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
 - Target seam for this task:
@@ -66,3 +66,15 @@ flowchart LR
 - `modules/cloudStorage.mjs`
 - `modules/viewer.mjs`
 - new testable export-domain module and tests
+- Delivered files:
+- `modules/exportDomain.mjs`
+- `modules/export.mjs`
+- `modules.mjs`
+- `manifest.json`
+- `tests/test_export_domain.mjs`
+- `.github/workflows/validate.yml`
+- Validation executed:
+- `node --test tests/test_utils.mjs tests/test_export_domain.mjs`
+- `python3 -m unittest discover -s tests -p "test_*.py" -v`
+- `bash validate.sh`
+- `python3 logics/skills/logics-doc-linter/scripts/logics_lint.py`
