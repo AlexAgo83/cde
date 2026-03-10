@@ -344,14 +344,6 @@ export const SettingsReference = {
 		hint: "Export JSON in a compressed single-line format", 
 		toggle: true
 	},
-	USE_LZSTRING: {
-		section: Sections.Advance,
-		type: "switch",
-		key: "use-lzstring",
-		label: "Use LZString Compression",
-		hint: "Enable or disable usage of LZString for export compression",
-		toggle: true
-	},
 	SAVE_TO_STORAGE: {
 		section: Sections.Advance,
 		type: "switch",

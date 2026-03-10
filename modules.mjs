@@ -120,8 +120,10 @@ export async function onModuleLoad(ctx, modVersion) {
     mPages = await ctx.loadModule("modules/pages.mjs");
     
     // Load subModules :
-    mViewer.loadSubModule(ctx);
-    mPages.loadSubModule(ctx);
+    await Promise.all([
+        mViewer.loadSubModule(ctx),
+        mPages.loadSubModule(ctx)
+    ]);
 }
 
 /**
@@ -138,11 +140,11 @@ export async function onDataLoad(settings, characterStorage, accountStorage) {
     
     // Core modules initialization
     mUtils.init(this);
-    mLocalStorage.init(this);
     mAssetManager.init(this);
 
     // Storage modules initialization
     mCloudStorage.init(this, characterStorage, accountStorage);
+    mLocalStorage.init(this);
     mNotification.init(this);
 
     // Game data modules initialization

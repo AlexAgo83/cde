@@ -5,8 +5,8 @@
 // export.mjs
 
 let mods = null;
-let exportData = {};
-let etaData = {};
+let exportData = null;
+let etaData = null;
 let changesData = [];
 let changesHistory = null;
 let lastTimeBuffer = null;
@@ -49,7 +49,7 @@ export function getExportJSON() {
 		if (mods.getSettings().isDebug()) {
 			console.log("[CDE] Export cache requested!")
 		}
-		exportData = mods.getLocalStorage().getLastExportFromStorage();
+		exportData = mods.getLocalStorage().getLastExportFromStorage() ?? {};
 	}
 	return exportData;
 }
@@ -266,7 +266,8 @@ export function processCollectData(onCombat, onNonCombat, onActiveSkill, onSklls
  * Reset all export data and changes history.
  */
 export function resetExportData() {
-	exportData = {};
+	exportData = null;
+	etaData = null;
 	changesData = [];
 	changesHistory = null;
 	mods.getCollector().clearMutable();

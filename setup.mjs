@@ -134,7 +134,7 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 	// Setup OnModsLoaded
 	onModsLoaded(async (ctx) => {
 		mModules = await ctx.loadModule("modules.mjs");
-		mModules.onModuleLoad(ctx, MOD_VERSION);
+		await mModules.onModuleLoad(ctx, MOD_VERSION);
 		console.info("[CDE] Modules loaded !");
 	});
 
@@ -144,8 +144,9 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 
 	// Setup OnCharacterLoaded
 	onCharacterLoaded(async (ctx) => {
-		mModules.onDataLoad(settings, characterStorage, accountStorage);
-		if (isCfg(Stg().AUTO_EXPORT_ONLOAD)) {
+		await mModules.onDataLoad(settings, characterStorage, accountStorage);
+		const autoExportOnLoad = mModules.getCloudStorage().loadSetting(Stg().AUTO_EXPORT_ONLOAD);
+		if ((autoExportOnLoad ?? isCfg(Stg().AUTO_EXPORT_ONLOAD))) {
 			doCollectData();
 		}
 		console.info("[CDE] Data loaded !");
@@ -153,7 +154,7 @@ export function setup({settings, api, characterStorage, accountStorage, onModsLo
 
 	// Setup OnInterfaceReady
 	onInterfaceReady(async (ctx) => {
-		mModules.onViewLoad(ctx);
+		await mModules.onViewLoad(ctx);
 		
 		// Override processCollectData callback (Viewer / Panel)
 		mModules.getViewer().getExportView().setCollectCb(doCollectData);

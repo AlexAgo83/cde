@@ -114,7 +114,7 @@ function onExportOpen() {
     // Clean-up
     const viewDiffButton = document.getElementById("cde-viewdiff-button");
     if (viewDiffButton) {
-        viewDiffButton.style.display = isCfg(Stg().GENERATE_DIFF) ? "visible" : "none";
+        viewDiffButton.style.display = isCfg(Stg().GENERATE_DIFF) ? "" : "none";
     }
 }
 
