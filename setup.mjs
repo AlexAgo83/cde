@@ -61,7 +61,7 @@
 // TODO : Improve controls (No delay)
 
 // --- Configuration ---
-const MOD_VERSION = "v3.0.8";
+const MOD_VERSION = "v3.0.9";
 
 function logLifecycle(step, phase, details) {
 	if (details === undefined) {

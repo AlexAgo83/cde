@@ -83,7 +83,7 @@ function createFixture() {
               async loadModules(innerCtx) {
                 const runtime = await innerCtx.loadModule("modules/melvorRuntime.mjs");
                 moduleManager = await runtime.loadModule(innerCtx, "modules.mjs");
-                await moduleManager.onModuleLoad(innerCtx, "v3.0.8");
+                await moduleManager.onModuleLoad(innerCtx, "v3.0.9");
                 this.collectData = moduleManager.getAppOrchestrator().createCollectDataUseCase();
               },
               async loadCharacterData() {
@@ -102,7 +102,7 @@ function createFixture() {
                   getModules: () => moduleManager,
                   getViews: () => moduleManager.getViewer().getViews(),
                   setDebug: (toggle) => moduleManager.getSettings().setDebug(toggle),
-                  getVersion: () => "v3.0.8",
+                  getVersion: () => "v3.0.9",
                 };
               },
             };
@@ -150,7 +150,7 @@ test("setup registers hooks and exposes versioned API", async () => {
   const fixture = createFixture();
 
   assert.ok(fixture.apiInstance);
-  assert.equal(fixture.apiInstance.getVersion(), "v3.0.8");
+  assert.equal(fixture.apiInstance.getVersion(), "v3.0.9");
   assert.deepEqual(
     Object.keys(fixture.registered).sort(),
     ["onCharacterLoaded", "onCharacterSelectionLoaded", "onInterfaceReady", "onModsLoaded"],
@@ -172,7 +172,7 @@ test("setup registers hooks and exposes versioned API", async () => {
     ["compositionRoot.createSetupComposition"],
     ["ctx.loadModule", "modules/melvorRuntime.mjs"],
     ["runtime.loadModule", fixture.ctx, "modules.mjs"],
-    ["modules.onModuleLoad", fixture.ctx, "v3.0.8"],
+    ["modules.onModuleLoad", fixture.ctx, "v3.0.9"],
     ["app.createCollectDataUseCase"],
     ["collectData", false, 50],
     ["app.loadCharacterData", "settings", "character", "account", { extractEta: false, timeBuffer: 50 }],

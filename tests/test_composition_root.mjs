@@ -102,7 +102,7 @@ test("composition root loads modules and delegates lifecycle wiring", async () =
     settings: "settings",
     characterStorage: "character",
     accountStorage: "account",
-    modVersion: "v3.0.8",
+    modVersion: "v3.0.9",
   });
 
   await composition.loadModules(fixture.ctx);
@@ -114,7 +114,7 @@ test("composition root loads modules and delegates lifecycle wiring", async () =
   assert.deepEqual(fixture.calls, [
     ["ctx.loadModule", "modules/melvorRuntime.mjs"],
     ["runtime.loadModule", fixture.ctx, "modules.mjs"],
-    ["modules.onModuleLoad", fixture.ctx, "v3.0.8"],
+    ["modules.onModuleLoad", fixture.ctx, "v3.0.9"],
     ["app.createCollectDataUseCase"],
     ["collectData", false, 50],
     ["app.loadCharacterData", "settings", "character", "account", { extractEta: false, timeBuffer: 50 }],
@@ -129,7 +129,7 @@ test("composition root API delegates generate, debug and notification helpers", 
     settings: "settings",
     characterStorage: "character",
     accountStorage: "account",
-    modVersion: "v3.0.8",
+    modVersion: "v3.0.9",
   });
 
   await composition.loadModules(fixture.ctx);
@@ -143,5 +143,5 @@ test("composition root API delegates generate, debug and notification helpers", 
     ["settings.setDebug", true],
     ["cloud.setPendingNotification", ["TEST_1", "TEST_2", "TEST_3", "TEST_4", "TEST_5", "TEST_6"]],
   ]);
-  assert.equal(api.getVersion(), "v3.0.8");
+  assert.equal(api.getVersion(), "v3.0.9");
 });
