@@ -70,24 +70,28 @@ export function computeCombatMetrics(params) {
  * Build prediction entries from xp caps and an hourly rate.
  * @param {{
  *   caps: number[],
+ *   targetLevels?: Array<number|string>,
  *   currentXp: number,
  *   ratePerHour: number|string,
  *   formatDuration: (durationMs: number) => string
  * }} params
- * @returns {Record<string, {xpCap: number, xpDiff: number, secondsToCap: number, timeToCapStr: string}>}
+ * @returns {Record<string, {targetLevel: number|string|null, xpCap: number, xpDiff: number, secondsToCap: number, timeToCapStr: string}>}
  */
 export function buildXpPredictionMap(params) {
-    /** @type {Record<string, {xpCap: number, xpDiff: number, secondsToCap: number, timeToCapStr: string}>} */
+    /** @type {Record<string, {targetLevel: number|string|null, xpCap: number, xpDiff: number, secondsToCap: number, timeToCapStr: string}>} */
     const predictions = {};
-    for (const cap of params.caps) {
+    params.caps.forEach((cap, index) => {
+        const targetLevel = params.targetLevels?.[index] ?? null;
         const xpDiff = cap - params.currentXp;
         const secondsToCap = calculateSecondsToTarget(xpDiff, params.ratePerHour);
-        predictions[cap] = {
+        const predictionKey = targetLevel ?? cap;
+        predictions[predictionKey] = {
+            targetLevel,
             xpCap: cap,
             xpDiff,
             secondsToCap,
             timeToCapStr: params.formatDuration(secondsToCap * 1000)
         };
-    }
+    });
     return predictions;
 }

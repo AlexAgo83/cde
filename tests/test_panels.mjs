@@ -163,6 +163,44 @@ test("non-combat panel refreshes visible content and throttles repeated calls", 
   assert.equal(panel.onRefresh("large"), null);
 });
 
+test("non-combat panel displays target levels instead of xp caps for skill predictions", () => {
+  const parent = { innerHTML: "" };
+  const panel = createNonCombatPanel("crafting");
+  panel.init(createModulesFixture({
+    game: {
+      skills: {
+        registeredObjects: [
+          { localID: "Crafting", name: "Crafting", media: "craft.png" },
+        ],
+      },
+    },
+  }));
+  panel.setControlsPanelCb(() => "<controls />");
+  panel.setCollectCb(() => ({
+    currentActivity: {
+      Crafting: {
+        skills: {
+          Crafting: {
+            diffTime: 1000,
+            secondsToNextLevel: 5,
+            skillLevel: 107,
+            skillMaxLevel: 120,
+            skillNextLevelProgress: 12.34,
+            predictLevels: {
+              104273167: { targetLevel: 120, secondsToCap: 20, xpCap: 104273167 },
+            },
+          },
+        },
+      },
+    },
+  }));
+
+  panel.container(parent, "summary-crafting", "crafting");
+  assert.equal(panel.onRefresh("large"), true);
+  assert.match(parent.innerHTML, />120</);
+  assert.doesNotMatch(parent.innerHTML, />104273167</);
+});
+
 test("non-combat panel refreshes from current activity when runtime game is unavailable", () => {
   const parent = { innerHTML: "" };
   const panel = createNonCombatPanel("crafting");

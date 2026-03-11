@@ -399,13 +399,14 @@ export function createInstance(innerType) {
                         let levelCap = ``;
                         Object.keys(predictSkillLevels).forEach((level) => {
                             const value = predictSkillLevels[level];
+                            const targetLevel = value?.targetLevel ?? level;
                             const seconds = value.secondsToCap;
                             if (seconds && seconds > 0) {
                                 const timeToCapStr = mods.getUtils().formatDuration(seconds * 1000, "vph-skill-fade");
                                 levelCap += 
                                     `<div class="cde-generic-panel">
                                         <span class="skill-label"> • to </span>
-                                        <span class="skill-value vph-skill">${level}</span>
+                                        <span class="skill-value vph-skill">${targetLevel}</span>
                                         <span class="skill-label"> ➜ </span>
                                         <span class="skill-value vph vph-skill">${timeToCapStr ?? "N/A"}</span>
                                     </div>`;
@@ -767,6 +768,7 @@ export function createInstance(innerType) {
                 if (!isAltMagic && !isCartography && predictLevels && Object.keys(predictLevels).length > 0) {
                     Object.keys(predictLevels).forEach((level) => {
                         const value = predictLevels[level];
+                        const targetLevel = value?.targetLevel ?? level;
                         if (mods.getSettings().isDebug()) {
                             console.log("[CDE] nonCombatPanel:onRefresh:predictLevels read entry:", predictLevels, level, value);
                         }   
@@ -779,7 +781,7 @@ export function createInstance(innerType) {
                             dr.resultTop.push(
                                 `<div class="cde-generic-panel">
                                     <span class="skill-label ${forceDisplayInactive}"> • to </span>
-                                    <span class="skill-value vph-mastery ${forceDisplayInactive}">${level}</span>
+                                    <span class="skill-value vph-mastery ${forceDisplayInactive}">${targetLevel}</span>
                                     <span class="skill-label ${forceDisplayInactive}"> ➜ (less than) </span>
                                     <span class="skill-value vph vph-mastery ${forceDisplayInactive}">${timeToCapStr}</span>
                                 </div>`

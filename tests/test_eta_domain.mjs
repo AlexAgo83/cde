@@ -39,6 +39,7 @@ test("computeCombatMetrics derives KPH and optional DPS values", () => {
 test("buildXpPredictionMap creates prediction entries from xp caps and rates", () => {
     const result = etaDomain.buildXpPredictionMap({
         caps: [1200, 1500],
+        targetLevels: [10, 20],
         currentXp: 1000,
         ratePerHour: 100,
         formatDuration(ms) {
@@ -47,13 +48,15 @@ test("buildXpPredictionMap creates prediction entries from xp caps and rates", (
     });
 
     assert.deepEqual(result, {
-        1200: {
+        10: {
+            targetLevel: 10,
             xpCap: 1200,
             xpDiff: 200,
             secondsToCap: 7200,
             timeToCapStr: "7200000ms"
         },
-        1500: {
+        20: {
+            targetLevel: 20,
             xpCap: 1500,
             xpDiff: 500,
             secondsToCap: 18000,

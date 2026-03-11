@@ -720,6 +720,9 @@ export function displayNotification() {
     const oNotif = mods.cloudStorage.getOtherPlayerPendingNotifications();
     if (oNotif && typeof oNotif === "object") {
         Object.keys(oNotif).forEach((key) => {
+            if (String(key).toLowerCase() === "unknown") {
+                return;
+            }
             const notification = normalizeNotificationBuilder(oNotif[key]);
             if (notification
                 && notification.requestAt

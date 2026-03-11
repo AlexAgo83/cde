@@ -40,6 +40,16 @@ function domain() {
 	return mods.getEtaDomain();
 }
 
+function inferLevelFromXpCap(xpCap, maxLevel = 120) {
+    if (!(xpCap > 0)) return null;
+    for (let level = 1; level <= maxLevel; level += 1) {
+        if (mods.getUtils().getXpForLevel(level) === xpCap) {
+            return level;
+        }
+    }
+    return null;
+}
+
 /**
  * ETA - Callback for combat event.
  * This function processes combat entries, updating the current monster data with kill count,
@@ -234,6 +244,7 @@ export function onNonCombat(activity, entry, syncDate=new Date()) {
             const masteryCaps = prdArr?.map((item) => utl.getXpForLevel(item)) ?? [];
 			m.predictLevels = domain().buildXpPredictionMap({
                 caps: masteryCaps,
+                targetLevels: prdArr,
                 currentXp: currMasteryXP,
                 ratePerHour: m.mphValue,
                 formatDuration: utl.formatDuration
@@ -561,6 +572,7 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
                 .map((cap) => mods.getUtils().getXpForLevel(cap));
 			data.predictLevels = domain().buildXpPredictionMap({
                 caps: predictCaps,
+                targetLevels: predictNextLevels,
                 currentXp,
                 ratePerHour: 0,
                 formatDuration: mods.getUtils().formatDuration
@@ -742,6 +754,9 @@ export function onActiveSkill(skillId, data, syncDate=new Date()) {
 		if (isCfg(Stg().ETA_LEVEL_PREDICT) && predictkeys !== null && predictkeys?.length > 0) {
             data.predictLevels = domain().buildXpPredictionMap({
                 caps: predictkeys.map((key) => predictObj[key].xpCap),
+                targetLevels: predictkeys.map((key) => (
+                    predictObj[key].targetLevel ?? inferLevelFromXpCap(predictObj[key].xpCap, data.skillMaxLevel)
+                )),
                 currentXp: data.skillXp,
                 ratePerHour: data.xph,
                 formatDuration: mods.getUtils().formatDuration
