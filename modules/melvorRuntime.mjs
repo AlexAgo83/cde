@@ -6,6 +6,49 @@
 
 let runtime = null;
 
+function resolveDirectName(name) {
+    try {
+        switch (name) {
+            case "game":
+                return game;
+            case "ui":
+                return ui;
+            case "Game":
+                return Game;
+            case "Skill":
+                return Skill;
+            case "CombatManager":
+                return CombatManager;
+            case "Player":
+                return Player;
+            case "Enemy":
+                return Enemy;
+            case "CraftingSkill":
+                return CraftingSkill;
+            case "GatheringSkill":
+                return GatheringSkill;
+            case "Thieving":
+                return Thieving;
+            case "AltMagic":
+                return AltMagic;
+            case "Archaeology":
+                return Archaeology;
+            case "Cartography":
+                return Cartography;
+            case "AltMagicSpell":
+                return AltMagicSpell;
+            case "Hex":
+                return Hex;
+            case "PointOfInterest":
+                return PointOfInterest;
+            default:
+                return undefined;
+        }
+    } catch (_error) {
+        return undefined;
+    }
+}
+
 function getScopeCandidates(env) {
     const candidates = [env];
 
@@ -23,7 +66,12 @@ function getScopeCandidates(env) {
     return candidates;
 }
 
-function resolveNamedValue(env, name) {
+function resolveNamedValue(env, name, resolveDirect = resolveDirectName) {
+    const directValue = resolveDirect?.(name);
+    if (typeof directValue !== "undefined") {
+        return directValue;
+    }
+
     for (const scope of getScopeCandidates(env)) {
         try {
             const value = scope?.[name];
@@ -44,16 +92,18 @@ function ensureRuntime() {
     return runtime;
 }
 
-export function createMelvorRuntime(env) {
+export function createMelvorRuntime(env, options = {}) {
+    const resolveDirect = options.resolveDirectName ?? resolveDirectName;
+
     return {
         getGame() {
-            return resolveNamedValue(env, "game");
+            return resolveNamedValue(env, "game", resolveDirect);
         },
         getUi() {
-            return resolveNamedValue(env, "ui");
+            return resolveNamedValue(env, "ui", resolveDirect);
         },
         getGlobal(name) {
-            return resolveNamedValue(env, name);
+            return resolveNamedValue(env, name, resolveDirect);
         },
         async loadModule(ctx, path) {
             return ctx.loadModule(path);
