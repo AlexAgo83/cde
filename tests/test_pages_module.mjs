@@ -138,8 +138,23 @@ test("pages worker falls back to runtime instance constructors when globals are 
   };
 
   const fixture = createModules({ game });
-  init(fixture.modules);
-  worker({});
+  const scheduled = [];
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
+
+  globalThis.setInterval = (callback, delay) => {
+    scheduled.push({ callback, delay });
+    return { delay };
+  };
+  globalThis.clearInterval = () => {};
+
+  try {
+    init(fixture.modules);
+    worker({});
+  } finally {
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+  }
 
   assert.deepEqual(
     fixture.patchCalls.map(([name, method]) => `${name}.${method}`),
@@ -163,29 +178,56 @@ test("pages worker falls back to runtime instance constructors when globals are 
       "CartographyCtor.stop",
     ],
   );
+  assert.equal(scheduled.length, 1);
+  assert.equal(scheduled[0].delay, 250);
 });
 
 test("pages worker skips unavailable patch targets without throwing", () => {
   const game = { combat: {} };
   const fixture = createModules({ game, globals: {} });
+  const scheduled = [];
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
 
-  init(fixture.modules);
-  assert.doesNotThrow(() => worker({}));
+  globalThis.setInterval = (callback, delay) => {
+    scheduled.push({ callback, delay });
+    return { delay };
+  };
+  globalThis.clearInterval = () => {};
+
+  try {
+    init(fixture.modules);
+    assert.doesNotThrow(() => worker({}));
+  } finally {
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
+  }
+
   assert.equal(fixture.patchCalls.length, 0);
+  assert.equal(scheduled.length, 1);
+  assert.equal(scheduled[0].delay, 250);
 });
 
 test("pages worker schedules a bounded retry when runtime patch targets are unresolved", () => {
   const game = { combat: {} };
   const fixture = createModules({ game, globals: {} });
   const scheduled = [];
+  const intervals = [];
   const originalSetTimeout = globalThis.setTimeout;
   const originalClearTimeout = globalThis.clearTimeout;
+  const originalSetInterval = globalThis.setInterval;
+  const originalClearInterval = globalThis.clearInterval;
 
   globalThis.setTimeout = (callback, delay) => {
     scheduled.push({ callback, delay });
     return { delay };
   };
   globalThis.clearTimeout = () => {};
+  globalThis.setInterval = (callback, delay) => {
+    intervals.push({ callback, delay });
+    return { delay };
+  };
+  globalThis.clearInterval = () => {};
 
   try {
     init(fixture.modules);
@@ -193,9 +235,13 @@ test("pages worker schedules a bounded retry when runtime patch targets are unre
   } finally {
     globalThis.setTimeout = originalSetTimeout;
     globalThis.clearTimeout = originalClearTimeout;
+    globalThis.setInterval = originalSetInterval;
+    globalThis.clearInterval = originalClearInterval;
   }
 
   assert.equal(fixture.patchCalls.length, 0);
   assert.equal(scheduled.length, 1);
   assert.equal(scheduled[0].delay, 1000);
+  assert.equal(intervals.length, 1);
+  assert.equal(intervals[0].delay, 250);
 });

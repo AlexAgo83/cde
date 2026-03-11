@@ -39,7 +39,7 @@ test("export meta contract validates stable export meta payload shape", () => {
       processBuffer: 250,
       isFullExport: true,
       gameVersion: "1.3.0",
-      modVersion: "v3.0.10",
+      modVersion: "v3.0.11",
     }),
     true
   );
@@ -52,7 +52,7 @@ test("export meta contract validates stable export meta payload shape", () => {
       processBuffer: 250,
       isFullExport: true,
       gameVersion: "1.3.0",
-      modVersion: "v3.0.10",
+      modVersion: "v3.0.11",
     }),
     false
   );

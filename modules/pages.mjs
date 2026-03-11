@@ -9,10 +9,13 @@ let _lastTick = null;
 let subModules = [];
 let pageObservers = new Map();
 let runtimePatchRetryTimer = null;
+let runtimePollTimer = null;
 let patchedRuntimeHooks = new Set();
+let wasRuntimeActivityActive = false;
 
 const PATCH_RETRY_DELAY_MS = 1000;
 const PATCH_RETRY_MAX_ATTEMPTS = 5;
+const POLL_REFRESH_INTERVAL_MS = 250;
 
 /** COMBAT PANEL */
 let combatPanel = null;
@@ -187,7 +190,12 @@ function resetRuntimePatchState() {
         clearTimeout(runtimePatchRetryTimer);
         runtimePatchRetryTimer = null;
     }
+    if (runtimePollTimer != null) {
+        clearInterval(runtimePollTimer);
+        runtimePollTimer = null;
+    }
     patchedRuntimeHooks = new Set();
+    wasRuntimeActivityActive = false;
 }
 
 function resolvePatchTargetDescriptor(label, globalName, method, ...fallbackTargets) {
@@ -220,6 +228,96 @@ function getRuntimeSkillCandidates(...localIDs) {
     return localIDs
         .map((localID) => skills.find((skill) => skill?.localID === localID) ?? null)
         .filter((skill) => skill != null);
+}
+
+function getCurrentRuntimeContext() {
+    const game = _game();
+    const userPage = game?.openPage ?? null;
+    const isCombat = game?.combat?.isActive ?? false;
+    const activeAction = game?.activeAction ?? null;
+    const hasValidPage = Boolean(userPage?.localID && userPage?.containerID);
+
+    return {
+        userPage,
+        isCombat,
+        activeAction,
+        hasValidPage,
+        isRuntimeActivityActive: Boolean(isCombat || activeAction?.localID),
+    };
+}
+
+function getContextPanels(userPage, isCombat) {
+    if (isCombat) {
+        return [{ panel: getCombatPanel(), localID: "Combat" }];
+    }
+
+    switch (userPage?.localID) {
+        case "Woodcutting":
+            return [{ panel: getWoodcuttingPanel(), localID: "Woodcutting" }];
+        case "Fishing":
+            return [{ panel: getFishingPanel(), localID: "Fishing" }];
+        case "Firemaking":
+            return [{ panel: getFiremakingPanel(), localID: "Firemaking" }];
+        case "Cooking":
+            return [{ panel: getCookingPanel(), localID: "Cooking" }];
+        case "Mining":
+            return [{ panel: getMiningPanel(), localID: "Mining" }];
+        case "Smithing":
+            return [{ panel: getSmithingPanel(), localID: "Smithing" }];
+        case "Thieving":
+            return [{ panel: getThievingPanel(), localID: "Thieving" }];
+        case "Fletching":
+            return [{ panel: getFletchingPanel(), localID: "Fletching" }];
+        case "Crafting":
+            return [{ panel: getCraftingPanel(), localID: "Crafting" }];
+        case "Runecrafting":
+            return [{ panel: getRunecraftingPanel(), localID: "Runecrafting" }];
+        case "Herblore":
+            return [{ panel: getHerblorePanel(), localID: "Herblore" }];
+        case "Agility":
+            return [{ panel: getAgilityPanel(), localID: "Agility" }];
+        case "Summoning":
+            return [{ panel: getSummoningPanel(), localID: "Summoning" }];
+        case "Astrology":
+            return [{ panel: getAstrologyPanel(), localID: "Astrology" }];
+        case "Magic":
+            return [{ panel: getAltMagicPanel(), localID: "AltMagic" }];
+        case "Archaeology":
+            return [{ panel: getArchaeologyPanel(), localID: "Archaeology" }];
+        case "Cartography":
+            return [{ panel: getCartographyPanel(), localID: "Cartography" }];
+        default:
+            return [];
+    }
+}
+
+function refreshPanelsForContext(userPage, isCombat, activeAction) {
+    getContextPanels(userPage, isCombat).forEach(({ panel, localID }) => {
+        doWorker(userPage, isCombat, activeAction, panel, localID);
+    });
+}
+
+function startRuntimePolling() {
+    if (runtimePollTimer != null) {
+        return;
+    }
+    runtimePollTimer = setInterval(() => {
+        if (!isCfg(Stg().ETA_DISPLAY)) {
+            wasRuntimeActivityActive = false;
+            return;
+        }
+
+        const context = getCurrentRuntimeContext();
+        if (wasRuntimeActivityActive && !context.isRuntimeActivityActive) {
+            onStop();
+        }
+        wasRuntimeActivityActive = context.isRuntimeActivityActive;
+
+        if (!context.hasValidPage) {
+            return;
+        }
+        refreshPanelsForContext(context.userPage, context.isCombat, context.activeAction);
+    }, POLL_REFRESH_INTERVAL_MS);
 }
 
 /**
@@ -418,28 +516,7 @@ function buildWorkerPatchRegistrations() {
                 if (mods.getSettings().isDebug()) {
                     console.log("[CDE] doWorker:tick registered", args);
                 }
-
-                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
-
-                /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
-                /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
-                /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
-                /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
-                /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
-                /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
-                /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
-                /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
-
-                /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
-                /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
-                /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
-                /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
-                /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
-
-                /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
-                /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
-                /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
-                /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -450,7 +527,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Enemy death rised:", args);
                 }
                 if (!isCfg(Stg().ETA_COMBAT)) return;
-                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -462,7 +539,7 @@ function buildWorkerPatchRegistrations() {
                 }
                 if (!isCfg(Stg().ETA_COMBAT)) return;
                 onStop();
-                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -473,7 +550,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Player damage():", args);
                 }
                 if (!isCfg(Stg().ETA_COMBAT)) return;
-                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -484,7 +561,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Enemy damage():", args);
                 }
                 if (!isCfg(Stg().ETA_COMBAT)) return;
-                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -500,14 +577,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Craft action finished:", args);
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
-                /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
-                /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
-                /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
-                /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
-                /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
-                /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
-                /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
-                /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -524,14 +594,7 @@ function buildWorkerPatchRegistrations() {
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
                 onStop();
-                /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
-                /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
-                /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
-                /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
-                /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
-                /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
-                /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
-                /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -547,11 +610,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Gathering action finished:", args);
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
-                /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
-                /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
-                /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
-                /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
-                /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -568,11 +627,7 @@ function buildWorkerPatchRegistrations() {
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
                 onStop();
-                /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
-                /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
-                /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
-                /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
-                /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -583,7 +638,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:AltMagic action finished:", args);
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
-                /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -595,7 +650,7 @@ function buildWorkerPatchRegistrations() {
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
                 onStop();
-                /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -606,7 +661,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Thieving action finished:", args);
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
-                /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -618,7 +673,7 @@ function buildWorkerPatchRegistrations() {
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
                 onStop();
-                /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -629,7 +684,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Archaeology action finished:", args);
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
-                /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -641,7 +696,7 @@ function buildWorkerPatchRegistrations() {
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
                 onStop();
-                /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -652,7 +707,7 @@ function buildWorkerPatchRegistrations() {
                     console.log("[CDE] doWorker:Cartography action finished:", args);
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
-                /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
         {
@@ -664,7 +719,7 @@ function buildWorkerPatchRegistrations() {
                 }
                 if (!isCfg(Stg().ETA_SKILLS)) return;
                 onStop();
-                /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
+                refreshPanelsForContext(userPage, isCombat, activeAction);
             },
         },
     ];
@@ -717,6 +772,7 @@ function attemptRuntimePatches(ctx, attempt = 0) {
  */
 export function worker(ctx) {
     attemptRuntimePatches(ctx);
+    startRuntimePolling();
 }
 
 /**
