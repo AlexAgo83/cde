@@ -8,6 +8,11 @@ let mods = null;
 let _lastTick = null;
 let subModules = [];
 let pageObservers = new Map();
+let runtimePatchRetryTimer = null;
+let patchedRuntimeHooks = new Set();
+
+const PATCH_RETRY_DELAY_MS = 1000;
+const PATCH_RETRY_MAX_ATTEMPTS = 5;
 
 /** COMBAT PANEL */
 let combatPanel = null;
@@ -93,6 +98,7 @@ export async function loadSubModule(ctx) {
  */
 export function init(modules) {
   mods = modules;
+  resetRuntimePatchState();
   initSubModule(modules);
 }
 
@@ -170,6 +176,18 @@ function renderer() {
 
 function pagesRuntime() {
     return mods.getPagesRuntime();
+}
+
+function patchDescriptorKey(descriptor) {
+    return `${descriptor.label}.${descriptor.method}`;
+}
+
+function resetRuntimePatchState() {
+    if (runtimePatchRetryTimer != null) {
+        clearTimeout(runtimePatchRetryTimer);
+        runtimePatchRetryTimer = null;
+    }
+    patchedRuntimeHooks = new Set();
 }
 
 function resolvePatchTargetDescriptor(label, globalName, method, ...fallbackTargets) {
@@ -297,9 +315,14 @@ function patcher(onPatch=(userPage, isCombat, activeAction, ...args)=>{}) {
     }
 }
 
-function safePatchAfter(ctx, descriptor, onPatch) {
+function safePatchAfter(ctx, descriptor, onPatch, attempt = 0) {
+    const patchKey = patchDescriptorKey(descriptor);
+    if (patchedRuntimeHooks.has(patchKey)) {
+        return true;
+    }
     if (mods.getSettings().isDebug()) {
         console.info(`[CDE] Patch target diagnostics for ${descriptor.label}.${descriptor.method}`, {
+            attempt,
             globalTargetType: descriptor.globalTargetType,
             globalTargetName: descriptor.globalTargetName,
             globalHasMethod: descriptor.globalHasMethod,
@@ -313,6 +336,7 @@ function safePatchAfter(ctx, descriptor, onPatch) {
     if (!descriptor.isPatchable) {
         if (mods.getSettings().isDebug()) {
             console.warn(`[CDE] Skipping patch for ${descriptor.label}.${descriptor.method}: target class unavailable or method missing`, {
+                attempt,
                 globalTargetType: descriptor.globalTargetType,
                 globalTargetName: descriptor.globalTargetName,
                 fallbackTargets: descriptor.fallbackTargets,
@@ -321,9 +345,307 @@ function safePatchAfter(ctx, descriptor, onPatch) {
                 selectedHasMethod: descriptor.selectedHasMethod,
             });
         }
-        return null;
+        return false;
     }
-    return runtime().patch(ctx, descriptor.selectedTarget, descriptor.method).after(patcher(onPatch));
+    runtime().patch(ctx, descriptor.selectedTarget, descriptor.method).after(patcher(onPatch));
+    patchedRuntimeHooks.add(patchKey);
+    if (mods.getSettings().isDebug()) {
+        console.info(`[CDE] Patch registered for ${descriptor.label}.${descriptor.method}`, {
+            attempt,
+            selectedTargetName: descriptor.selectedTargetName,
+            selectedSource: descriptor.selectedSource,
+        });
+    }
+    return true;
+}
+
+function buildWorkerPatchRegistrations() {
+    return [
+        {
+            descriptor: resolvePatchTargetDescriptor("Game", "Game", "tick", _game()?.constructor),
+            onPatch: (userPage, isCombat, activeAction, ...args) => {
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                if (!isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+
+                const now = Date.now();
+                const minTick = mods.getSettings().getCfg(Stg().ETA_GLOBAL_EVENTS_RATE);
+                if (!pagesRuntime().shouldRunGlobalTick({ lastTick: _lastTick, now, minTick })) return;
+                _lastTick = now;
+                
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:tick registered", args);
+                }
+
+                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+
+                /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
+                /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
+                /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
+                /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
+                /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
+                /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
+                /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
+                /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
+
+                /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
+                /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
+                /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
+                /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
+                /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
+
+                /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
+                /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
+                /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
+                /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("CombatManager", "CombatManager", "onEnemyDeath", _game()?.combat?.constructor),
+            onPatch: (userPage, isCombat, activeAction, ...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Enemy death rised:", args);
+                }
+                if (!isCfg(Stg().ETA_COMBAT)) return;
+                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("CombatManager", "CombatManager", "stop", _game()?.combat?.constructor),
+            onPatch: (userPage, isCombat, activeAction, ...args) => {
+                _lastTick = Date.now();
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:onStop:", args);
+                }
+                if (!isCfg(Stg().ETA_COMBAT)) return;
+                onStop();
+                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Player", "Player", "damage", _game()?.combat?.player?.constructor),
+            onPatch: (userPage, isCombat, activeAction, ...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Player damage():", args);
+                }
+                if (!isCfg(Stg().ETA_COMBAT)) return;
+                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Enemy", "Enemy", "damage", _game()?.combat?.enemy?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Enemy damage():", args);
+                }
+                if (!isCfg(Stg().ETA_COMBAT)) return;
+                /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("CraftingSkill", "CraftingSkill", "action"),
+            onPatch: (userPage, isCombat, activeAction, ...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Craft action finished:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
+                /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
+                /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
+                /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
+                /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
+                /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
+                /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
+                /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("CraftingSkill", "CraftingSkill", "stop"),
+            onPatch: (userPage, isCombat, activeAction, ...args) => {
+                _lastTick = Date.now();
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Craft action stopped:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                onStop();
+                /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
+                /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
+                /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
+                /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
+                /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
+                /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
+                /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
+                /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("GatheringSkill", "GatheringSkill", "action"),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Gathering action finished:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
+                /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
+                /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
+                /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
+                /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("GatheringSkill", "GatheringSkill", "stop"),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                _lastTick = Date.now();
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Gathering action stopped:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                onStop();
+                /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
+                /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
+                /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
+                /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
+                /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("AltMagic", "AltMagic", "action", _game()?.altMagic?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:AltMagic action finished:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("AltMagic", "AltMagic", "stop", _game()?.altMagic?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                _lastTick = Date.now();
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:AltMagic action stopped:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                onStop();
+                /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Thieving", "Thieving", "action", _game()?.thieving?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Thieving action finished:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Thieving", "Thieving", "stop", _game()?.thieving?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                _lastTick = Date.now();
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Thieving action stopped:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                onStop();
+                /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Archaeology", "Archaeology", "action", _game()?.archaeology?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Archaeology action finished:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Archaeology", "Archaeology", "stop", _game()?.archaeology?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                _lastTick = Date.now();
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Archaeology action stopped:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                onStop();
+                /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Cartography", "Cartography", "action", _game()?.cartography?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Cartography action finished:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
+            },
+        },
+        {
+            descriptor: resolvePatchTargetDescriptor("Cartography", "Cartography", "stop", _game()?.cartography?.constructor),
+            onPatch: (userPage, isCombat, activeAction,...args) => {
+                _lastTick = Date.now();
+                if (mods.getSettings().isDebug()) {
+                    console.log("[CDE] doWorker:Cartography action stopped:", args);
+                }
+                if (!isCfg(Stg().ETA_SKILLS)) return;
+                onStop();
+                /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
+            },
+        },
+    ];
+}
+
+function scheduleRuntimePatchRetry(ctx, attempt, unresolvedCount) {
+    if (unresolvedCount <= 0) {
+        return;
+    }
+    if (attempt + 1 >= PATCH_RETRY_MAX_ATTEMPTS) {
+        if (mods.getSettings().isDebug()) {
+            console.warn("[CDE] Runtime patch registration exhausted retries", {
+                attempts: PATCH_RETRY_MAX_ATTEMPTS,
+                unresolvedCount,
+            });
+        }
+        return;
+    }
+    if (runtimePatchRetryTimer != null) {
+        return;
+    }
+    if (mods.getSettings().isDebug()) {
+        console.info("[CDE] Scheduling runtime patch retry", {
+            nextAttempt: attempt + 1,
+            delayMs: PATCH_RETRY_DELAY_MS,
+            unresolvedCount,
+        });
+    }
+    runtimePatchRetryTimer = setTimeout(() => {
+        runtimePatchRetryTimer = null;
+        attemptRuntimePatches(ctx, attempt + 1);
+    }, PATCH_RETRY_DELAY_MS);
+}
+
+function attemptRuntimePatches(ctx, attempt = 0) {
+    const registrations = buildWorkerPatchRegistrations();
+    let unresolvedCount = 0;
+    registrations.forEach(({ descriptor, onPatch }) => {
+        const patched = safePatchAfter(ctx, descriptor, onPatch, attempt);
+        if (!patched) {
+            unresolvedCount += 1;
+        }
+    });
+    scheduleRuntimePatchRetry(ctx, attempt, unresolvedCount);
 }
 
 /**
@@ -331,221 +653,7 @@ function safePatchAfter(ctx, descriptor, onPatch) {
  * @param {*} ctx - The context object used to patch game methods.
  */
 export function worker(ctx) {
-    /** On any game tick */
-    
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Game", "Game", "tick", _game()?.constructor), (userPage, isCombat, activeAction, ...args) => {
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        if (!isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-
-        const now = Date.now();
-        const minTick = mods.getSettings().getCfg(Stg().ETA_GLOBAL_EVENTS_RATE);
-        if (!pagesRuntime().shouldRunGlobalTick({ lastTick: _lastTick, now, minTick })) return;
-        _lastTick = now;
-        
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:tick registered", args);
-        }
-
-        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
-
-        /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
-        /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
-        /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
-        /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
-        /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
-        /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
-        /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
-        /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
-
-        /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
-        /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
-        /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
-        /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
-        /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
-
-        /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
-        /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
-        /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
-        /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
-    });
-
-    /** COMBAT ONLY : Enemy Death */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("CombatManager", "CombatManager", "onEnemyDeath", _game()?.combat?.constructor), (userPage, isCombat, activeAction, ...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Enemy death rised:", args);
-        }
-        if (!isCfg(Stg().ETA_COMBAT)) return;
-        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
-    });
-
-    /** COMBAT ONLY : Combat Stop */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("CombatManager", "CombatManager", "stop", _game()?.combat?.constructor), (userPage, isCombat, activeAction, ...args) => {
-        _lastTick = Date.now();
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:onStop:", args);
-        }
-        if (!isCfg(Stg().ETA_COMBAT)) return;
-        onStop();
-        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
-    });
-
-    /** COMBAT ONLY : Player - Damage */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Player", "Player", "damage", _game()?.combat?.player?.constructor), (userPage, isCombat, activeAction, ...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Player damage():", args);
-        }
-        if (!isCfg(Stg().ETA_COMBAT)) return;
-        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
-    });
-
-    /** COMBAT ONLY : Enemy - Damage */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Enemy", "Enemy", "damage", _game()?.combat?.enemy?.constructor), (userPage, isCombat, activeAction,...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Enemy damage():", args);
-        }
-        if (!isCfg(Stg().ETA_COMBAT)) return;
-        /* COMBAT */        doWorker(userPage, isCombat, activeAction, getCombatPanel(), "Combat");
-    });
-
-    /** Crafting - action */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("CraftingSkill", "CraftingSkill", "action"), (userPage, isCombat, activeAction, ...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Craft action finished:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
-        /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
-        /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
-        /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
-        /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
-        /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
-        /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
-        /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
-    });
-
-    /** Crafting - stop */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("CraftingSkill", "CraftingSkill", "stop"), (userPage, isCombat, activeAction, ...args) => {
-        _lastTick = Date.now();
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Craft action stopped:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        onStop();
-        /* Firemaking */    doWorker(userPage, isCombat, activeAction, getFiremakingPanel(), "Firemaking");
-        /* Cooking */       doWorker(userPage, isCombat, activeAction, getCookingPanel(), "Cooking");
-        /* Smithing */      doWorker(userPage, isCombat, activeAction, getSmithingPanel(), "Smithing");
-        /* Fletching */     doWorker(userPage, isCombat, activeAction, getFletchingPanel(), "Fletching");
-        /* Crafting */      doWorker(userPage, isCombat, activeAction, getCraftingPanel(), "Crafting");
-        /* Runecrafting */  doWorker(userPage, isCombat, activeAction, getRunecraftingPanel(), "Runecrafting");
-        /* Herblore */      doWorker(userPage, isCombat, activeAction, getHerblorePanel(), "Herblore");
-        /* Summoning */     doWorker(userPage, isCombat, activeAction, getSummoningPanel(), "Summoning");
-    });
-
-    /** Gathering - action */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("GatheringSkill", "GatheringSkill", "action"), (userPage, isCombat, activeAction,...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Gathering action finished:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
-        /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
-        /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
-        /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
-        /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
-    });
-
-    /** Gathering - stop */
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("GatheringSkill", "GatheringSkill", "stop"), (userPage, isCombat, activeAction,...args) => {
-        _lastTick = Date.now();
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Gathering action stopped:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        onStop();
-        /* Woodcutting */   doWorker(userPage, isCombat, activeAction, getWoodcuttingPanel(), "Woodcutting");
-        /* Fishing */       doWorker(userPage, isCombat, activeAction, getFishingPanel(), "Fishing");
-        /* Mining */        doWorker(userPage, isCombat, activeAction, getMiningPanel(), "Mining");
-        /* Agility */       doWorker(userPage, isCombat, activeAction, getAgilityPanel(), "Agility");
-        /* Astrology */     doWorker(userPage, isCombat, activeAction, getAstrologyPanel(), "Astrology");
-    });
-
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("AltMagic", "AltMagic", "action", _game()?.altMagic?.constructor), (userPage, isCombat, activeAction,...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:AltMagic action finished:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
-    });
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("AltMagic", "AltMagic", "stop", _game()?.altMagic?.constructor), (userPage, isCombat, activeAction,...args) => {
-        _lastTick = Date.now();
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:AltMagic action stopped:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        onStop();
-        /* AltMagic */      doWorker(userPage, isCombat, activeAction, getAltMagicPanel(), "AltMagic");
-    });
-
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Thieving", "Thieving", "action", _game()?.thieving?.constructor), (userPage, isCombat, activeAction,...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Thieving action finished:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
-    });
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Thieving", "Thieving", "stop", _game()?.thieving?.constructor), (userPage, isCombat, activeAction,...args) => {
-        _lastTick = Date.now();
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Thieving action stopped:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        onStop();
-        /* Thieving */      doWorker(userPage, isCombat, activeAction, getThievingPanel(), "Thieving");
-    });
-
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Archaeology", "Archaeology", "action", _game()?.archaeology?.constructor), (userPage, isCombat, activeAction,...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Archaeology action finished:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
-    });
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Archaeology", "Archaeology", "stop", _game()?.archaeology?.constructor), (userPage, isCombat, activeAction,...args) => {
-        _lastTick = Date.now();
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Archaeology action stopped:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        onStop();
-        /* Archaeology */   doWorker(userPage, isCombat, activeAction, getArchaeologyPanel(), "Archaeology");
-    });
-
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Cartography", "Cartography", "action", _game()?.cartography?.constructor), (userPage, isCombat, activeAction,...args) => {
-        if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Cartography action finished:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
-    });
-    safePatchAfter(ctx, resolvePatchTargetDescriptor("Cartography", "Cartography", "stop", _game()?.cartography?.constructor), (userPage, isCombat, activeAction,...args) => {
-        _lastTick = Date.now();
-        if (mods.getSettings().isDebug()) {
-            console.log("[CDE] doWorker:Cartography action stopped:", args);
-        }
-        if (!isCfg(Stg().ETA_SKILLS)) return;
-        onStop();
-        /* Cartography */   doWorker(userPage, isCombat, activeAction, getCartographyPanel(), "Cartography");
-    });
-
+    attemptRuntimePatches(ctx);
 }
 
 /**

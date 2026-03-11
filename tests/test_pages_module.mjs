@@ -157,3 +157,29 @@ test("pages worker skips unavailable patch targets without throwing", () => {
   assert.doesNotThrow(() => worker({}));
   assert.equal(fixture.patchCalls.length, 0);
 });
+
+test("pages worker schedules a bounded retry when runtime patch targets are unresolved", () => {
+  const game = { combat: {} };
+  const fixture = createModules({ game, globals: {} });
+  const scheduled = [];
+  const originalSetTimeout = globalThis.setTimeout;
+  const originalClearTimeout = globalThis.clearTimeout;
+
+  globalThis.setTimeout = (callback, delay) => {
+    scheduled.push({ callback, delay });
+    return { delay };
+  };
+  globalThis.clearTimeout = () => {};
+
+  try {
+    init(fixture.modules);
+    worker({});
+  } finally {
+    globalThis.setTimeout = originalSetTimeout;
+    globalThis.clearTimeout = originalClearTimeout;
+  }
+
+  assert.equal(fixture.patchCalls.length, 0);
+  assert.equal(scheduled.length, 1);
+  assert.equal(scheduled[0].delay, 1000);
+});
