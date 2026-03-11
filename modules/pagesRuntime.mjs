@@ -6,6 +6,60 @@
 
 export const PANEL_REFRESH_INTERVAL_MS = 25;
 
+const MAX_PATCH_TARGET_PROTOTYPE_DEPTH = 6;
+
+function getFunctionName(candidate) {
+    return typeof candidate === "function" ? candidate.name || "anonymous" : null;
+}
+
+function getInputConstructorName(candidate) {
+    return typeof candidate?.constructor === "function"
+        ? candidate.constructor.name || "anonymous"
+        : null;
+}
+
+function expandPatchTargetCandidates(candidate, method) {
+    if (typeof candidate === "function") {
+        return candidate !== Object
+            ? [{
+                candidate,
+                path: "direct",
+                type: "function",
+                name: getFunctionName(candidate),
+                hasMethod: typeof candidate?.prototype?.[method] === "function",
+            }]
+            : [];
+    }
+    if (candidate == null || (typeof candidate !== "object" && typeof candidate !== "function")) {
+        return [];
+    }
+
+    const resolutions = [];
+    const seenTargets = new Set();
+    const seenPrototypes = new Set();
+    let current = candidate;
+    let depth = 0;
+
+    while (current != null && depth <= MAX_PATCH_TARGET_PROTOTYPE_DEPTH && !seenPrototypes.has(current)) {
+        seenPrototypes.add(current);
+        const ctor = current.constructor;
+        if (typeof ctor === "function" && ctor !== Object && !seenTargets.has(ctor)) {
+            seenTargets.add(ctor);
+            resolutions.push({
+                candidate: ctor,
+                path: depth === 0 ? "instance.constructor" : `prototype:${depth}.constructor`,
+                type: "function",
+                name: getFunctionName(ctor),
+                hasMethod: typeof ctor?.prototype?.[method] === "function",
+            });
+        }
+        current = Object.getPrototypeOf(current);
+        depth += 1;
+    }
+
+    return resolutions;
+}
+
 /**
  * Returns the first patchable constructor from the provided candidates.
  * Melvor globals can differ between runtimes, so callers may pass globals and instance constructors.
@@ -14,8 +68,11 @@ export const PANEL_REFRESH_INTERVAL_MS = 25;
  */
 export function resolvePatchTarget(...candidates) {
     for (const candidate of candidates) {
-        if (typeof candidate === "function" && candidate !== Object) {
-            return candidate;
+        const expanded = expandPatchTargetCandidates(candidate, "");
+        for (const resolution of expanded) {
+            if (typeof resolution.candidate === "function" && resolution.candidate !== Object) {
+                return resolution.candidate;
+            }
         }
     }
     return null;
@@ -35,7 +92,13 @@ export function resolvePatchTarget(...candidates) {
  * globalTargetType: string,
  * globalTargetName: string | null,
  * globalHasMethod: boolean,
- * fallbackTargets: Array<{ index: number, type: string, name: string | null, hasMethod: boolean }>,
+ * globalCandidates: Array<{ path: string, type: string, name: string | null, hasMethod: boolean }>,
+ * fallbackTargets: Array<{
+ * index: number,
+ * inputType: string,
+ * inputConstructorName: string | null,
+ * resolutions: Array<{ path: string, type: string, name: string | null, hasMethod: boolean }>
+ * }>,
  * selectedTarget: Function | null,
  * selectedTargetName: string | null,
  * selectedSource: string | null,
@@ -50,40 +113,64 @@ export function describePatchTargetResolution({
     fallbackTargets = [],
 }) {
     const normalizedFallbackTargets = Array.isArray(fallbackTargets) ? fallbackTargets : [];
-    const selectedTarget = resolvePatchTarget(globalTarget, ...normalizedFallbackTargets);
+    const globalCandidates = expandPatchTargetCandidates(globalTarget, method);
+    const fallbackCandidates = normalizedFallbackTargets.map((candidate, index) => ({
+        index,
+        inputType: typeof candidate,
+        inputConstructorName: getInputConstructorName(candidate),
+        resolutions: expandPatchTargetCandidates(candidate, method),
+    }));
 
-    const describeCandidate = (candidate, index = null) => ({
-        ...(index == null ? {} : { index }),
-        type: typeof candidate,
-        name: typeof candidate === "function" ? candidate.name || "anonymous" : null,
-        hasMethod: typeof candidate?.prototype?.[method] === "function",
-    });
+    const allResolutions = [
+        ...globalCandidates.map((resolution) => ({
+            bucket: "global",
+            index: null,
+            resolution,
+        })),
+        ...fallbackCandidates.flatMap((candidate) => candidate.resolutions.map((resolution) => ({
+            bucket: "fallback",
+            index: candidate.index,
+            resolution,
+        }))),
+    ];
 
-    const fallbackDiagnostics = normalizedFallbackTargets.map((candidate, index) =>
-        describeCandidate(candidate, index)
-    );
-
-    let selectedSource = null;
-    if (selectedTarget === globalTarget && typeof globalTarget === "function") {
-        selectedSource = "global";
-    } else {
-        const fallbackIndex = normalizedFallbackTargets.findIndex((candidate) => candidate === selectedTarget);
-        if (fallbackIndex >= 0) {
-            selectedSource = `fallback:${fallbackIndex}`;
-        }
-    }
-
-    const selectedHasMethod = typeof selectedTarget?.prototype?.[method] === "function";
+    const selectedResolution =
+        allResolutions.find((entry) => entry.resolution.hasMethod)
+        ?? allResolutions[0]
+        ?? null;
+    const selectedTarget = selectedResolution?.resolution?.candidate ?? null;
+    const selectedHasMethod = selectedResolution?.resolution?.hasMethod ?? false;
+    const selectedSource = selectedResolution == null
+        ? null
+        : selectedResolution.bucket === "global"
+            ? `global:${selectedResolution.resolution.path}`
+            : `fallback:${selectedResolution.index}:${selectedResolution.resolution.path}`;
 
     return {
         label,
         method,
         globalTargetType: typeof globalTarget,
-        globalTargetName: typeof globalTarget === "function" ? globalTarget.name || "anonymous" : null,
-        globalHasMethod: typeof globalTarget?.prototype?.[method] === "function",
-        fallbackTargets: fallbackDiagnostics,
+        globalTargetName: getFunctionName(globalTarget),
+        globalHasMethod: globalCandidates.some((candidate) => candidate.hasMethod),
+        globalCandidates: globalCandidates.map((resolution) => ({
+            path: resolution.path,
+            type: resolution.type,
+            name: resolution.name,
+            hasMethod: resolution.hasMethod,
+        })),
+        fallbackTargets: fallbackCandidates.map((candidate) => ({
+            index: candidate.index,
+            inputType: candidate.inputType,
+            inputConstructorName: candidate.inputConstructorName,
+            resolutions: candidate.resolutions.map((resolution) => ({
+                path: resolution.path,
+                type: resolution.type,
+                name: resolution.name,
+                hasMethod: resolution.hasMethod,
+            })),
+        })),
         selectedTarget,
-        selectedTargetName: typeof selectedTarget === "function" ? selectedTarget.name || "anonymous" : null,
+        selectedTargetName: getFunctionName(selectedTarget),
         selectedSource,
         selectedHasMethod,
         isPatchable: typeof selectedTarget === "function" && selectedHasMethod,

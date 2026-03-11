@@ -115,6 +115,12 @@ test("pages worker falls back to runtime instance constructors when globals are 
   function CartographyCtor() {}
   CartographyCtor.prototype.action = function action() {};
   CartographyCtor.prototype.stop = function stop() {};
+  function CraftingSkillCtor() {}
+  CraftingSkillCtor.prototype.action = function action() {};
+  CraftingSkillCtor.prototype.stop = function stop() {};
+  function GatheringSkillCtor() {}
+  GatheringSkillCtor.prototype.action = function action() {};
+  GatheringSkillCtor.prototype.stop = function stop() {};
 
   const game = new GameCtor();
   game.combat = new CombatCtor();
@@ -124,6 +130,12 @@ test("pages worker falls back to runtime instance constructors when globals are 
   game.altMagic = new AltMagicCtor();
   game.archaeology = new ArchaeologyCtor();
   game.cartography = new CartographyCtor();
+  game.skills = {
+    registeredObjects: [
+      Object.assign(new CraftingSkillCtor(), { localID: "Firemaking" }),
+      Object.assign(new GatheringSkillCtor(), { localID: "Woodcutting" }),
+    ],
+  };
 
   const fixture = createModules({ game });
   init(fixture.modules);
@@ -137,6 +149,10 @@ test("pages worker falls back to runtime instance constructors when globals are 
       "CombatCtor.stop",
       "PlayerCtor.damage",
       "EnemyCtor.damage",
+      "CraftingSkillCtor.action",
+      "CraftingSkillCtor.stop",
+      "GatheringSkillCtor.action",
+      "GatheringSkillCtor.stop",
       "AltMagicCtor.action",
       "AltMagicCtor.stop",
       "ThievingCtor.action",

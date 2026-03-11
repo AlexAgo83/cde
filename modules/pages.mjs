@@ -199,6 +199,29 @@ function resolvePatchTargetDescriptor(label, globalName, method, ...fallbackTarg
     });
 }
 
+function getRegisteredRuntimeSkills() {
+    const registered = _game()?.skills?.registeredObjects ?? _game()?.skills;
+    if (registered == null) {
+        return [];
+    }
+    if (Array.isArray(registered)) {
+        return registered;
+    }
+    if (typeof registered.forEach === "function") {
+        const values = [];
+        registered.forEach((value) => values.push(value));
+        return values;
+    }
+    return [];
+}
+
+function getRuntimeSkillCandidates(...localIDs) {
+    const skills = getRegisteredRuntimeSkills();
+    return localIDs
+        .map((localID) => skills.find((skill) => skill?.localID === localID) ?? null)
+        .filter((skill) => skill != null);
+}
+
 /**
  * Returns the list of loaded panel submodules (e.g., combatPanel).
  * @returns {Array} An array of loaded submodule instances.
@@ -326,6 +349,7 @@ function safePatchAfter(ctx, descriptor, onPatch, attempt = 0) {
             globalTargetType: descriptor.globalTargetType,
             globalTargetName: descriptor.globalTargetName,
             globalHasMethod: descriptor.globalHasMethod,
+            globalCandidates: descriptor.globalCandidates,
             fallbackTargets: descriptor.fallbackTargets,
             selectedTargetName: descriptor.selectedTargetName,
             selectedSource: descriptor.selectedSource,
@@ -339,6 +363,7 @@ function safePatchAfter(ctx, descriptor, onPatch, attempt = 0) {
                 attempt,
                 globalTargetType: descriptor.globalTargetType,
                 globalTargetName: descriptor.globalTargetName,
+                globalCandidates: descriptor.globalCandidates,
                 fallbackTargets: descriptor.fallbackTargets,
                 selectedTargetName: descriptor.selectedTargetName,
                 selectedSource: descriptor.selectedSource,
@@ -360,9 +385,27 @@ function safePatchAfter(ctx, descriptor, onPatch, attempt = 0) {
 }
 
 function buildWorkerPatchRegistrations() {
+    const craftingSkillCandidates = getRuntimeSkillCandidates(
+        "Firemaking",
+        "Cooking",
+        "Smithing",
+        "Fletching",
+        "Crafting",
+        "Runecrafting",
+        "Herblore",
+        "Summoning",
+    );
+    const gatheringSkillCandidates = getRuntimeSkillCandidates(
+        "Woodcutting",
+        "Fishing",
+        "Mining",
+        "Agility",
+        "Astrology",
+    );
+
     return [
         {
-            descriptor: resolvePatchTargetDescriptor("Game", "Game", "tick", _game()?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Game", "Game", "tick", _game()),
             onPatch: (userPage, isCombat, activeAction, ...args) => {
                 if (!isCfg(Stg().ETA_SKILLS)) return;
                 if (!isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
@@ -400,7 +443,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("CombatManager", "CombatManager", "onEnemyDeath", _game()?.combat?.constructor),
+            descriptor: resolvePatchTargetDescriptor("CombatManager", "CombatManager", "onEnemyDeath", _game()?.combat),
             onPatch: (userPage, isCombat, activeAction, ...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -411,7 +454,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("CombatManager", "CombatManager", "stop", _game()?.combat?.constructor),
+            descriptor: resolvePatchTargetDescriptor("CombatManager", "CombatManager", "stop", _game()?.combat),
             onPatch: (userPage, isCombat, activeAction, ...args) => {
                 _lastTick = Date.now();
                 if (mods.getSettings().isDebug()) {
@@ -423,7 +466,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Player", "Player", "damage", _game()?.combat?.player?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Player", "Player", "damage", _game()?.combat?.player),
             onPatch: (userPage, isCombat, activeAction, ...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -434,7 +477,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Enemy", "Enemy", "damage", _game()?.combat?.enemy?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Enemy", "Enemy", "damage", _game()?.combat?.enemy),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -445,7 +488,12 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("CraftingSkill", "CraftingSkill", "action"),
+            descriptor: resolvePatchTargetDescriptor(
+                "CraftingSkill",
+                "CraftingSkill",
+                "action",
+                ...craftingSkillCandidates,
+            ),
             onPatch: (userPage, isCombat, activeAction, ...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -463,7 +511,12 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("CraftingSkill", "CraftingSkill", "stop"),
+            descriptor: resolvePatchTargetDescriptor(
+                "CraftingSkill",
+                "CraftingSkill",
+                "stop",
+                ...craftingSkillCandidates,
+            ),
             onPatch: (userPage, isCombat, activeAction, ...args) => {
                 _lastTick = Date.now();
                 if (mods.getSettings().isDebug()) {
@@ -482,7 +535,12 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("GatheringSkill", "GatheringSkill", "action"),
+            descriptor: resolvePatchTargetDescriptor(
+                "GatheringSkill",
+                "GatheringSkill",
+                "action",
+                ...gatheringSkillCandidates,
+            ),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -497,7 +555,12 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("GatheringSkill", "GatheringSkill", "stop"),
+            descriptor: resolvePatchTargetDescriptor(
+                "GatheringSkill",
+                "GatheringSkill",
+                "stop",
+                ...gatheringSkillCandidates,
+            ),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 _lastTick = Date.now();
                 if (mods.getSettings().isDebug()) {
@@ -513,7 +576,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("AltMagic", "AltMagic", "action", _game()?.altMagic?.constructor),
+            descriptor: resolvePatchTargetDescriptor("AltMagic", "AltMagic", "action", _game()?.altMagic),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -524,7 +587,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("AltMagic", "AltMagic", "stop", _game()?.altMagic?.constructor),
+            descriptor: resolvePatchTargetDescriptor("AltMagic", "AltMagic", "stop", _game()?.altMagic),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 _lastTick = Date.now();
                 if (mods.getSettings().isDebug()) {
@@ -536,7 +599,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Thieving", "Thieving", "action", _game()?.thieving?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Thieving", "Thieving", "action", _game()?.thieving),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -547,7 +610,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Thieving", "Thieving", "stop", _game()?.thieving?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Thieving", "Thieving", "stop", _game()?.thieving),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 _lastTick = Date.now();
                 if (mods.getSettings().isDebug()) {
@@ -559,7 +622,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Archaeology", "Archaeology", "action", _game()?.archaeology?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Archaeology", "Archaeology", "action", _game()?.archaeology),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -570,7 +633,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Archaeology", "Archaeology", "stop", _game()?.archaeology?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Archaeology", "Archaeology", "stop", _game()?.archaeology),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 _lastTick = Date.now();
                 if (mods.getSettings().isDebug()) {
@@ -582,7 +645,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Cartography", "Cartography", "action", _game()?.cartography?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Cartography", "Cartography", "action", _game()?.cartography),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 if (isCfg(Stg().ETA_USE_GLOBAL_EVENTS)) return;
                 if (mods.getSettings().isDebug()) {
@@ -593,7 +656,7 @@ function buildWorkerPatchRegistrations() {
             },
         },
         {
-            descriptor: resolvePatchTargetDescriptor("Cartography", "Cartography", "stop", _game()?.cartography?.constructor),
+            descriptor: resolvePatchTargetDescriptor("Cartography", "Cartography", "stop", _game()?.cartography),
             onPatch: (userPage, isCombat, activeAction,...args) => {
                 _lastTick = Date.now();
                 if (mods.getSettings().isDebug()) {

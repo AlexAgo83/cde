@@ -85,12 +85,22 @@ test("pagesRuntime describes patch target selection and method availability", ()
 
   assert.equal(diagnostics.globalTargetName, "GlobalCtor");
   assert.equal(diagnostics.globalHasMethod, true);
+  assert.deepEqual(diagnostics.globalCandidates, [
+    { path: "direct", type: "function", name: "GlobalCtor", hasMethod: true },
+  ]);
   assert.equal(diagnostics.selectedTargetName, "GlobalCtor");
-  assert.equal(diagnostics.selectedSource, "global");
+  assert.equal(diagnostics.selectedSource, "global:direct");
   assert.equal(diagnostics.selectedHasMethod, true);
   assert.equal(diagnostics.isPatchable, true);
   assert.deepEqual(diagnostics.fallbackTargets, [
-    { index: 0, type: "function", name: "FallbackCtor", hasMethod: false },
+    {
+      index: 0,
+      inputType: "function",
+      inputConstructorName: "Function",
+      resolutions: [
+        { path: "direct", type: "function", name: "FallbackCtor", hasMethod: false },
+      ],
+    },
   ]);
 });
 
@@ -106,9 +116,37 @@ test("pagesRuntime reports unpatchable targets when the selected constructor lac
 
   assert.equal(diagnostics.globalTargetType, "undefined");
   assert.equal(diagnostics.selectedTargetName, "FallbackCtor");
-  assert.equal(diagnostics.selectedSource, "fallback:0");
+  assert.equal(diagnostics.selectedSource, "fallback:0:direct");
   assert.equal(diagnostics.selectedHasMethod, false);
   assert.equal(diagnostics.isPatchable, false);
+});
+
+test("pagesRuntime resolves constructors from runtime instance prototype chains", () => {
+  function RuntimeCtor() {}
+  RuntimeCtor.prototype.stop = function stop() {};
+
+  const instance = Object.create(RuntimeCtor.prototype);
+  instance.constructor = Object;
+
+  const diagnostics = describePatchTargetResolution({
+    label: "Skill",
+    method: "stop",
+    globalTarget: undefined,
+    fallbackTargets: [instance],
+  });
+
+  assert.equal(diagnostics.selectedTargetName, "RuntimeCtor");
+  assert.equal(diagnostics.selectedSource, "fallback:0:prototype:1.constructor");
+  assert.equal(diagnostics.selectedHasMethod, true);
+  assert.equal(diagnostics.isPatchable, true);
+  assert.deepEqual(diagnostics.fallbackTargets[0], {
+    index: 0,
+    inputType: "object",
+    inputConstructorName: "Object",
+    resolutions: [
+      { path: "prototype:1.constructor", type: "function", name: "RuntimeCtor", hasMethod: true },
+    ],
+  });
 });
 
 test("pagesRuntime computes refresh throttling and shared panel shell markup", () => {
