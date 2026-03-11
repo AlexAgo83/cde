@@ -77,4 +77,6 @@ flowchart TD
 - `item_021_diagnose_runtime_patch_target_resolution_for_eta_hooks`
 
 # Outcome
-- Pending.
+- Runtime patch target diagnostics were implemented and replayed in live Melvor.
+- The investigation confirmed the remaining failure was caused by runtime target resolution, not by bootstrap lifecycle issues.
+- The follow-up fixes restored direct Melvor symbol resolution, enabled hook registration again, and unblocked ETA panel refresh behavior.

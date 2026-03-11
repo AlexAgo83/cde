@@ -23,12 +23,12 @@ flowchart LR
 ```
 
 # Plan
-- [ ] 1. Instrument `modules/pages.mjs` so each runtime hook target logs the discovered global symbol, fallback instance, selected constructor, and method availability.
-- [ ] 2. Replay the mod in live Melvor and capture the new diagnostics for combat and non-combat contexts.
-- [ ] 3. Classify the primary failure mode for each skipped patch target: missing symbol, missing instance, prototype mismatch, or timing-related unavailability.
-- [ ] 4. Apply the smallest safe fix needed to stabilize hook registration without changing ETA formulas or visible UI behavior.
-- [ ] 5. Add or update local tests where the diagnosis leads to a deterministic runtime-resolution helper or fallback policy.
-- [ ] FINAL: Update related Logics docs
+- [x] 1. Instrument `modules/pages.mjs` so each runtime hook target logs the discovered global symbol, fallback instance, selected constructor, and method availability.
+- [x] 2. Replay the mod in live Melvor and capture the new diagnostics for combat and non-combat contexts.
+- [x] 3. Classify the primary failure mode for each skipped patch target: missing symbol, missing instance, prototype mismatch, or timing-related unavailability.
+- [x] 4. Apply the smallest safe fix needed to stabilize hook registration without changing ETA formulas or visible UI behavior.
+- [x] 5. Add or update local tests where the diagnosis leads to a deterministic runtime-resolution helper or fallback policy.
+- [x] FINAL: Update related Logics docs
 
 # AC Traceability
 - AC1 -> Step 1 and Step 2. Proof: live diagnostics explain why each hook target is patchable or skipped.
@@ -45,10 +45,13 @@ flowchart LR
 - `bash validate.sh`
 
 # Definition of Done (DoD)
-- [ ] Scope implemented and acceptance criteria covered.
-- [ ] Validation commands executed and results captured.
-- [ ] Linked request/backlog/task docs updated.
-- [ ] Status is `Done` and progress is `100%`.
+- [x] Scope implemented and acceptance criteria covered.
+- [x] Validation commands executed and results captured.
+- [x] Linked request/backlog/task docs updated.
+- [x] Status is `Done` and progress is `100%`.
 
 # Report
-- Pending.
+- Runtime diagnostics were added to the ETA patch target resolution path and replayed in live Melvor.
+- The diagnosis showed the runtime issue was rooted in target resolution, not bootstrap lifecycle failure.
+- The follow-up implementation restored direct Melvor runtime resolution and stabilized hook registration for ETA workers.
+- Validation was completed through targeted Node tests, live Melvor replay, and the full repository release gate.
