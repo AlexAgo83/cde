@@ -10,6 +10,9 @@ import {
   isRequestPermissionAllowed,
   requestPermission,
   displayNotification,
+  createClickAction,
+  registerButton,
+  onSubmit_fromAutoNotify,
 } from "../modules/notification.mjs";
 
 function createFixture({
@@ -23,6 +26,7 @@ function createFixture({
   otherPending = {},
 } = {}) {
   const calls = [];
+  let currentNotification = null;
   const settingsRefs = {
     ETA_NOTIFICATION: "ETA_NOTIFICATION",
     ETA_BROWSER_NOTIFY: "ETA_BROWSER_NOTIFY",
@@ -77,9 +81,10 @@ function createFixture({
     },
     cloudStorage: {
       getCurrentNotification() {
-        return null;
+        return currentNotification;
       },
       setCurrentNotification(value) {
+        currentNotification = value;
         calls.push(["setCurrentNotification", value]);
       },
       updatePendingNotificationForCurrentCharacter(factory) {
@@ -106,7 +111,12 @@ function createFixture({
     },
   });
 
-  return { calls };
+  return {
+    calls,
+    setCurrentNotification(value) {
+      currentNotification = value;
+    },
+  };
 }
 
 test("notification builder normalization supports current and legacy player name fields", () => {
@@ -220,4 +230,28 @@ test("displayNotification falls back to Unknown when the runtime has no characte
 
   assert.equal(rendered.length, 2);
   assert.match(rendered[1], /unknown/);
+});
+
+test("auto notify skips rescheduling when an equivalent notification is already pending", () => {
+  const fixture = createFixture();
+  const now = Date.now();
+  const currentBuilder = newNotifBuilder("hero_name", "Fishing", "fish.png", now, 5_000);
+  fixture.setCurrentNotification(currentBuilder);
+
+  registerButton("btn-auto", createClickAction("btn-auto", {
+    etaName: "Fishing",
+    media: "fish.png",
+    timeInMs: 5_000,
+    autoNotify: true,
+  }));
+
+  const result = onSubmit_fromAutoNotify("btn-auto", {
+    etaName: "Fishing",
+    media: "fish.png",
+    timeInMs: 5_000,
+    autoNotify: true,
+  });
+
+  assert.equal(result, false);
+  assert.deepEqual(fixture.calls, []);
 });

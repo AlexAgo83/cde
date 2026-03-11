@@ -54,6 +54,18 @@ let mods = null;
 let cloudStorage = null;
 let sharedStorage = null;
 
+function sanitizePendingNotificationStore(value) {
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		return value;
+	}
+
+	const sanitizedEntries = Object.entries(value)
+		.map(([key, builder]) => [mods.getUtils().sanitizeCharacterName(key), builder])
+		.filter(([key, builder]) => key && key.toLowerCase() !== "unknown" && contractFns.isNotificationBuilderContract(builder));
+
+	return Object.fromEntries(sanitizedEntries);
+}
+
 /**
  * Initialize the cloud storage module.
  * @param {Object} modules - The modules object containing dependencies.
@@ -368,7 +380,9 @@ function getPendingNotification() {
 	try {
 		const raw = sharedStorage?.getItem(AS_PENDING_NOTIFICATION);
 		const value = typeof raw === "string" ? JSON.parse(raw) : raw;
-		return value == null || contractFns.isPendingNotificationStoreContract(value) ? value : null;
+		if (value == null) return value;
+		if (!contractFns.isPendingNotificationStoreContract(value)) return null;
+		return sanitizePendingNotificationStore(value);
 	} catch (e) {
 		console.warn("[CDE] Invalid pending notification data in accountStorage");
 		return null;
@@ -380,15 +394,18 @@ function getPendingNotification() {
  * @param {*} pendingNotification - The pending notification data to store.
  */
 export function setPendingNotification(pendingNotification)  {
-	if (pendingNotification != null && !contractFns.isPendingNotificationStoreContract(pendingNotification)) {
+	const sanitizedPendingNotification = pendingNotification == null
+		? pendingNotification
+		: sanitizePendingNotificationStore(pendingNotification);
+	if (sanitizedPendingNotification != null && !contractFns.isPendingNotificationStoreContract(sanitizedPendingNotification)) {
 		console.warn("[CDE] Invalid pending notification data for accountStorage");
 		return null;
 	}
 	if (mods.getSettings().isDebug()) {
-		console.log("[CDE] Pending notification changed:"+pendingNotification);
+		console.log("[CDE] Pending notification changed:"+sanitizedPendingNotification);
 	}
-	sharedStorage?.setItem(AS_PENDING_NOTIFICATION, JSON.stringify(pendingNotification));
-	return pendingNotification;
+	sharedStorage?.setItem(AS_PENDING_NOTIFICATION, JSON.stringify(sanitizedPendingNotification));
+	return sanitizedPendingNotification;
 }
 
 /**

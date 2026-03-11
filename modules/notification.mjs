@@ -136,6 +136,55 @@ export function normalizeNotificationBuilder(builder) {
     };
 }
 
+function createBuilderFromDataObject(dataObject, now = Date.now()) {
+    if (!dataObject || typeof dataObject !== "object" || typeof dataObject.etaName !== "string") {
+        return null;
+    }
+
+    return newNotifBuilder(
+        getCharName(),
+        dataObject.etaName,
+        dataObject.media,
+        now,
+        adjustNotificationDelay(dataObject.timeInMs)
+    );
+}
+
+function getBuilderTargetTime(builder) {
+    return (builder?.requestAt ?? 0) + (builder?.timeInMs ?? 0);
+}
+
+function isPendingBuilderEquivalent(currentBuilder, nextBuilder, toleranceMs = 5000) {
+    if (!currentBuilder || !nextBuilder) {
+        return false;
+    }
+
+    const samePlayer = getNotificationPlayerName(currentBuilder) === getNotificationPlayerName(nextBuilder);
+    const sameAction = currentBuilder.actionName === nextBuilder.actionName;
+    const sameMedia = (currentBuilder.media ?? URL_MELVORIDLE_ICON) === (nextBuilder.media ?? URL_MELVORIDLE_ICON);
+    const targetDelta = Math.abs(getBuilderTargetTime(currentBuilder) - getBuilderTargetTime(nextBuilder));
+
+    return samePlayer && sameAction && sameMedia && targetDelta <= toleranceMs;
+}
+
+function shouldSkipAutoNotify(dataObject) {
+    const candidateBuilder = createBuilderFromDataObject(dataObject);
+    if (!candidateBuilder) {
+        return false;
+    }
+
+    const currentBuilder = normalizeNotificationBuilder(_builder ?? mods.cloudStorage.getCurrentNotification());
+    if (!currentBuilder) {
+        return false;
+    }
+
+    if (getBuilderTargetTime(currentBuilder) <= Date.now()) {
+        return false;
+    }
+
+    return isPendingBuilderEquivalent(currentBuilder, candidateBuilder);
+}
+
 export function adjustNotificationDelay(timeMs) {
     if (timeMs <= 15000) return timeMs - 5000;
     if (timeMs <= 60000) return timeMs - 10000;
@@ -292,15 +341,7 @@ function saveBuilder() {
  * @returns {object} An object with the notification properties (label, desc, media, etaStr).
  */
 function initBuilder(dataObject) {
-    const now = Date.now();
-    const notifBuilder = newNotifBuilder(
-        getCharName(),
-        dataObject.etaName,
-        dataObject.media,
-        now,
-        adjustNotificationDelay(dataObject.timeInMs)
-    );
-    
+    const notifBuilder = createBuilderFromDataObject(dataObject);
     loggerNotif("*", "initBuilder", "New builder created:", notifBuilder);
     return notifBuilder;
 }
@@ -470,6 +511,10 @@ export function onSubmit_fromClick(buttonId) {
  * @returns {boolean} True if a notification was triggered, false otherwise.
  */
 export function onSubmit_fromAutoNotify(buttonId, dataObject) {
+    if (shouldSkipAutoNotify(dataObject)) {
+        loggerNotif("Auto Notif", "onSubmit_fromAutoNotify", "Skip duplicate auto notification", buttonId, dataObject);
+        return false;
+    }
     return onSubmit(buttonId, dataObject, false);
 }
 

@@ -77,7 +77,7 @@ test("cloud storage rejects invalid persisted monster activity and notification 
   assert.equal(setCurrentMonsterData({ invalid: true }), null);
   assert.equal(setCurrentActivityData(["bad"]), null);
   assert.equal(setCurrentNotification({ bad: true }), null);
-  assert.equal(setPendingNotification({ Hero: { bad: true } }), null);
+  assert.deepEqual(setPendingNotification({ Hero: { bad: true } }), {});
 
   assert.equal(getCurrentMonsterData(), null);
   assert.equal(getCurrentActivityData(), null);
@@ -119,5 +119,29 @@ test("cloud storage preserves valid contract-backed records", () => {
   assert.deepEqual(getCurrentMonsterData(), monster);
   assert.deepEqual(getCurrentActivityData(), activity);
   assert.deepEqual(getCurrentNotification(), notification);
+  assert.deepEqual(getPlayerPendingNotification(), notification);
+});
+
+test("cloud storage drops invalid shared notification keys such as Unknown", () => {
+  const characterStorage = createStorage();
+  const accountStorage = createStorage();
+  init(createModules(), characterStorage, accountStorage);
+
+  const notification = {
+    playerName: "Hero",
+    actionName: "Fishing",
+    media: "icon.png",
+    requestAt: 1000,
+    timeInMs: 5000,
+  };
+
+  assert.deepEqual(
+    setPendingNotification({
+      Hero: notification,
+      Unknown: notification,
+      unknown: notification,
+    }),
+    { Hero: notification },
+  );
   assert.deepEqual(getPlayerPendingNotification(), notification);
 });
