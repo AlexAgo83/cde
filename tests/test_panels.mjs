@@ -162,3 +162,32 @@ test("non-combat panel refreshes visible content and throttles repeated calls", 
   assert.match(parent.innerHTML, /cde-fishing-panel/);
   assert.equal(panel.onRefresh("large"), null);
 });
+
+test("non-combat panel refreshes from current activity when runtime game is unavailable", () => {
+  const parent = { innerHTML: "" };
+  const panel = createNonCombatPanel("crafting");
+  panel.init(createModulesFixture({ game: undefined }));
+  panel.setControlsPanelCb(() => "<controls />");
+  panel.setCollectCb(() => ({
+    currentActivity: {
+      Crafting: {
+        skills: {
+          Crafting: {
+            diffTime: 1000,
+            secondsToNextLevel: 5,
+            skillLevel: 1,
+            skillMaxLevel: 99,
+            skillNextLevelProgress: 12.34,
+            predictLevels: {
+              10: { secondsToCap: 20 },
+            },
+          },
+        },
+      },
+    },
+  }));
+
+  panel.container(parent, "summary-crafting", "crafting");
+  assert.equal(panel.onRefresh("large"), true);
+  assert.match(parent.innerHTML, /cde-crafting-panel/);
+});

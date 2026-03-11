@@ -230,7 +230,7 @@ export function createInstance(innerType) {
                 /** @type {{ currentActivity: any }} */
                 dr.activities = mods.getUtils().getIfExist(dr.scan, "currentActivity");
                 
-                if (dr.activities) {
+                if (dr.activities && typeof dr.activities === "object") {
                     /* ETA - Non-Combat */
                     dr.resultTop = [];
                     dr.resultCenter = [];
@@ -238,12 +238,20 @@ export function createInstance(innerType) {
                     dr.resultNotification = mods.getNotification().displayNotification();
                     dr.lazySkills = [];
                     dr.registeredNotify = new Map();
+                    const registeredSkills = Array.from(self._game()?.skills?.registeredObjects ?? []);
+                    const skillRegistry = new Map(
+                        registeredSkills
+                            .filter((skill) => skill?.localID)
+                            .map((skill) => [skill.localID, skill])
+                    );
+                    const activityEntries = Object.entries(dr.activities)
+                        .filter(([, activity]) => activity && typeof activity === "object");
 
-                    self._game().skills?.registeredObjects.forEach((skill) => {
+                    activityEntries.forEach(([activitySkillID, activity]) => {
+                        const skill = skillRegistry.get(activitySkillID)
+                            ?? { localID: activitySkillID, name: activitySkillID, media: null };
                         
                         /* Focus on Activities (only): Non-Combat */
-
-                        const activity = mods.getUtils().getIfExist(dr.activities, skill.localID);
                         const skills = mods.getUtils().getIfExist(activity, "skills");
 
                         /* Has activity to display ? */
@@ -257,10 +265,14 @@ export function createInstance(innerType) {
                                     console.log("[CDE] nonCombatPanel:onRefresh:skills", skills);
                                 }
 
-                                self._game().skills?.registeredObjects.forEach((activeSkill) => {
-                                    const currentSkill = mods.getUtils().getIfExist(skills, activeSkill.localID);
+                                Object.keys(skills).forEach((activeSkillID) => {
+                                    const currentSkill = mods.getUtils().getIfExist(skills, activeSkillID);
+                                    const activeSkill = skillRegistry.get(activeSkillID)
+                                        ?? { localID: activeSkillID, name: activeSkillID, media: null };
                                     if (currentSkill) {
-                                        dr.lazySkills.push(skill.localID);
+                                        if (!dr.lazySkills.includes(skill.localID)) {
+                                            dr.lazySkills.push(skill.localID);
+                                        }
                                         this.onRefreshSkill(dr, currentSkill, activeSkill);
                                     }
                                 });
@@ -283,7 +295,7 @@ export function createInstance(innerType) {
                                     /* Only display active or multi-recipe mastery */
                                     let multiTest = masteryObject.isMultiRecipe;
                                     if (multiTest) {
-                                        const refSkill = mods.getUtils().getIfExist(skills, parentSkillID);
+                                        const refSkill = mods.getUtils().getIfExist(skills ?? {}, parentSkillID);
                                         const recipeEta = mods.getUtils().getIfExist(refSkill, "recipeEta");
                                         multiTest = recipeEta && Object.keys(recipeEta).includes(masteryObject.masteryID);
                                         if (mods.getSettings().isDebug()) 

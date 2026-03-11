@@ -18,6 +18,7 @@ function createFixture({
   sharedNotifyEnabled = true,
   permissionSupported = true,
   permissionResult = "granted",
+  characterName = "Hero Name",
   playerPending = {},
   otherPending = {},
 } = {}) {
@@ -31,7 +32,7 @@ function createFixture({
   init({
     melvorRuntime: {
       getGame() {
-        return { characterName: "Hero Name" };
+        return characterName === null ? {} : { characterName };
       },
     },
     settings: {
@@ -201,4 +202,22 @@ test("displayNotification renders sorted notifications for current and shared bu
     ["dateToLocalString", 3000],
     ["dateToLocalString", 6000],
   ]);
+});
+
+test("displayNotification falls back to Unknown when the runtime has no character name", () => {
+  createFixture({
+    characterName: null,
+    playerPending: {
+      playerName: "ignored",
+      actionName: "Crafting",
+      media: "self.png",
+      requestAt: 1000,
+      timeInMs: 5000,
+    },
+  });
+
+  const rendered = displayNotification();
+
+  assert.equal(rendered.length, 2);
+  assert.match(rendered[1], /unknown/);
 });
