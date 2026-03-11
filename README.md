@@ -126,7 +126,7 @@ This runs:
 
 The README is aligned with the current codebase for:
 
-- single-source versioning from [`modules/version.mjs`](./modules/version.mjs)
+- single-source versioning from [`setup.mjs`](./setup.mjs), re-exported through [`modules/version.mjs`](./modules/version.mjs)
 - local packaging via [`build.sh`](./build.sh)
 - full validation via [`validate.sh`](./validate.sh)
 - active ETA panels, notifications, changelog support, and export flow

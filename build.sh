@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_FILE="modules/version.mjs"
+VERSION_FILE="setup.mjs"
 
 if [[ ! -f "$VERSION_FILE" ]]; then
   echo "❌ File '$VERSION_FILE' not found."

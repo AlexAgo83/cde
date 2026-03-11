@@ -43,7 +43,7 @@ def is_allowed_archive_entry(path: str) -> bool:
 
 
 def validate_release_archive(root: Path) -> list[str]:
-    version = parse_version(root / "modules" / "version.mjs")
+    version = parse_version(root / "setup.mjs")
     archive_path = root / build_archive_name(version)
     if not archive_path.is_file():
         return [f"Archive not found: {archive_path.name}"]

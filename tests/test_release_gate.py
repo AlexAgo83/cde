@@ -22,8 +22,8 @@ class ReleaseGateTests(unittest.TestCase):
 
         (root / "assets").mkdir(parents=True)
         (root / "modules").mkdir(parents=True)
-        (root / "setup.mjs").write_text('import { MOD_VERSION } from "./modules/version.mjs"\n', encoding="utf-8")
-        (root / "modules" / "version.mjs").write_text('export const MOD_VERSION = "v3.0.4"\n', encoding="utf-8")
+        (root / "setup.mjs").write_text('export const MOD_VERSION = "v3.0.4"\n', encoding="utf-8")
+        (root / "modules" / "version.mjs").write_text('export { MOD_VERSION } from "../setup.mjs"\n', encoding="utf-8")
         (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
         (root / "assets" / "icon.png").write_text("icon", encoding="utf-8")
         (root / "assets" / "templates.html").write_text("<div></div>", encoding="utf-8")
@@ -45,8 +45,8 @@ class ReleaseGateTests(unittest.TestCase):
             root,
             {
                 "manifest.json": "{}",
-                "setup.mjs": 'import { MOD_VERSION } from "./modules/version.mjs"\n',
-                "modules/version.mjs": 'export const MOD_VERSION = "v3.0.4"\n',
+                "setup.mjs": 'export const MOD_VERSION = "v3.0.4"\n',
+                "modules/version.mjs": 'export { MOD_VERSION } from "../setup.mjs"\n',
                 "assets/icon.png": "icon",
                 "assets/templates.html": "<div></div>",
                 "modules/sample.mjs": "// sample\n",
@@ -63,8 +63,8 @@ class ReleaseGateTests(unittest.TestCase):
             root,
             {
                 "manifest.json": "{}",
-                "setup.mjs": 'import { MOD_VERSION } from "./modules/version.mjs"\n',
-                "modules/version.mjs": 'export const MOD_VERSION = "v3.0.4"\n',
+                "setup.mjs": 'export const MOD_VERSION = "v3.0.4"\n',
+                "modules/version.mjs": 'export { MOD_VERSION } from "../setup.mjs"\n',
                 "assets/icon.png": "icon",
             },
         )
@@ -83,8 +83,8 @@ class ReleaseGateTests(unittest.TestCase):
             root,
             {
                 "manifest.json": "{}",
-                "setup.mjs": 'import { MOD_VERSION } from "./modules/version.mjs"\n',
-                "modules/version.mjs": 'export const MOD_VERSION = "v3.0.4"\n',
+                "setup.mjs": 'export const MOD_VERSION = "v3.0.4"\n',
+                "modules/version.mjs": 'export { MOD_VERSION } from "../setup.mjs"\n',
                 "assets/icon.png": "icon",
                 "assets/templates.html": "<div></div>",
                 "modules/sample.mjs": "// sample\n",

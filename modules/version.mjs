@@ -4,4 +4,4 @@
 // @ts-check
 // version.mjs
 
-export const MOD_VERSION = "v3.0.17";
+export { MOD_VERSION } from "../setup.mjs";

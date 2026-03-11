@@ -4,7 +4,7 @@
 // @ts-check
 // setup.mjs
 
-import { MOD_VERSION } from "./modules/version.mjs";
+export const MOD_VERSION = "v3.0.17";
 
 // === Plan to 1.4.X ===
 // Stage 0 - Renamed openExportUI callback to onExportOpen
