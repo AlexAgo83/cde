@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  describePatchTargetResolution,
   getNextEtaPosition,
   getNextEtaSize,
   getNextEtaVisibility,
@@ -68,6 +69,46 @@ test("pagesRuntime resolves the first patchable constructor candidate", () => {
   assert.equal(resolvePatchTarget(null, RuntimeCtor, FallbackCtor), RuntimeCtor);
   assert.equal(resolvePatchTarget(undefined, null, FallbackCtor), FallbackCtor);
   assert.equal(resolvePatchTarget(undefined, null, {}), null);
+});
+
+test("pagesRuntime describes patch target selection and method availability", () => {
+  function GlobalCtor() {}
+  GlobalCtor.prototype.tick = function tick() {};
+  function FallbackCtor() {}
+
+  const diagnostics = describePatchTargetResolution({
+    label: "Game",
+    method: "tick",
+    globalTarget: GlobalCtor,
+    fallbackTargets: [FallbackCtor],
+  });
+
+  assert.equal(diagnostics.globalTargetName, "GlobalCtor");
+  assert.equal(diagnostics.globalHasMethod, true);
+  assert.equal(diagnostics.selectedTargetName, "GlobalCtor");
+  assert.equal(diagnostics.selectedSource, "global");
+  assert.equal(diagnostics.selectedHasMethod, true);
+  assert.equal(diagnostics.isPatchable, true);
+  assert.deepEqual(diagnostics.fallbackTargets, [
+    { index: 0, type: "function", name: "FallbackCtor", hasMethod: false },
+  ]);
+});
+
+test("pagesRuntime reports unpatchable targets when the selected constructor lacks the method", () => {
+  function FallbackCtor() {}
+
+  const diagnostics = describePatchTargetResolution({
+    label: "CombatManager",
+    method: "onEnemyDeath",
+    globalTarget: undefined,
+    fallbackTargets: [FallbackCtor],
+  });
+
+  assert.equal(diagnostics.globalTargetType, "undefined");
+  assert.equal(diagnostics.selectedTargetName, "FallbackCtor");
+  assert.equal(diagnostics.selectedSource, "fallback:0");
+  assert.equal(diagnostics.selectedHasMethod, false);
+  assert.equal(diagnostics.isPatchable, false);
 });
 
 test("pagesRuntime computes refresh throttling and shared panel shell markup", () => {

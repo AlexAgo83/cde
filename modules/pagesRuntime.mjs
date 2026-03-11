@@ -22,6 +22,75 @@ export function resolvePatchTarget(...candidates) {
 }
 
 /**
+ * Returns structured diagnostics for a patch target resolution attempt.
+ * @param {{
+ * label: string,
+ * method: string,
+ * globalTarget?: any,
+ * fallbackTargets?: any[],
+ * }} config
+ * @returns {{
+ * label: string,
+ * method: string,
+ * globalTargetType: string,
+ * globalTargetName: string | null,
+ * globalHasMethod: boolean,
+ * fallbackTargets: Array<{ index: number, type: string, name: string | null, hasMethod: boolean }>,
+ * selectedTarget: Function | null,
+ * selectedTargetName: string | null,
+ * selectedSource: string | null,
+ * selectedHasMethod: boolean,
+ * isPatchable: boolean,
+ * }}
+ */
+export function describePatchTargetResolution({
+    label,
+    method,
+    globalTarget = undefined,
+    fallbackTargets = [],
+}) {
+    const normalizedFallbackTargets = Array.isArray(fallbackTargets) ? fallbackTargets : [];
+    const selectedTarget = resolvePatchTarget(globalTarget, ...normalizedFallbackTargets);
+
+    const describeCandidate = (candidate, index = null) => ({
+        ...(index == null ? {} : { index }),
+        type: typeof candidate,
+        name: typeof candidate === "function" ? candidate.name || "anonymous" : null,
+        hasMethod: typeof candidate?.prototype?.[method] === "function",
+    });
+
+    const fallbackDiagnostics = normalizedFallbackTargets.map((candidate, index) =>
+        describeCandidate(candidate, index)
+    );
+
+    let selectedSource = null;
+    if (selectedTarget === globalTarget && typeof globalTarget === "function") {
+        selectedSource = "global";
+    } else {
+        const fallbackIndex = normalizedFallbackTargets.findIndex((candidate) => candidate === selectedTarget);
+        if (fallbackIndex >= 0) {
+            selectedSource = `fallback:${fallbackIndex}`;
+        }
+    }
+
+    const selectedHasMethod = typeof selectedTarget?.prototype?.[method] === "function";
+
+    return {
+        label,
+        method,
+        globalTargetType: typeof globalTarget,
+        globalTargetName: typeof globalTarget === "function" ? globalTarget.name || "anonymous" : null,
+        globalHasMethod: typeof globalTarget?.prototype?.[method] === "function",
+        fallbackTargets: fallbackDiagnostics,
+        selectedTarget,
+        selectedTargetName: typeof selectedTarget === "function" ? selectedTarget.name || "anonymous" : null,
+        selectedSource,
+        selectedHasMethod,
+        isPatchable: typeof selectedTarget === "function" && selectedHasMethod,
+    };
+}
+
+/**
  * Returns the action identifier that should match the current page worker.
  * Alt Magic is surfaced under the Magic page when not in combat.
  * @param {string} localID

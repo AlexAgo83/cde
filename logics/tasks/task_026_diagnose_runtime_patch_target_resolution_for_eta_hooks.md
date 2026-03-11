@@ -1,9 +1,9 @@
 ## task_026_diagnose_runtime_patch_target_resolution_for_eta_hooks - Diagnose runtime patch target resolution for ETA hooks
 > From version: 3.0.8
-> Status: Proposed
+> Status: In progress
 > Understanding: 92%
 > Confidence: 95%
-> Progress: 0%
+> Progress: 35%
 > Complexity: Medium
 > Theme: Reliability
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.

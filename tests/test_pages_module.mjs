@@ -95,13 +95,26 @@ function createModules({
 
 test("pages worker falls back to runtime instance constructors when globals are unavailable", () => {
   function GameCtor() {}
+  GameCtor.prototype.tick = function tick() {};
   function CombatCtor() {}
+  CombatCtor.prototype.onEnemyDeath = function onEnemyDeath() {};
+  CombatCtor.prototype.stop = function stop() {};
   function PlayerCtor() {}
+  PlayerCtor.prototype.damage = function damage() {};
   function EnemyCtor() {}
+  EnemyCtor.prototype.damage = function damage() {};
   function ThievingCtor() {}
+  ThievingCtor.prototype.action = function action() {};
+  ThievingCtor.prototype.stop = function stop() {};
   function AltMagicCtor() {}
+  AltMagicCtor.prototype.action = function action() {};
+  AltMagicCtor.prototype.stop = function stop() {};
   function ArchaeologyCtor() {}
+  ArchaeologyCtor.prototype.action = function action() {};
+  ArchaeologyCtor.prototype.stop = function stop() {};
   function CartographyCtor() {}
+  CartographyCtor.prototype.action = function action() {};
+  CartographyCtor.prototype.stop = function stop() {};
 
   const game = new GameCtor();
   game.combat = new CombatCtor();
