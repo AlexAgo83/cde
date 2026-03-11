@@ -25,7 +25,7 @@ test("pagesRuntime resolves worker action identifiers and page visibility rules"
       localID: "AltMagic",
       isCombat: false,
     }),
-    true,
+    false,
   );
   assert.equal(
     shouldHidePanelForContext({
@@ -41,6 +41,24 @@ test("pagesRuntime resolves worker action identifiers and page visibility rules"
       userPage: { localID: "Fishing" },
       activeAction: { localID: "Fishing" },
       localID: "Fishing",
+      isCombat: false,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldHidePanelForContext({
+      userPage: { localID: "Crafting" },
+      activeAction: { localID: "melvorF:Red_Dhide_Body" },
+      localID: "Crafting",
+      isCombat: false,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldHidePanelForContext({
+      userPage: null,
+      activeAction: { localID: "Crafting" },
+      localID: "Crafting",
       isCombat: false,
     }),
     false,

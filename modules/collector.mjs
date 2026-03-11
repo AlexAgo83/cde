@@ -19,6 +19,29 @@ export function init(modules) {
 function _game() {
 	return mods.getMelvorRuntime().getGame();
 }
+
+function getGameSnapshot() {
+	return _game() ?? {};
+}
+
+function getRegisteredObjects(collection) {
+	return collection?.registeredObjects ?? collection ?? [];
+}
+
+function hasCollectionEntries(collection) {
+	if (!collection) return false;
+	if (Array.isArray(collection)) return collection.length > 0;
+	if (typeof collection.size === "number") return collection.size > 0;
+	if (typeof collection.length === "number") return collection.length > 0;
+
+	let hasEntries = false;
+	if (typeof collection.forEach === "function") {
+		collection.forEach(() => {
+			hasEntries = true;
+		});
+	}
+	return hasEntries;
+}
 function _AltMagicSpell() {
 	return mods.getMelvorRuntime().getGlobal("AltMagicSpell");
 }
@@ -157,8 +180,10 @@ export function collectBasics() {
  * @returns {Object} An object containing the skills and their levels.
  */
 export function collectSkills() {
-	if (_game().skills) {
-		return domain().buildSkillsSnapshot(_game().skills);
+	const game = getGameSnapshot();
+	const skills = getRegisteredObjects(game.skills);
+	if (skills && typeof skills.forEach === "function" && hasCollectionEntries(skills)) {
+		return domain().buildSkillsSnapshot(skills);
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No skills found");
 	}
@@ -170,8 +195,10 @@ export function collectSkills() {
  * @returns {Object} An object containing the mastery progress for each skill.
  */
 export function collectMastery() {
-	if (_game().skills) {
-		return domain().buildMasterySnapshot(_game().skills.registeredObjects);
+	const game = getGameSnapshot();
+	const skills = getRegisteredObjects(game.skills);
+	if (skills && typeof skills.forEach === "function" && hasCollectionEntries(skills)) {
+		return domain().buildMasterySnapshot(skills);
  	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No skills found");
 	}
@@ -183,8 +210,9 @@ export function collectMastery() {
  * @returns {Object} An object containing the player's agility course data.
  */
 export function collectAgility() {
-	if (_game().agility && _game().agility.courses) {
-		return domain().buildAgilitySnapshot(_game().agility.courses);
+	const courses = getGameSnapshot()?.agility?.courses;
+	if (courses && typeof courses.forEach === "function") {
+		return domain().buildAgilitySnapshot(courses);
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No agility found");
 	}
@@ -197,8 +225,9 @@ export function collectAgility() {
  * @returns {Object} An object containing the active potions.
  */
 export function collectActivePotions() {
-	if (_game().potions && _game().potions.activePotions) {
-		return domain().buildActivePotionsSnapshot(_game().potions.activePotions);
+	const activePotions = getGameSnapshot()?.potions?.activePotions;
+	if (activePotions && typeof activePotions.forEach === "function") {
+		return domain().buildActivePotionsSnapshot(activePotions);
 	} else if (mods.getUtils().isDebug()) {
 		console.log("[CDE] Collector: No potions found");
 	}
@@ -212,8 +241,9 @@ export function collectActivePotions() {
  */
 export function collectActivePotionsForDisplay(skillID=null) {
 	const result = {};
-	if (_game().potions && _game().potions.activePotions) {
-		_game().potions.activePotions?.forEach((currPotion, activity) => {
+	const activePotions = getGameSnapshot()?.potions?.activePotions;
+	if (activePotions && typeof activePotions.forEach === "function") {
+		activePotions.forEach((currPotion, activity) => {
 			const item = {
 				activity: activity.localID,
 				potionId: currPotion.item.localID,
@@ -244,7 +274,7 @@ export function collectActivePotionsForDisplay(skillID=null) {
  * @returns {Object} An object containing the player's township data.
  */
 export function collectTownship() {
-	const ts = _game().township;
+	const ts = getGameSnapshot().township ?? {};
 	const data = ts.townData;
 	const tasks = ts.tasks;
 	
@@ -274,9 +304,9 @@ export function collectTownship() {
  */
 export function collectPets() {
 	const result = {};
-
-	if (_game().petManager && _game().petManager.unlocked instanceof Set) {
-		_game().petManager.unlocked.forEach((pet) => {
+	const unlocked = getGameSnapshot()?.petManager?.unlocked;
+	if (unlocked instanceof Set) {
+		unlocked.forEach((pet) => {
 			const item = {
 				name: pet.name,
 				id: pet.localID,
@@ -298,8 +328,12 @@ export function collectPets() {
  */
 export function collectAncientRelics() {
 	const result = {};
-	
-	_game().skills.registeredObjects.forEach((skill) => {
+	const skills = getRegisteredObjects(getGameSnapshot().skills);
+	if (typeof skills?.forEach !== "function") {
+		return result;
+	}
+
+	skills.forEach((skill) => {
 		if (!skill.ancientRelicSets || skill.ancientRelicSets.size === 0) return;
 		
 		const relics = {};
@@ -337,12 +371,13 @@ export function collectAncientRelics() {
  * @returns {Object} An object containing the player's cartography data.
  */
 export function collectCartography() {
-	const maps = _game().cartography?.worldMaps?.registeredObjects;
+	const game = getGameSnapshot();
+	const maps = game.cartography?.worldMaps?.registeredObjects;
 	const result = {};
 	
 	if (!maps || !(maps instanceof Map)) {
 		console.warn("[CDE] Cartography maps not found");
-		return { level: _game().cartography?.level ?? null, maps: result };
+		return { level: game.cartography?.level ?? null, maps: result };
 	}
 	
 	maps.forEach((mapObj, mapKey) => {
@@ -374,7 +409,7 @@ export function collectCartography() {
 	});
 	
 	return {
-		level: _game().cartography.level,
+		level: game.cartography?.level ?? null,
 		maps: result
 	};
 }
@@ -385,14 +420,18 @@ export function collectCartography() {
  */
 export function collectFarming() {
 	const result = {};
-	_game().farming.plots.forEach((plot) => {
+	const farming = getGameSnapshot().farming;
+	if (!farming?.plots || typeof farming.plots.forEach !== "function") {
+		return { level: farming?.level ?? null, plots: result };
+	}
+	farming.plots.forEach((plot) => {
 		const planted = plot.plantedRecipe;
 		if (planted) {
 			const item = { category: plot.category.localID, plotID: plot.localID, crop: planted.name, cropID: planted.localID };
 			result[item.plotID] = item;
 		}
 	});
-	return { level: _game().farming.level, plots: result };
+	return { level: farming?.level ?? null, plots: result };
 }
 
 /**
@@ -405,8 +444,9 @@ export function collectFarming() {
 export function collectGameStats() {
 	const result = {};
 	try {
+		const stats = getGameSnapshot().stats;
 		mods.getDisplayStats().StatTypes.forEach((type) => {
-			const section = mods.getDisplayStats().displayStatsAsObject(_game().stats, type);
+			const section = mods.getDisplayStats().displayStatsAsObject(stats, type);
 			if (section) {
 				const statName = mods.getDisplayStats().StatNameMap.get(type);
 				result[statName] = section;
@@ -463,7 +503,7 @@ export function collectAstrology() {
  */
 export function collectShopData() {
 	const purchases = {};
-	const purchased = _game().shop?.upgradesPurchased;
+	const purchased = getGameSnapshot().shop?.upgradesPurchased;
 	if (purchased && purchased.size > 0) {
 		purchased.forEach((qty, cursor) => {
 			const item = {
@@ -484,8 +524,9 @@ export function collectShopData() {
  */
 export function collectEquipments() {
 	const equipped = {};
-	if (_game().combat && _game().combat.player && _game().combat.player.equipment) {
-		_game().combat.player.equipment.equippedArray.forEach((slotItem) => {
+	const equippedArray = getGameSnapshot()?.combat?.player?.equipment?.equippedArray;
+	if (equippedArray && typeof equippedArray.forEach === "function") {
+		equippedArray.forEach((slotItem) => {
 			if (slotItem.quantity > 0) {
 				equipped[slotItem.slot.localID] = {
 					name: slotItem.item.name,
@@ -509,8 +550,9 @@ export function collectEquipments() {
 export function collectEquipmentSets() {
 	const sets = {};
 	let slotNum = 1;
-	if (_game().combat && _game().combat.player && _game().combat.player.equipmentSets) {
-		_game().combat.player.equipmentSets.forEach((set) => {
+	const equipmentSets = getGameSnapshot()?.combat?.player?.equipmentSets;
+	if (equipmentSets && typeof equipmentSets.forEach === "function") {
+		equipmentSets.forEach((set) => {
 			const gear = {};
 			set.equipment.equippedArray.forEach((item) => {
 				if (item.quantity > 0) {
@@ -537,7 +579,16 @@ export function collectEquipmentSets() {
  */
 export function collectBankData() {
 	const bank = {};
-	_game().bank.items.forEach((entry) => {
+	const game = getGameSnapshot();
+	const items = game.bank?.items;
+	if (!items || typeof items.forEach !== "function") {
+		return {
+			size: items?.size ?? 0,
+			capacity: (game.combat?.player?.modifiers?.bankSpace ?? 0) + (game.bank?.baseSlots ?? 0),
+			items: bank
+		};
+	}
+	items.forEach((entry) => {
 		const item = {
 			name: entry.item.name,
 			id: entry.item.localID,
@@ -547,8 +598,8 @@ export function collectBankData() {
 	});
 	
 	return {
-		size: _game().bank.items.size,
-		capacity: (_game().combat.player.modifiers.bankSpace ?? 0) + _game().bank.baseSlots,
+		size: items.size ?? 0,
+		capacity: (game.combat?.player?.modifiers?.bankSpace ?? 0) + (game.bank?.baseSlots ?? 0),
 		items: bank
 	};
 }
@@ -559,9 +610,10 @@ export function collectBankData() {
  */
 export function collectDungeons() {
 	const result = {};
-	if (_game().combat && _game().combat.dungeonCompletion) {
-		_game().combat?.dungeonCompletion?.keys().forEach((d) => {
-			const count = _game().combat.dungeonCompletion.get(d);
+	const dungeonCompletion = getGameSnapshot()?.combat?.dungeonCompletion;
+	if (dungeonCompletion && typeof dungeonCompletion.keys === "function") {
+		dungeonCompletion.keys().forEach((d) => {
+			const count = dungeonCompletion.get(d);
 			if (count > 0) {
 				result[d.localID] = { name: d.name, id: d.localID, completions: count }
 			}
@@ -580,8 +632,9 @@ export function collectDungeons() {
  */
 export function collectStrongholds() {
 	const result = {};
-	if (_game().strongholds && _game().strongholds.namespaceMaps) {
-		_game().strongholds.namespaceMaps.forEach((e) => {
+	const namespaceMaps = getGameSnapshot()?.strongholds?.namespaceMaps;
+	if (namespaceMaps && typeof namespaceMaps.forEach === "function") {
+		namespaceMaps.forEach((e) => {
 			e.forEach((s) => {
 				if (s.timesCompleted > 0) {
 					result[s.localID] = { name: s.name, id: s.localID, completions: s.timesCompleted };
@@ -699,15 +752,17 @@ export function collectCurrentActivity(onCombat, onNonCombat, onActiveSkill, onS
 					let recipeID = selectedRecipe.localID;
 					let recipeMaxLvl = skill.masteryLevelCap;
 					let mastery = a.actionMastery?.get(selectedRecipe);
+					const altMagicSpellCtor = _AltMagicSpell();
+					const pointOfInterestCtor = _PointOfInterest();
 
 					/* Custom: Thieving, Mining, ... */
 					if (!mastery && selectedRecipe) {
-						if (selectedRecipe instanceof _AltMagicSpell()) {
+						if (typeof altMagicSpellCtor === "function" && selectedRecipe instanceof altMagicSpellCtor) {
 							mastery = a;
 							if (mods.getSettings().isDebug()) {
 								console.log("[CDE] collectCurrentActivity:altMagic:customQueue: ", mastery);
 							}	
-						} else if (selectedRecipe instanceof _PointOfInterest()) {
+						} else if (typeof pointOfInterestCtor === "function" && selectedRecipe instanceof pointOfInterestCtor) {
 							mastery = a;
 							if (mods.getSettings().isDebug()) {
 								console.log("[CDE] collectCurrentActivity:Cartography:customQueue: ", mastery);

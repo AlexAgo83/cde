@@ -235,7 +235,7 @@ function getCurrentRuntimeContext() {
     const userPage = game?.openPage ?? null;
     const isCombat = game?.combat?.isActive ?? false;
     const activeAction = game?.activeAction ?? null;
-    const hasValidPage = Boolean(userPage?.localID && userPage?.containerID);
+    const hasValidPage = Boolean(userPage?.localID);
 
     return {
         userPage,
@@ -244,6 +244,90 @@ function getCurrentRuntimeContext() {
         hasValidPage,
         isRuntimeActivityActive: Boolean(isCombat || activeAction?.localID),
     };
+}
+
+function getLocalIDFromIdentifier(identifier) {
+    switch (identifier) {
+        case "combat":
+            return "Combat";
+        case "woodcutting":
+            return "Woodcutting";
+        case "fishing":
+            return "Fishing";
+        case "firemaking":
+            return "Firemaking";
+        case "cooking":
+            return "Cooking";
+        case "mining":
+            return "Mining";
+        case "smithing":
+            return "Smithing";
+        case "thieving":
+            return "Thieving";
+        case "fletching":
+            return "Fletching";
+        case "crafting":
+            return "Crafting";
+        case "runecraft":
+            return "Runecrafting";
+        case "herblore":
+            return "Herblore";
+        case "agility":
+            return "Agility";
+        case "summoning":
+            return "Summoning";
+        case "astrology":
+            return "Astrology";
+        case "magic":
+            return "Magic";
+        case "archaeology":
+            return "Archaeology";
+        case "cartography":
+            return "Cartography";
+        default:
+            return null;
+    }
+}
+
+function isVisiblePageContainer(targetPage) {
+    const container = typeof document !== "undefined"
+        ? document.querySelector(targetPage)
+        : null;
+    if (!(container instanceof Element)) {
+        return false;
+    }
+    const style = getComputedStyle(container);
+    if (style.display === "none" || style.visibility === "hidden") {
+        return false;
+    }
+    const rect = container.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+}
+
+function refreshPanelsFromVisibleContainers(activeAction) {
+    pageObservers.forEach((reference) => {
+        if (!isVisiblePageContainer(reference.targetPage)) {
+            return;
+        }
+
+        const localID = getLocalIDFromIdentifier(reference.identifier);
+        if (!localID) {
+            return;
+        }
+
+        const panel = getContextPanels({ localID }, localID === "Combat")[0]?.panel ?? null;
+        if (!panel) {
+            return;
+        }
+
+        doWorker(
+            { localID, containerID: reference.targetPage },
+            localID === "Combat",
+            activeAction,
+            panel,
+            localID,
+        );
+    });
 }
 
 function getContextPanels(userPage, isCombat) {
@@ -314,6 +398,7 @@ function startRuntimePolling() {
         wasRuntimeActivityActive = context.isRuntimeActivityActive;
 
         if (!context.hasValidPage) {
+            refreshPanelsFromVisibleContainers(context.activeAction);
             return;
         }
         refreshPanelsForContext(context.userPage, context.isCombat, context.activeAction);

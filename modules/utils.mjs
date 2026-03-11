@@ -19,11 +19,60 @@ function _exp()  {  return exp;  }
  */
 export function init(modules) {
   mods = modules;
+  _mappedSkills = null;
 }
 
 /* MOCK */
 function _game() {
 	return mods.getMelvorRuntime().getGame();
+}
+
+function toArray(collection) {
+	const resolved = collection?.registeredObjects ?? collection;
+
+	if (Array.isArray(resolved)) {
+		return resolved;
+	}
+	if (resolved instanceof Map || resolved instanceof Set) {
+		return Array.from(resolved.values());
+	}
+	if (resolved && typeof resolved[Symbol.iterator] === "function") {
+		return Array.from(resolved);
+	}
+	if (typeof resolved?.forEach === "function") {
+		const items = [];
+		resolved.forEach((value) => {
+			items.push(value);
+		});
+		return items;
+	}
+	return [];
+}
+
+function getActiveActionAliases(activeAction) {
+	const aliases = new Set();
+	if (typeof activeAction?.localID === "string") {
+		aliases.add(activeAction.localID);
+		if (activeAction.localID === "AltMagic") aliases.add("Magic");
+		if (activeAction.localID === "Magic") aliases.add("AltMagic");
+	}
+	if (typeof activeAction?.skillID === "string") {
+		aliases.add(activeAction.skillID);
+	}
+	return aliases;
+}
+
+function dedupeByLocalID(items) {
+	const result = [];
+	const seen = new Set();
+	items.forEach((item) => {
+		if (!item) return;
+		const key = item.localID ?? item.id ?? item;
+		if (seen.has(key)) return;
+		seen.add(key);
+		result.push(item);
+	});
+	return result;
 }
 
 /**
@@ -433,7 +482,7 @@ export function parseNextMasteries(currMasteryLvl, masteryLvlCap = 99) {
  * @returns {Object} The original map of skills
  */
 export function getSkills() {
-	return _game()?.skills ?? [];
+	return toArray(_game()?.skills);
 }
 
 /**
@@ -474,14 +523,50 @@ export function getActiveAction() {
  * @returns {Object} The active actions
  */
 export function getActiveActions() {
-	return _game()?.activeActions ?? { registeredObjects: [] };
+	const actions = toArray(_game()?.activeActions).filter((action) => action?.isActive);
+	if (actions.length > 0) {
+		return { registeredObjects: actions };
+	}
+
+	const activeAction = getActiveAction();
+	if (!activeAction) {
+		return { registeredObjects: [] };
+	}
+
+	return {
+		registeredObjects: [
+			activeAction?.isActive === true
+				? activeAction
+				: { ...activeAction, isActive: true }
+		]
+	};
 }
 /**
  * Get the active skills
  * @returns {Object} The active skills
  */
 export function getActiveSkills() {
-	return getActiveAction()?.activeSkills ?? [];
+	const activeAction = getActiveAction();
+	if (!activeAction) {
+		return [];
+	}
+
+	const activeSkills = toArray(activeAction.activeSkills);
+	if (activeSkills.length > 0) {
+		return activeSkills;
+	}
+
+	const aliases = getActiveActionAliases(activeAction);
+	const matchedSkills = getSkills().filter((skill) => aliases.has(skill?.localID));
+	if (matchedSkills.length > 0) {
+		return dedupeByLocalID(matchedSkills);
+	}
+
+	if (typeof activeAction?.level !== "undefined" || typeof activeAction?.xp !== "undefined") {
+		return [activeAction];
+	}
+
+	return [];
 }
 
 /**

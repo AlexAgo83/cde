@@ -202,10 +202,15 @@ export function resolveWorkerActionID(localID, isCombat) {
  * @returns {boolean}
  */
 export function shouldHidePanelForContext({ userPage, activeAction, localID, isCombat }) {
-    const pageMismatch = Boolean(userPage?.localID) && userPage.localID !== localID;
-    const expectedActionID = resolveWorkerActionID(localID, isCombat);
-    const actionMismatch = Boolean(activeAction?.localID) && activeAction.localID !== expectedActionID;
-    return pageMismatch || actionMismatch;
+    const expectedIDs = new Set([localID, resolveWorkerActionID(localID, isCombat)]);
+
+    if (Boolean(userPage?.localID)) {
+        return !expectedIDs.has(userPage.localID);
+    }
+    if (Boolean(activeAction?.localID)) {
+        return !expectedIDs.has(activeAction.localID);
+    }
+    return false;
 }
 
 /**

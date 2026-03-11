@@ -44,3 +44,43 @@ test("active action helpers fall back safely when runtime game state is not read
     assert.equal(utils.getDungeonCount({ localID: "Dungeon" }), 0);
     assert.equal(utils.getQteInBank({ localID: "Item" }), 0);
 });
+
+test("active action helpers infer state from activeAction when active collections are unavailable", () => {
+    const craftingSkill = {
+        localID: "Crafting",
+        xp: 123,
+        level: 99,
+    };
+    const activeAction = {
+        localID: "Crafting",
+        xp: 456,
+        level: 100,
+    };
+
+    utils.init({
+        getMelvorRuntime() {
+            return {
+                getGame() {
+                    return {
+                        activeAction,
+                        skills: {
+                            registeredObjects: [craftingSkill],
+                        },
+                    };
+                },
+            };
+        },
+        getSettings() {
+            return {
+                isCfg() {
+                    return false;
+                },
+            };
+        },
+    });
+
+    assert.equal(utils.getActiveActions().registeredObjects.length, 1);
+    assert.equal(utils.getActiveActions().registeredObjects[0].localID, "Crafting");
+    assert.equal(utils.getActiveActions().registeredObjects[0].isActive, true);
+    assert.deepEqual(utils.getActiveSkills(), [craftingSkill]);
+});
