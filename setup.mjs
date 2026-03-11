@@ -4,6 +4,8 @@
 // @ts-check
 // setup.mjs
 
+import { MOD_VERSION } from "./modules/version.mjs";
+
 // === Plan to 1.4.X ===
 // Stage 0 - Renamed openExportUI callback to onExportOpen
 // Stage 1 – Unified data collection (processCollectData)
@@ -61,8 +63,6 @@
 // TODO : Improve controls (No delay)
 
 // --- Configuration ---
-const MOD_VERSION = "v3.0.16";
-
 function logLifecycle(step, phase, details) {
 	if (details === undefined) {
 		console.info(`[CDE] setup:${step}:${phase}`);

@@ -1,16 +1,16 @@
 #!/bin/bash
 
-SETUP_FILE="setup.mjs"
+VERSION_FILE="modules/version.mjs"
 
-if [[ ! -f "$SETUP_FILE" ]]; then
-  echo "❌ File '$SETUP_FILE' not found."
+if [[ ! -f "$VERSION_FILE" ]]; then
+  echo "❌ File '$VERSION_FILE' not found."
   exit 1
 fi
 
-VERSION=$(grep 'const MOD_VERSION' "$SETUP_FILE" | sed -E 's/.*"v([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+VERSION=$(grep 'export const MOD_VERSION' "$VERSION_FILE" | sed -E 's/.*"v([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
 
 if [[ -z "$VERSION" ]]; then
-  echo "❌ Can't extract version value from '$SETUP_FILE'."
+  echo "❌ Can't extract version value from '$VERSION_FILE'."
   exit 1
 fi
 

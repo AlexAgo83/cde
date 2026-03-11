@@ -13,6 +13,7 @@ import {
   isNotificationBuilderContract,
   isPendingNotificationStoreContract,
 } from "../modules/contracts.mjs";
+import { MOD_VERSION } from "../modules/version.mjs";
 
 test("settings and persisted-setting contracts accept valid shapes", () => {
   const reference = { section: "General", key: "autoExport", toggle: true };
@@ -39,7 +40,7 @@ test("export meta contract validates stable export meta payload shape", () => {
       processBuffer: 250,
       isFullExport: true,
       gameVersion: "1.3.0",
-      modVersion: "v3.0.16",
+      modVersion: MOD_VERSION,
     }),
     true
   );
@@ -52,7 +53,7 @@ test("export meta contract validates stable export meta payload shape", () => {
       processBuffer: 250,
       isFullExport: true,
       gameVersion: "1.3.0",
-      modVersion: "v3.0.16",
+      modVersion: MOD_VERSION,
     }),
     false
   );

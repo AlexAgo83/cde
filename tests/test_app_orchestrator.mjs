@@ -8,6 +8,7 @@ import {
   loadCharacterData,
   prepareInterface,
 } from "../modules/appOrchestrator.mjs";
+import { MOD_VERSION } from "../modules/version.mjs";
 
 function createModules({
   autoExportStored,
@@ -110,13 +111,13 @@ function createModules({
 
 test("createCollectDataUseCase wires ETA callbacks and injects mod version", () => {
   const fixture = createModules({ processCollectDataReturn: { exported: true } });
-  init(fixture.modules, "v3.0.16");
+  init(fixture.modules, MOD_VERSION);
 
   const collectData = createCollectDataUseCase();
   const value = collectData(true, 125);
 
   assert.deepEqual(value, { exported: true });
-  assert.equal(fixture.getMetaVersion(), "v3.0.16");
+  assert.equal(fixture.getMetaVersion(), MOD_VERSION);
   assert.deepEqual(fixture.getExportCollectArgs().slice(0, 6), [
     "combat",
     "nonCombat",
@@ -129,21 +130,21 @@ test("createCollectDataUseCase wires ETA callbacks and injects mod version", () 
 
 test("shouldAutoExportOnLoad prefers persisted setting when available", () => {
   const fixture = createModules({ autoExportStored: true, autoExportFallback: false });
-  init(fixture.modules, "v3.0.16");
+  init(fixture.modules, MOD_VERSION);
 
   assert.equal(shouldAutoExportOnLoad(), true);
 });
 
 test("shouldAutoExportOnLoad falls back to settings flag when storage is undefined", () => {
   const fixture = createModules({ autoExportStored: undefined, autoExportFallback: true });
-  init(fixture.modules, "v3.0.16");
+  init(fixture.modules, MOD_VERSION);
 
   assert.equal(shouldAutoExportOnLoad(), true);
 });
 
 test("loadCharacterData initializes modules and triggers auto export only when enabled", async () => {
   const fixture = createModules({ autoExportStored: true });
-  init(fixture.modules, "v3.0.16");
+  init(fixture.modules, MOD_VERSION);
 
   let collectCalls = 0;
   await loadCharacterData("settings", "character", "account", () => {
@@ -161,7 +162,7 @@ test("loadCharacterData initializes modules and triggers auto export only when e
 
 test("prepareInterface loads views and binds collect callback before starting page worker", async () => {
   const fixture = createModules({ etaDisplay: true });
-  init(fixture.modules, "v3.0.16");
+  init(fixture.modules, MOD_VERSION);
 
   const collectData = () => {};
   const ctx = { id: "ctx" };

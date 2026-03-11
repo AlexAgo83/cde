@@ -11,14 +11,14 @@ from pathlib import Path
 
 ALLOWED_ARCHIVE_ROOTS = ("assets/", "libs/", "modules/", "views/", "pages/")
 ALLOWED_ARCHIVE_FILES = {"manifest.json", "setup.mjs", "modules.mjs"}
-VERSION_PATTERN = re.compile(r'const MOD_VERSION = "v([0-9]+\.[0-9]+\.[0-9]+)"')
+VERSION_PATTERN = re.compile(r'export const MOD_VERSION = "v([0-9]+\.[0-9]+\.[0-9]+)"')
 
 
-def parse_version(setup_path: Path) -> str:
-    content = setup_path.read_text(encoding="utf-8")
+def parse_version(version_path: Path) -> str:
+    content = version_path.read_text(encoding="utf-8")
     match = VERSION_PATTERN.search(content)
     if not match:
-        raise ValueError(f"Could not extract MOD_VERSION from {setup_path}")
+        raise ValueError(f"Could not extract MOD_VERSION from {version_path}")
     return match.group(1)
 
 
@@ -43,7 +43,7 @@ def is_allowed_archive_entry(path: str) -> bool:
 
 
 def validate_release_archive(root: Path) -> list[str]:
-    version = parse_version(root / "setup.mjs")
+    version = parse_version(root / "modules" / "version.mjs")
     archive_path = root / build_archive_name(version)
     if not archive_path.is_file():
         return [f"Archive not found: {archive_path.name}"]
