@@ -4,3 +4,6 @@
 .env.*
 !.env.example
 cde-*.zip
+.playwright-cli/
+output/playwright/login/
+output/playwright/profile/

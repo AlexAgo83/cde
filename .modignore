@@ -1,0 +1,17 @@
+.DS_Store
+.git
+.github
+.gitignore
+.gitmodules
+.playwright-cli
+.vscode
+.env
+.env.*
+README.md
+build.sh
+validate.sh
+cde-*.zip
+logics
+output
+scripts
+tests
