@@ -1,6 +1,11 @@
 ## adr_000_runtime_boundary_and_rewrite_preparation - Runtime boundary and rewrite preparation
 > Date: 2026-03-10
 > Status: Proposed
+> Drivers: Preserve current behavior while preparing a future rewrite behind explicit runtime boundaries, stronger contracts, and incremental migration seams.
+> Related request: req_004_prepare_clean_architecture_rewrite_after_stabilization
+> Related backlog: item_003_prepare_a_clean_architecture_rewrite_after_stabilization
+> Related task: task_003_prepare_a_clean_architecture_rewrite_after_stabilization
+> Reminder: Update status, drivers, and linked request/backlog/task references when you edit this doc.
 
 # Context
 The project now has initial stabilization work and a lightweight validation path, but the mod architecture is still tightly coupled to the live Melvor runtime.
@@ -14,6 +19,14 @@ Current coupling points include:
 
 That architecture is acceptable for the current codebase, but it is not the long-term target for a cleaner rewrite.
 The rewrite should not start immediately. It should begin only after stabilization and validation work are sufficiently mature.
+
+```mermaid
+flowchart LR
+    Current[Current tightly coupled runtime] --> Stabilize[Stabilize and validate current behavior]
+    Stabilize --> Prepare[Define runtime boundaries and migration seams]
+    Prepare --> Extract[Extract domain logic incrementally]
+    Extract --> Target[Reach a cleaner rewrite target with lower regression risk]
+```
 
 # Decision
 When the project is ready for a broader rewrite, the target architecture should be based on explicit runtime boundaries and progressive extraction of pure domain logic.
