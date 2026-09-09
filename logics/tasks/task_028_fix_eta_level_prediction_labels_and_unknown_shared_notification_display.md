@@ -7,6 +7,7 @@
 > Complexity: Low
 > Theme: UI
 > Reminder: Update status/understanding/confidence/progress and dependencies/references when you edit this doc.
+> Indicators reviewed: 2026-09-09 13:48:21
 
 # Context
 - Derived from backlog item `item_023_fix_eta_level_prediction_labels_and_unknown_shared_notification_display`.
@@ -31,7 +32,7 @@ flowchart LR
 # AC Traceability
 - AC1 -> Prediction entries now carry `targetLevel`, and non-combat rendering prefers it over raw object keys. Proof: [etaDomain.mjs](/Users/alexandreagostini/Documents/cde/modules/etaDomain.mjs), [eta.mjs](/Users/alexandreagostini/Documents/cde/modules/eta.mjs), [nonCombatPanel.mjs](/Users/alexandreagostini/Documents/cde/pages/nonCombatPanel.mjs).
 - AC2 -> Shared notification display filters `Unknown` entries before rendering. Proof: [notification.mjs](/Users/alexandreagostini/Documents/cde/modules/notification.mjs).
-- AC3 -> Covered by [test_eta_domain.mjs](/Users/alexandreagostini/Documents/cde/tests/test_eta_domain.mjs), [test_panels.mjs](/Users/alexandreagostini/Documents/cde/tests/test_panels.mjs), [test_notification.mjs](/Users/alexandreagostini/Documents/cde/tests/test_notification.mjs).
+- AC3 -> Regression tests cover the corrected mapping and rendering behavior. Proof: [test_eta_domain.mjs](/Users/alexandreagostini/Documents/cde/tests/test_eta_domain.mjs), [test_panels.mjs](/Users/alexandreagostini/Documents/cde/tests/test_panels.mjs), [test_notification.mjs](/Users/alexandreagostini/Documents/cde/tests/test_notification.mjs).
 
 # Links
 - Backlog item: `item_023_fix_eta_level_prediction_labels_and_unknown_shared_notification_display`

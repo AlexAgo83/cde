@@ -7,6 +7,7 @@
 > Complexity: Low
 > Theme: UI
 > Reminder: Update status/understanding/confidence/progress and linked task references when you edit this doc.
+> Indicators reviewed: 2026-09-09 13:48:21
 
 # Problem
 - Non-combat ETA panels render prediction map keys directly, which can leak XP cap values into the UI (`to 104273167`) instead of target levels.
@@ -38,7 +39,7 @@ flowchart LR
 # AC Traceability
 - AC1 -> [etaDomain.mjs](/Users/alexandreagostini/Documents/cde/modules/etaDomain.mjs), [eta.mjs](/Users/alexandreagostini/Documents/cde/modules/eta.mjs), [nonCombatPanel.mjs](/Users/alexandreagostini/Documents/cde/pages/nonCombatPanel.mjs). Proof: [test_eta_domain.mjs](/Users/alexandreagostini/Documents/cde/tests/test_eta_domain.mjs), [test_panels.mjs](/Users/alexandreagostini/Documents/cde/tests/test_panels.mjs).
 - AC2 -> [notification.mjs](/Users/alexandreagostini/Documents/cde/modules/notification.mjs). Proof: [test_notification.mjs](/Users/alexandreagostini/Documents/cde/tests/test_notification.mjs).
-- AC3 -> `node --test tests/test_eta_domain.mjs tests/test_panels.mjs tests/test_notification.mjs` and broader Node validation pass.
+- AC3 -> `node --test tests/test_eta_domain.mjs tests/test_panels.mjs tests/test_notification.mjs` and broader Node validation pass. Proof: [test_eta_domain.mjs](/Users/alexandreagostini/Documents/cde/tests/test_eta_domain.mjs), [test_panels.mjs](/Users/alexandreagostini/Documents/cde/tests/test_panels.mjs), [test_notification.mjs](/Users/alexandreagostini/Documents/cde/tests/test_notification.mjs).
 
 # Links
 - Request: `req_024_fix_eta_level_prediction_labels_and_unknown_shared_notification_display`
