@@ -1,6 +1,6 @@
 ## adr_000_runtime_boundary_and_rewrite_preparation - Runtime boundary and rewrite preparation
 > Date: 2026-03-10
-> Status: Proposed
+> Status: Settled
 > Drivers: Preserve current behavior while preparing a future rewrite behind explicit runtime boundaries, stronger contracts, and incremental migration seams.
 > Related request: req_004_prepare_clean_architecture_rewrite_after_stabilization
 > Related backlog: item_003_prepare_a_clean_architecture_rewrite_after_stabilization
