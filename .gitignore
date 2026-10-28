@@ -7,3 +7,5 @@ cde-*.zip
 .playwright-cli/
 output/playwright/login/
 output/playwright/profile/
+AGENTS.md
+LOGICS.md
